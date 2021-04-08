@@ -2,7 +2,7 @@ import copy
 from tensorflow.keras.callbacks import Callback
 
 
-class NBatchLogger(Callback):
+class BatchLogger(Callback):
     """A Logger that logs metrics per batch steps instead of per epoch step."""
     def __init__(self):
         super().__init__()
