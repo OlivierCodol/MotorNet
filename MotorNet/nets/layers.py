@@ -3,7 +3,7 @@ import tensorflow as tf
 from tensorflow.keras.layers import Layer, GRUCell, Dense
 
 
-class MultiLayerRNN(Layer):
+class GRUController(Layer):
     def __init__(
             self,
             plant,
@@ -25,7 +25,6 @@ class MultiLayerRNN(Layer):
                            tf.TensorShape([plant.muscle_state_dim, plant.n_muscles]),
                            tf.TensorShape([plant.state_dim, self.proprioceptive_delay]),
                            tf.TensorShape([plant.state_dim, self.visual_delay])]
-
         # hidden states for GRU layer(s)
         for n in n_units:
             self.state_size.append(tf.TensorShape([n]))
@@ -39,7 +38,7 @@ class MultiLayerRNN(Layer):
         self.n_units = n_units
         self.layers = []
         self.built = False
-        super(MultiLayerRNN, self).__init__(**kwargs)
+        super(GRUController, self).__init__(**kwargs)
 
     def build(self, input_shapes):
         for k in range(self.n_hidden_layers):
@@ -53,7 +52,7 @@ class MultiLayerRNN(Layer):
                              activation='sigmoid',
                              name='output_layer',
                              bias_initializer=tf.initializers.Constant(value=-5),
-                             kernel_initializer=tf.initializers.random_normal(stddev=10**-3))
+                             kernel_initializer=tf.initializers.random_normal(stddev=10 ** -3))
         self.layers.append(output_layer)
         self.built = True
 
@@ -63,43 +62,59 @@ class MultiLayerRNN(Layer):
 
     @tf.autograph.experimental.do_not_convert
     def call(self, inputs, states=None, **kwargs):
-        if states is None:
-            states = self.get_initial_state(inputs=inputs)
-
-        # inputs are target cartesian states (the goal)
+        # unpack states
         old_joint_pos = states[0]
         old_muscle_state = states[2]
         old_proprio_feedback = states[3]
         old_visual_feedback = states[4]
         old_hidden_states = states[5:]
+        new_hidden_states_dict = {}
         new_hidden_states = []
 
+        # take out feedback backlog
         proprio_backlog = tf.slice(old_proprio_feedback, [0, 0, 1], [-1, -1, -1])
         visual_backlog = tf.slice(old_visual_feedback, [0, 0, 1], [-1, -1, -1])
 
+        # concatenate inputs for this timestep
         proprio_fb = tf.squeeze(tf.slice(old_proprio_feedback, [0, 0, 0], [-1, -1, 1]), axis=-1)
         visual_fb = tf.squeeze(tf.slice(old_visual_feedback, [0, 0, 0], [-1, -1, 1]), axis=-1)
         x = tf.concat((proprio_fb, visual_fb, inputs), axis=-1)
+
+        # forward pass
         for k in range(self.n_hidden_layers):
             x, new_hidden_state = self.layers[k](x, old_hidden_states[k])
+            new_hidden_states_dict['gru_hidden' + str(k)] = new_hidden_state
             new_hidden_states.append(new_hidden_state)
-
         u = self.layers[-1](x)
-
         jstate, cstate, mstate = self.plant(u, old_joint_pos, old_muscle_state)
+
+        # update feedback backlog
         new_proprio_feedback = tf.concat([proprio_backlog, jstate[:, :, tf.newaxis]], axis=2)
         new_visual_feedback = tf.concat([visual_backlog, cstate[:, :, tf.newaxis]], axis=2)
+
+        # pack new states
         new_states = [jstate, cstate, mstate, new_proprio_feedback, new_visual_feedback]
         new_states.extend(new_hidden_states)
-        return new_states, new_states
+
+        # pack output
+        output = {'joint position': jstate,
+                  'cartesian position': cstate,
+                  'muscle state': mstate,
+                  'proprioceptive feedback': new_proprio_feedback,
+                  'visual feedback': new_visual_feedback,
+                  **new_hidden_states_dict}
+
+        return output, new_states
 
     def get_initial_state(self, inputs=None, batch_size=1, dtype=tf.float32):
         if inputs is not None:
             batch_size = tf.shape(inputs)[0]
-        hidden_states = [tf.zeros((batch_size, n_units)) for n_units in self.n_units]
+
         states = self.plant.get_initial_states(batch_size=batch_size)
+        hidden_states = [tf.zeros((batch_size, n_units), dtype=dtype) for n_units in self.n_units]
         proprio_feedback = tf.tile(states[0][:, :, tf.newaxis], [1, 1, self.proprioceptive_delay])
         visual_feedback = tf.tile(states[1][:, :, tf.newaxis], [1, 1, self.visual_delay])
+
         states.append(proprio_feedback)
         states.append(visual_feedback)
         states.extend(hidden_states)
