@@ -3,7 +3,7 @@ import tensorflow as tf
 
 
 class Arm:
-    def __init__(self, timestep=0.001, proprioceptive_delay=0.04, visual_delay=0.13):
+    def __init__(self, timestep=0.01, **kwargs):
         self.dof = 2  # degrees of freedom of the skeleton (eg number of joints)
         self.space_dim = 2  # the dimensionality of the space (eg 2 for cartesian xy space)
         self.input_dim = 6  # 6 muscles
@@ -12,6 +12,10 @@ class Arm:
         self.muscle_state_dim = 5
         self.n_muscles = 6
         self.dt = timestep
+
+        # default is no delay
+        proprioceptive_delay = kwargs.get('proprioceptive_delay', timestep)
+        visual_delay = kwargs.get('visual_delay', timestep)
         self.proprioceptive_delay = int(proprioceptive_delay / self.dt)
         self.visual_delay = int(visual_delay / self.dt)
 
