@@ -20,11 +20,12 @@ class GRUController(Layer):
         # plant states
         self.proprioceptive_delay = plant.proprioceptive_delay
         self.visual_delay = plant.visual_delay
-        self.state_size = [tf.TensorShape([plant.state_dim]),
-                           tf.TensorShape([plant.state_dim]),
+        self.state_size = [tf.TensorShape([plant.output_dim]),
+                           tf.TensorShape([plant.output_dim]),
                            tf.TensorShape([plant.muscle_state_dim, plant.n_muscles]),
-                           tf.TensorShape([plant.state_dim, self.proprioceptive_delay]),
-                           tf.TensorShape([plant.state_dim, self.visual_delay])]
+                           tf.TensorShape([plant.geometry_state_dim, plant.n_muscles]),
+                           tf.TensorShape([plant.output_dim, self.proprioceptive_delay]),
+                           tf.TensorShape([plant.output_dim, self.visual_delay])]
         # hidden states for GRU layer(s)
         for n in n_units:
             self.state_size.append(tf.TensorShape([n]))
@@ -38,7 +39,7 @@ class GRUController(Layer):
         self.n_units = n_units
         self.layers = []
         self.built = False
-        super(GRUController, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def build(self, input_shapes):
         for k in range(self.n_hidden_layers):
@@ -65,9 +66,10 @@ class GRUController(Layer):
         # unpack states
         old_joint_pos = states[0]
         old_muscle_state = states[2]
-        old_proprio_feedback = states[3]
-        old_visual_feedback = states[4]
-        old_hidden_states = states[5:]
+        old_geometry_state = states[3]
+        old_proprio_feedback = states[4]
+        old_visual_feedback = states[5]
+        old_hidden_states = states[6:]
         new_hidden_states_dict = {}
         new_hidden_states = []
 
@@ -86,20 +88,21 @@ class GRUController(Layer):
             new_hidden_states_dict['gru_hidden' + str(k)] = new_hidden_state
             new_hidden_states.append(new_hidden_state)
         u = self.layers[-1](x)
-        jstate, cstate, mstate = self.plant(u, old_joint_pos, old_muscle_state)
+        jstate, cstate, mstate, gstate = self.plant(u, old_joint_pos, old_muscle_state, old_geometry_state)
 
         # update feedback backlog
         new_proprio_feedback = tf.concat([proprio_backlog, jstate[:, :, tf.newaxis]], axis=2)
         new_visual_feedback = tf.concat([visual_backlog, cstate[:, :, tf.newaxis]], axis=2)
 
         # pack new states
-        new_states = [jstate, cstate, mstate, new_proprio_feedback, new_visual_feedback]
+        new_states = [jstate, cstate, mstate, gstate, new_proprio_feedback, new_visual_feedback]
         new_states.extend(new_hidden_states)
 
         # pack output
         output = {'joint position': jstate,
                   'cartesian position': cstate,
                   'muscle state': mstate,
+                  'geometry state': gstate,
                   'proprioceptive feedback': new_proprio_feedback,
                   'visual feedback': new_visual_feedback,
                   **new_hidden_states_dict}
@@ -110,7 +113,7 @@ class GRUController(Layer):
         if inputs is not None:
             batch_size = tf.shape(inputs)[0]
 
-        states = self.plant.get_initial_states(batch_size=batch_size)
+        states = self.plant.get_initial_state(batch_size=batch_size)
         hidden_states = [tf.zeros((batch_size, n_units), dtype=dtype) for n_units in self.n_units]
         proprio_feedback = tf.tile(states[0][:, :, tf.newaxis], [1, 1, self.proprioceptive_delay])
         visual_feedback = tf.tile(states[1][:, :, tf.newaxis], [1, 1, self.visual_delay])
