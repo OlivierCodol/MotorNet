@@ -326,8 +326,8 @@ class Skeleton:
         segment_len = tf.sqrt(tf.reduce_sum(diff_pos ** 2, axis=1, keepdims=True))
         # segment velocity is trickier: we are not after radial velocity but relative velocity.
         # https://math.stackexchange.com/questions/1481701/time-derivative-of-the-distance-between-2-points-moving-over-time
-        # formally, if segment_len=0 then segment_vel is not defined. substituing with 0 is OK here because a
-        # muscle segment will never flip backward, so the velocity can only be positive afterwards
+        # Formally, if segment_len=0 then segment_vel is not defined. We could substitute with 0 here because a
+        # muscle segment will never flip backward, so the velocity can only be positive afterwards anyway.
         # segment_vel = tf.where(segment_len == 0, tf.zeros(1), segment_vel)
         segment_vel = tf.reduce_sum(diff_pos * diff_vel / segment_len, axis=1, keepdims=True)
         segment_moments = tf.reduce_sum(diff_ddof * diff_pos[:, :, tf.newaxis], axis=1) / segment_len
@@ -337,7 +337,7 @@ class Skeleton:
         segment_vel_cleaned = tf.where(muscle_transitions, 0., segment_vel)
         segment_mom_cleaned = tf.where(muscle_transitions, 0., segment_moments)
 
-        # flip all dimensions to allow to make ragged tensors below (you need to do it from the rows)
+        # flip all dimensions to allow making ragged tensors below (you need to do it from the rows)
         segment_len_flipped = tf.transpose(segment_len_cleaned, [2, 1, 0])
         segment_vel_flipped = tf.transpose(segment_vel_cleaned, [2, 1, 0])
         segment_mom_flipped = tf.transpose(segment_mom_cleaned, [2, 1, 0])
@@ -354,7 +354,7 @@ class Skeleton:
         musculotendon_vel = tf.reduce_sum(segment_vel_ragged, axis=1)
         moments = tf.reduce_sum(segment_mom_ragged, axis=1)
 
-        # pack all this into one state array and flip the dimensions back (batch_size * n_features *
+        # pack all this into one state array and flip the dimensions back (batch_size * n_features * n_muscles)
         geometry_state = tf.transpose(tf.concat([musculotendon_len, musculotendon_vel, moments], axis=1), [2, 1, 0])
         return geometry_state
 
@@ -429,7 +429,7 @@ class TwoDofArm(Skeleton):
 
         # coriolis torques (batch_size x 2) plus a damping term (scaled by self.c_viscosity)
         coriolis_1 = self.coriolis_1 * s2 * (2 * old_vel[:, 0] * old_vel[:, 1] + old_vel[:, 1] ** 2) + \
-                     self.c_viscosity * old_vel[:, 0]
+            self.c_viscosity * old_vel[:, 0]
         coriolis_2 = self.coriolis_2 * s2 * (old_vel[:, 0] ** 2) + self.c_viscosity * old_vel[:, 1]
         coriolis = tf.stack([coriolis_1, coriolis_2], axis=1)
 
