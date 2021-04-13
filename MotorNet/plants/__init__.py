@@ -103,7 +103,7 @@ class PlantWrapper:
                                                geometry_state=geometry_state)
 
         moments = tf.slice(geometry_state, [0, 2, 0], [-1, -1, -1])
-        generalized_forces = tf.reduce_sum(forces * moments, axis=-1) + skeleton_loads
+        generalized_forces = - tf.reduce_sum(forces * moments, axis=-1) + skeleton_loads
 
         new_skeleton_state = self.Skeleton(generalized_forces, skeleton_state, endpoint_loads=endpoint_loads)
         new_cartesian_state = self.Skeleton.joint2cartesian(new_skeleton_state)
