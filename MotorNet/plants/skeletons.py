@@ -412,11 +412,11 @@ class TwoDofArm(Skeleton):
         self.coriolis_2 = self.m2 * self.L1 * self.L2g
         self.c_viscosity = 0.0  # put at zero but available if implemented later on
 
-    def __call__(self, trq_inputs, state, endpoint_loads=np.zeros(1)):
+    def __call__(self, inputs, skeleton_state, endpoint_loads=np.zeros(1)):
         # endpoint_loads is the set of torques applied at the endpoint of the two-link arm (i.e. applied at the 'hand')
         # first two elements of state are joint position, last two elements are joint angular velocities
-        old_vel = tf.cast(state[:, 2:], dtype=tf.float32)
-        old_pos = tf.cast(state[:, :2], dtype=tf.float32)
+        old_vel = tf.cast(skeleton_state[:, 2:], dtype=tf.float32)
+        old_pos = tf.cast(skeleton_state[:, :2], dtype=tf.float32)
         c1 = tf.cos(old_pos[:, 0])
         c2 = tf.cos(old_pos[:, 1])
         c12 = tf.cos(old_pos[:, 0] + old_pos[:, 1])
@@ -443,7 +443,7 @@ class TwoDofArm(Skeleton):
         loads = tf.constant(endpoint_loads, shape=(self.input_dim,), dtype=tf.float32)
         r_col = (jacobian_11 * loads[0]) + (jacobian_21 * loads[1])  # these are torques
         l_col = (jacobian_12 * loads[0]) + (jacobian_22 * loads[1])
-        torques = trq_inputs + tf.stack([r_col, l_col], axis=1)
+        torques = inputs + tf.stack([r_col, l_col], axis=1)
 
         rhs = -coriolis[:, :, tf.newaxis] + torques[:, :, tf.newaxis]
 
@@ -530,3 +530,37 @@ class TwoDofArm(Skeleton):
         bone_origin = tf.where(path_fixation_body == 2, tf.concat([elb_x, elb_y], axis=1), 0.)
         xy = tf.concat([dy_da, -dx_da], axis=1) + bone_origin
         return xy, dxy_dt, dxy_da
+
+
+class PointMass(Skeleton):
+    def __init__(self, mass=1., **kwargs):
+        super().__init__(**kwargs)
+        self.mass = mass
+
+    def __call__(self, inputs, skeleton_state, endpoint_loads=np.zeros(1)):
+        load = tf.constant(endpoint_loads, shape=(self.input_dim,), dtype=tf.float32)
+        new_acc = inputs + load  # load will broadcast to match batch_size
+
+        old_vel, old_pos = tf.split(skeleton_state, 2, axis=-1)
+        new_vel = old_vel + new_acc * self.dt / self.mass  # Euler
+        new_pos = old_pos + old_vel * self.dt
+
+        new_vel = self.clip_velocity(new_pos, new_vel)
+        new_pos = tf.clip_by_value(new_pos, self.pos_lower_bounds, self.pos_upper_bounds)
+        new_state = tf.concat([new_pos, new_vel], axis=1)
+        return new_state
+
+    def path2cartesian(self, path_coordinates, path_fixation_body, skeleton_state):
+        n_points = path_fixation_body.size
+
+        pos, vel = tf.split(skeleton_state, 2, axis=-1)
+        test = tf.one_hot(tf.range(0, self.dof), self.dof)[tf.newaxis, :, :]
+        # dpos_ddof1 = tf.ones_like(pos)[:, :, tf.newaxis]  # derivative of position wrt degrees of freedom
+        # dpos_ddof2 = tf.tile(tf.zeros_like(dpos_ddof1), [1, 1, self.dof-1])  # no interaction across dimensions
+        # dpos_ddof = tf.concat([dpos_ddof1, dpos_ddof2], axis=-1)
+        return pos, vel, tf.transpose(test, [0, 2, 1])
+
+    @staticmethod
+    def joint2cartesian(joint_pos):
+        return joint_pos
+
