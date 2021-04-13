@@ -15,10 +15,15 @@ class Muscle:
         self.dt = timestep
         self.min_activation = min_activation
         self.to_build_dict = {'timestep': []}
+        self.n_muscles = None
         self.built = False
 
     def setattr(self, name: str, value):
         self.__setattr__(name, value)
+
+    @staticmethod
+    def get_initial_muscle_state(batch_size, geometry):
+        return None
 
     def build(self, **kwargs):
         self.dt = kwargs.get('timestep', 0.01)
@@ -29,19 +34,21 @@ class ReluMuscle(Muscle):
     # --------------------------
     # A rectified linear muscle that outputs the input directly, but can only have a positive activation value.
     # --------------------------
-    def __init__(self, timestep=0.01, min_activation=0., **kwargs):
-        super().__init__(timestep=timestep, min_activation=min_activation, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.state_name = ['dummy_state']
         self.state_dim = len(self.state_name)
 
     def __call__(self, excitation, *args, **kwargs):
-        return {'forces': tf.nn.relu(excitation), 'muscle_state': tf.zeros_like(excitation)}
+        excitation = excitation[:, tf.newaxis, :]
+        forces = tf.nn.relu(excitation)
+        muscle_state = tf.zeros_like(excitation)
+        return forces, muscle_state
 
     @staticmethod
     def get_initial_muscle_state(batch_size, geometry):
         n_muscles = tf.shape(geometry)[-1]
         return tf.zeros((batch_size, 1, n_muscles))
-
 
 
 class RigidTendonHillMuscle(Muscle):

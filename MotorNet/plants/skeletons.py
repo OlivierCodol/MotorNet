@@ -51,14 +51,14 @@ class Arm:
         self.max_iso_force = tf.constant(max_iso_force, dtype=tf.float32)
         self.min_iso_force = 1.  # in Newtons
 
-        self.m1 = 2.10  # masses of arm links
-        self.m2 = 1.65
-        self.L1g = 0.146  # center of mass of the links
-        self.L2g = 0.179
-        self.I1 = 0.024  # moments of inertia around the center of mass
-        self.I2 = 0.025
-        self.L1 = 0.335  # length of links
-        self.L2 = 0.263
+        self.m1 = 1.82  # masses of arm links
+        self.m2 = 1.43
+        self.L1g = 0.135  # center of mass of the links
+        self.L2g = 0.165
+        self.I1 = 0.051  # moments of inertia around the center of mass
+        self.I2 = 0.057
+        self.L1 = 0.309  # length of links
+        self.L2 = 0.333
 
         self.gamma = 0.45
         self.vmax = 10 * self.l0_ce
@@ -373,7 +373,7 @@ class TwoDofArm(Skeleton):
 
     def __init__(self, timestep=0.01, **kwargs):
         # TODO reset sho_limits to previous values
-        sho_limit = np.deg2rad([-0, 150])  # mechanical constraints - used to be -90 180
+        sho_limit = np.deg2rad([-0, 140])  # mechanical constraints - used to be -90 180
         elb_limit = np.deg2rad([0, 160])
         lb = (sho_limit[0], elb_limit[0])
         ub = (sho_limit[1], elb_limit[1])
@@ -391,7 +391,7 @@ class TwoDofArm(Skeleton):
         self.L2g = 0.181479
         self.I1 = 0.013193  # moments of inertia around the center of mass
         self.I2 = 0.020062
-        self.L1 = 0.2904  # length of links
+        self.L1 = 0.309  # length of links
         self.L2 = 0.26
 
         # pre-compute values for mass, coriolis, and gravity matrices
