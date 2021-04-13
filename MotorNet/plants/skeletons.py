@@ -283,6 +283,12 @@ class Skeleton:
         self.vel_upper_bounds = vel_bounds[:, 1]
         self.vel_lower_bounds = vel_bounds[:, 0]
 
+        # default is no delay
+        proprioceptive_delay = kwargs.get('proprioceptive_delay', timestep)
+        visual_delay = kwargs.get('visual_delay', timestep)
+        self.proprioceptive_delay = int(proprioceptive_delay / self.dt)
+        self.visual_delay = int(visual_delay / self.dt)
+
     def setattr(self, name: str, value):
         self.__setattr__(name, value)
 
@@ -378,12 +384,6 @@ class TwoDofArm(Skeleton):
         lb = (sho_limit[0], elb_limit[0])
         ub = (sho_limit[1], elb_limit[1])
         super().__init__(timestep=timestep, space_dim=2, dof=2, pos_lower_bound=lb, pos_upper_bound=ub, **kwargs)
-
-        # default is no delay
-        proprioceptive_delay = kwargs.get('proprioceptive_delay', timestep)
-        visual_delay = kwargs.get('visual_delay', timestep)
-        self.proprioceptive_delay = int(proprioceptive_delay / self.dt)
-        self.visual_delay = int(visual_delay / self.dt)
 
         self.m1 = 1.864572  # masses of arm links
         self.m2 = 1.534315
