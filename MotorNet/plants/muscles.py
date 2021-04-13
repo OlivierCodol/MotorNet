@@ -103,7 +103,7 @@ class RigidTendonHillMuscle(Muscle):
         self.max_iso_force = tf.reshape(tf.cast(max_isometric_force, dtype=tf.float32), (-1, 1, self.n_muscles))
         self.l0_se = tf.reshape(tf.cast(tendon_length, dtype=tf.float32), (-1, 1, self.n_muscles))
         self.l0_ce = tf.reshape(tf.cast(optimal_muscle_length, dtype=tf.float32), (-1, 1, self.n_muscles))
-        self.l0_pe = self.l0_ce
+        self.l0_pe = self.l0_ce * 1.6
         self.musculotendon_slack_len = self.l0_pe + self.l0_se
 
         # pre-computed for speed
@@ -162,19 +162,9 @@ class RigidTendonHillMuscle(Muscle):
                           - self.ce_5
                           + 8. * muscle_vel))
         force_vel_ce = tf.maximum(nom / den, 0.)
-        force_len_pe = (tf.exp(self.pe_1 * (muscle_len - self.l0_pe / self.l0_ce)) - 1) / self.pe_den
-        force_len_ce = tf.exp((- (muscle_len - 1) ** 2) / self.ce_gamma)
+        force_len_pe = tf.maximum((tf.exp(self.pe_1 * (muscle_len - self.l0_pe) / self.l0_ce) - 1) / self.pe_den, 0.)
+        force_len_ce = tf.exp((- ((muscle_len / self.l0_ce) - 1) ** 2) / self.ce_gamma)
 
         force = (new_activation * force_len_ce * force_vel_ce + force_len_pe) * self.max_iso_force
-
-        # output_dict = {
-        #     'forces': force,
-        #     'muscle_state': tf.concat([
-        #         new_activation,
-        #         muscle_len,
-        #         muscle_vel,
-        #         force_len_pe,
-        #         force_len_ce,
-        #         force_vel_ce], axis=1)}
         new_muscle_state = tf.concat([new_activation, muscle_len, muscle_vel, force_len_pe, force_len_ce, force_vel_ce], axis=1)
         return force, new_muscle_state
