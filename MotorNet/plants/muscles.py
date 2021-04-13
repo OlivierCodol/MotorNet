@@ -7,14 +7,14 @@ class Muscle:
     # --------------------------
     # base class for muscles
     # --------------------------
-    def __init__(self, input_dim=1, state_dim=1, output_dim=1, timestep=.01, min_activation=0.001):
+    def __init__(self, input_dim=1, state_dim=1, output_dim=1, timestep=.01, min_activation=0.):
         self.input_dim = input_dim
         self.state_dim = state_dim
         self.state_name = []
         self.output_dim = output_dim
         self.dt = timestep
         self.min_activation = min_activation
-        self.init = False
+        self.to_build_dict = {'timestep': []}
         self.built = False
 
     def setattr(self, name: str, value):
@@ -24,34 +24,33 @@ class Muscle:
         self.dt = kwargs.get('timestep', 0.01)
         self.built = True
 
-    def initialize(self):
-        if self.init is False:
-            # add things here if needed
-            self.init = True
-
 
 class ReluMuscle(Muscle):
     # --------------------------
     # A rectified linear muscle that outputs the input directly, but can only have a positive activation value.
     # --------------------------
-    def __init__(self, name='', timestep=0.01):
-        super().__init__(timestep=timestep)
+    def __init__(self, timestep=0.01, min_activation=0., **kwargs):
+        super().__init__(timestep=timestep, min_activation=min_activation, **kwargs)
+        self.state_name = ['dummy_state']
+        self.state_dim = len(self.state_name)
 
     def __call__(self, excitation, *args, **kwargs):
         return {'forces': tf.nn.relu(excitation), 'muscle_state': tf.zeros_like(excitation)}
 
     @staticmethod
-    def get_initial_muscle_state(batch_size):
-        return tf.zeros((batch_size, 1))
+    def get_initial_muscle_state(batch_size, geometry):
+        n_muscles = tf.shape(geometry)[-1]
+        return tf.zeros((batch_size, 1, n_muscles))
+
 
 
 class RigidTendonHillMuscle(Muscle):
     # --------------------------
     # This is based on Thelen et al 2003
     # --------------------------
-    def __init__(self, tau_activation=0.015, tau_deactivation=0.05, min_activation=0.001, timestep=0.01):
+    def __init__(self, tau_activation=0.015, tau_deactivation=0.05, min_activation=0.001, timestep=0.01, **kwargs):
 
-        super().__init__(timestep=timestep, min_activation=min_activation)
+        super().__init__(timestep=timestep, min_activation=min_activation, **kwargs)
 
         self.state_name = ['activation',
                            'muscle length',
@@ -67,7 +66,7 @@ class RigidTendonHillMuscle(Muscle):
 
         # parameters for the passive element (PE) and contractile element (CE)
         self.pe_k = 5.
-        self.pe_1 = self.pe_k / 0.6
+        self.pe_1 = self.pe_k / 0.66
         self.pe_den = tf.exp(self.pe_k) - 1
         self.ce_gamma = 0.45
         self.ce_Af = 0.25
@@ -95,7 +94,6 @@ class RigidTendonHillMuscle(Muscle):
                               'optimal_muscle_length': [],
                               'timestep': []}
         self.built = False
-        self.init = False
 
     def build(self, max_isometric_force, tendon_length, optimal_muscle_length, timestep=0.01):
         self.n_muscles = np.array(tendon_length).size
@@ -103,7 +101,7 @@ class RigidTendonHillMuscle(Muscle):
         self.max_iso_force = tf.reshape(tf.cast(max_isometric_force, dtype=tf.float32), (-1, 1, self.n_muscles))
         self.l0_se = tf.reshape(tf.cast(tendon_length, dtype=tf.float32), (-1, 1, self.n_muscles))
         self.l0_ce = tf.reshape(tf.cast(optimal_muscle_length, dtype=tf.float32), (-1, 1, self.n_muscles))
-        self.l0_pe = self.l0_ce * 1.6
+        self.l0_pe = self.l0_ce * 1.4
         self.musculotendon_slack_len = self.l0_pe + self.l0_se
 
         # pre-computed for speed
