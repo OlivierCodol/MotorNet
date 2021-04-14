@@ -112,8 +112,9 @@ class GRUController(Layer):
     def get_initial_state(self, inputs=None, batch_size=1, dtype=tf.float32):
         if inputs is not None:
             batch_size = tf.shape(inputs)[0]
-
-        states = self.plant.get_initial_state(batch_size=batch_size)
+            states = self.plant.get_initial_state(skeleton_state=inputs)
+        else:
+            states = self.plant.get_initial_state(batch_size=batch_size)
         hidden_states = [tf.zeros((batch_size, n_units), dtype=dtype) for n_units in self.n_units]
         proprio_feedback = tf.tile(states[0][:, :, tf.newaxis], [1, 1, self.proprioceptive_delay])
         visual_feedback = tf.tile(states[1][:, :, tf.newaxis], [1, 1, self.visual_delay])

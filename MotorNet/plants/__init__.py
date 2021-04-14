@@ -55,7 +55,8 @@ class PlantWrapper:
         # indexes where the next item is from a different muscle, to indicate when their difference is meaningless
         self.muscle_transitions = np.diff(self.muscle.reshape((1, 1, -1))) == 1.
         # to create the ragged tensors when collapsing each muscle's segment values
-        self.row_splits = np.concatenate([np.zeros(1), np.diff(self.muscle).nonzero()[0] + 1, np.array([len(self.muscle) - 1])])
+        n_total_points = np.array([len(self.muscle)])
+        self.row_splits = np.concatenate([np.zeros(1), np.diff(self.muscle).nonzero()[0] + 1, n_total_points - 1])
 
         kwargs.setdefault('timestep', self.dt)
         for key, val in kwargs.items():
@@ -86,16 +87,16 @@ class PlantWrapper:
         state0 = [skeleton0, cartesian0, muscle0, geometry0]
         return state0
 
-    def draw_random_targets(self, batch_size=1, n_timesteps=1):
-        targets = self.Skeleton.draw_random_uniform_positions(batch_size=batch_size)
-        targets = targets[:, :, tf.newaxis]
-        targets = tf.repeat(targets, n_timesteps, axis=-1)
-        targets = tf.transpose(targets, [0, 2, 1])
-        return targets
+    # def draw_random_targets(self, batch_size=1, n_timesteps=1):
+    #     targets = self.Skeleton.draw_random_uniform_positions(batch_size=batch_size)
+    #     targets = targets[:, :, tf.newaxis]
+    #     targets = tf.repeat(targets, n_timesteps, axis=-1)
+    #     targets = tf.transpose(targets, [0, 2, 1])
+    #     return targets
 
     def __call__(self, muscle_input, skeleton_state, muscle_state, geometry_state, **kwargs):
-        skeleton_loads = kwargs.get('skeleton_loads', np.zeros(1))
         endpoint_loads = kwargs.get('endpoint_loads', np.zeros(1))
+        skeleton_loads = kwargs.get('skeleton_loads', np.zeros(1))
         skeleton_loads = tf.constant(skeleton_loads, shape=(1, self.Skeleton.dof), dtype=tf.float32)
 
         forces, new_muscle_state = self.Muscle(excitation=muscle_input,

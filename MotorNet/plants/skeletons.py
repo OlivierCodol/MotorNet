@@ -306,12 +306,36 @@ class Skeleton:
 
     def draw_random_uniform_states(self, batch_size=1):
         # create a batch of new targets in the correct format for the tensorflow compiler
-        sz = (batch_size, self.space_dim)
+        sz = (batch_size, self.dof)
         lo = self.pos_lower_bounds
         hi = self.pos_upper_bounds
         pos = tf.random.uniform(sz, lo, hi)
         vel = tf.zeros(sz)
         return tf.concat([pos, vel], axis=1)
+
+    def draw_fixed_states(self, position, velocity=None, batch_size=1):
+        if velocity is None:
+            velocity = np.zeros_like(position)
+        # in case input is a list, a numpy array or a tensorflow array
+        pos = np.array(position)
+        vel = np.array(velocity)
+        if len(pos.shape) == 1:
+            pos = pos.reshape((1, -1))
+        if len(vel.shape) == 1:
+            vel = vel.reshape((1, -1))
+        assert pos.shape == vel.shape
+        assert pos.shape[1] == self.dof
+        assert len(pos.shape) == 2
+        assert np.all(pos > self.pos_lower_bounds)
+        assert np.all(pos < self.pos_upper_bounds)
+        assert np.all(vel > self.vel_lower_bounds)
+        assert np.all(vel < self.vel_upper_bounds)
+
+        pos = tf.cast(pos, dtype=tf.float32)
+        vel = tf.cast(vel, dtype=tf.float32)
+        states = tf.concat([pos, vel], axis=1)
+        tiled_states = tf.tile(states, [batch_size, 1])[:batch_size, :]  # if more than one different positions input
+        return tiled_states
 
     def set_state_limit_bounds(self, lb, ub):
         lb = np.array(lb).reshape((-1, 1))  # ensure this is a 2D array
@@ -538,8 +562,8 @@ class PointMass(Skeleton):
         self.mass = mass
 
     def __call__(self, inputs, skeleton_state, endpoint_loads=np.zeros(1)):
-        load = tf.constant(endpoint_loads, shape=(self.input_dim,), dtype=tf.float32)
-        new_acc = inputs + load  # load will broadcast to match batch_size
+        endpoint_loads = tf.constant(endpoint_loads, shape=(1, self.dof), dtype=tf.float32)
+        new_acc = inputs + endpoint_loads  # load will broadcast to match batch_size
 
         old_vel = tf.cast(skeleton_state[:, self.dof:], dtype=tf.float32)
         old_pos = tf.cast(skeleton_state[:, :self.dof], dtype=tf.float32)
