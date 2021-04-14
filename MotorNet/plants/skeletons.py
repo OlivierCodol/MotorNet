@@ -258,7 +258,7 @@ class Arm:
 
 class Skeleton:
     # Base class
-    def __init__(self, timestep=0.01, space_dim=1, **kwargs):
+    def __init__(self, timestep=0.01, space_dim=2, **kwargs):
         self.dof = kwargs.get('dof', space_dim)  # degrees of freedom of the skeleton (eg number of joints)
         self.space_dim = space_dim  # the dimensionality of the space (eg 2 for cartesian xy space)
         self.input_dim = kwargs.get('input_dim', self.dof)  # dim of the control input (eg torques), usually >= dof
@@ -541,7 +541,8 @@ class PointMass(Skeleton):
         load = tf.constant(endpoint_loads, shape=(self.input_dim,), dtype=tf.float32)
         new_acc = inputs + load  # load will broadcast to match batch_size
 
-        old_vel, old_pos = tf.split(skeleton_state, 2, axis=-1)
+        old_vel = tf.cast(skeleton_state[:, self.dof:], dtype=tf.float32)
+        old_pos = tf.cast(skeleton_state[:, :self.dof], dtype=tf.float32)
         new_vel = old_vel + new_acc * self.dt / self.mass  # Euler
         new_pos = old_pos + old_vel * self.dt
 
@@ -551,14 +552,13 @@ class PointMass(Skeleton):
         return new_state
 
     def path2cartesian(self, path_coordinates, path_fixation_body, skeleton_state):
-        n_points = path_fixation_body.size
-
-        pos, vel = tf.split(skeleton_state, 2, axis=-1)
-        test = tf.one_hot(tf.range(0, self.dof), self.dof)[tf.newaxis, :, :]
-        # dpos_ddof1 = tf.ones_like(pos)[:, :, tf.newaxis]  # derivative of position wrt degrees of freedom
-        # dpos_ddof2 = tf.tile(tf.zeros_like(dpos_ddof1), [1, 1, self.dof-1])  # no interaction across dimensions
-        # dpos_ddof = tf.concat([dpos_ddof1, dpos_ddof2], axis=-1)
-        return pos, vel, tf.transpose(test, [0, 2, 1])
+        pos, vel = tf.split(skeleton_state[:, :, tf.newaxis], 2, axis=1)
+        # if fixed on the point mass, then add the point-mass position / velocity to the fixation point coordinate
+        pos = tf.where(path_fixation_body == 0, 0., pos) + path_coordinates
+        vel = tf.where(path_fixation_body == 0, 0., vel)
+        dpos_ddof = tf.one_hot(tf.range(0, self.dof), self.dof)[tf.newaxis, :, :, tf.newaxis]
+        dpos_ddof = tf.where(path_fixation_body == 0, 0., dpos_ddof)
+        return pos, vel, dpos_ddof
 
     @staticmethod
     def joint2cartesian(joint_pos):

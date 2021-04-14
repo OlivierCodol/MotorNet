@@ -14,8 +14,10 @@ class Muscle:
         self.output_dim = output_dim
         self.dt = timestep
         self.min_activation = min_activation
-        self.to_build_dict = {'timestep': []}
+        self.to_build_dict = {'max_isometric_force': [],
+                              'timestep': []}
         self.n_muscles = None
+        self.max_iso_force = None
         self.built = False
 
     def setattr(self, name: str, value):
@@ -25,8 +27,10 @@ class Muscle:
     def get_initial_muscle_state(batch_size, geometry):
         return None
 
-    def build(self, **kwargs):
+    def build(self, max_isometric_force, **kwargs):
         self.dt = kwargs.get('timestep', 0.01)
+        self.n_muscles = np.array(max_isometric_force).size
+        self.max_iso_force = tf.reshape(tf.cast(max_isometric_force, dtype=tf.float32), (1, 1, self.n_muscles))
         self.built = True
 
 
@@ -36,19 +40,21 @@ class ReluMuscle(Muscle):
     # --------------------------
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.state_name = ['dummy_state']
+        self.state_name = ['excitation',
+                           'force']
         self.state_dim = len(self.state_name)
 
     def __call__(self, excitation, *args, **kwargs):
         excitation = excitation[:, tf.newaxis, :]
-        forces = tf.nn.relu(excitation)
-        muscle_state = tf.zeros_like(excitation)
+        forces = tf.nn.relu(excitation) * self.max_iso_force
+        muscle_state = tf.concat([excitation, forces], axis=1)
         return forces, muscle_state
 
-    @staticmethod
-    def get_initial_muscle_state(batch_size, geometry):
-        n_muscles = tf.shape(geometry)[-1]
-        return tf.zeros((batch_size, 1, n_muscles))
+    def get_initial_muscle_state(self, batch_size, geometry):
+        excitation0 = tf.ones((batch_size, 1, self.n_muscles)) * self.min_activation
+        force0 = tf.zeros((batch_size, 1, self.n_muscles))
+        muscle_state0 = tf.concat([excitation0, force0], axis=1)
+        return muscle_state0
 
 
 class RigidTendonHillMuscle(Muscle):
@@ -105,9 +111,9 @@ class RigidTendonHillMuscle(Muscle):
     def build(self, max_isometric_force, tendon_length, optimal_muscle_length, timestep=0.01):
         self.n_muscles = np.array(tendon_length).size
         self.dt = timestep
-        self.max_iso_force = tf.reshape(tf.cast(max_isometric_force, dtype=tf.float32), (-1, 1, self.n_muscles))
-        self.l0_se = tf.reshape(tf.cast(tendon_length, dtype=tf.float32), (-1, 1, self.n_muscles))
-        self.l0_ce = tf.reshape(tf.cast(optimal_muscle_length, dtype=tf.float32), (-1, 1, self.n_muscles))
+        self.max_iso_force = tf.reshape(tf.cast(max_isometric_force, dtype=tf.float32), (1, 1, self.n_muscles))
+        self.l0_se = tf.reshape(tf.cast(tendon_length, dtype=tf.float32), (1, 1, self.n_muscles))
+        self.l0_ce = tf.reshape(tf.cast(optimal_muscle_length, dtype=tf.float32), (1, 1, self.n_muscles))
         self.l0_pe = self.l0_ce * 1.4
         self.musculotendon_slack_len = self.l0_pe + self.l0_se
 
