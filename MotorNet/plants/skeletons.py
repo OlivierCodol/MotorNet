@@ -436,8 +436,8 @@ class TwoDofArm(Skeleton):
         self.coriolis_2 = self.m2 * self.L1 * self.L2g
         self.c_viscosity = 0.0  # put at zero but available if implemented later on
 
-    def __call__(self, inputs, skeleton_state, endpoint_loads=np.zeros(1)):
-        # endpoint_loads is the set of torques applied at the endpoint of the two-link arm (i.e. applied at the 'hand')
+    def __call__(self, inputs, skeleton_state, joint_load=np.zeros(1)):
+        # joint_load is the set of torques applied at the endpoint of the two-link arm (i.e. applied at the 'hand')
         # first two elements of state are joint position, last two elements are joint angular velocities
         old_vel = tf.cast(skeleton_state[:, 2:], dtype=tf.float32)
         old_pos = tf.cast(skeleton_state[:, :2], dtype=tf.float32)
@@ -464,7 +464,7 @@ class TwoDofArm(Skeleton):
         jacobian_22 = s12 * self.L2
 
         # apply external loads
-        loads = tf.constant(endpoint_loads, shape=(self.input_dim,), dtype=tf.float32)
+        loads = tf.constant(joint_load, shape=(self.input_dim,), dtype=tf.float32)
         r_col = (jacobian_11 * loads[0]) + (jacobian_21 * loads[1])  # these are torques
         l_col = (jacobian_12 * loads[0]) + (jacobian_22 * loads[1])
         torques = inputs + tf.stack([r_col, l_col], axis=1)
@@ -561,9 +561,9 @@ class PointMass(Skeleton):
         super().__init__(**kwargs)
         self.mass = mass
 
-    def __call__(self, inputs, skeleton_state, endpoint_loads=np.zeros(1)):
-        endpoint_loads = tf.constant(endpoint_loads, shape=(1, self.dof), dtype=tf.float32)
-        new_acc = inputs + endpoint_loads  # load will broadcast to match batch_size
+    def __call__(self, inputs, skeleton_state, joint_load=np.zeros(1)):
+        joint_load = tf.constant(joint_load, shape=(1, self.dof), dtype=tf.float32)
+        new_acc = inputs + joint_load  # load will broadcast to match batch_size
 
         old_vel = tf.cast(skeleton_state[:, self.dof:], dtype=tf.float32)
         old_pos = tf.cast(skeleton_state[:, :self.dof], dtype=tf.float32)
