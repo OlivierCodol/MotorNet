@@ -588,3 +588,323 @@ class PointMass(Skeleton):
     def joint2cartesian(joint_pos):
         return joint_pos
 
+
+class CompliantTendonArm:
+    def __init__(self, timestep=0.001, **kwargs):
+        self.dof = 2  # degrees of freedom of the skeleton (eg number of joints)
+        self.space_dim = 2  # the dimensionality of the space (eg 2 for cartesian xy space)
+        self.input_dim = 6  # 6 muscles
+        self.state_dim = self.dof * 2  # usually position and velocity so twice the dof
+        self.output_dim = self.state_dim  # usually the new state so same as state_dim
+        self.muscle_state_dim = 6
+        self.geometry_state_dim = 4
+        self.n_muscles = 6
+        self.dt = timestep
+
+        # default is no delay
+        proprioceptive_delay = kwargs.get('proprioceptive_delay', timestep)
+        visual_delay = kwargs.get('visual_delay', timestep)
+        self.proprioceptive_delay = int(proprioceptive_delay / self.dt)
+        self.visual_delay = int(visual_delay / self.dt)
+
+        self.activation_lower_bound = 0.01
+        self.tau_activation = 0.015
+        self.tau_deactivation = 0.05
+
+        # handle position & velocity ranges
+        sho_limit = np.deg2rad([0, 135])  # mechanical constraints - used to be -90 180
+        elb_limit = np.deg2rad([0, 155])
+        pos_bounds = self.set_state_limit_bounds(lb=(sho_limit[0], elb_limit[0]), ub=(sho_limit[1], elb_limit[1]))
+        vel_bounds = self.set_state_limit_bounds(lb=-1e6, ub=1e6)
+        self.pos_upper_bounds = tf.constant(pos_bounds[:, 1], dtype=tf.float32)
+        self.pos_lower_bounds = tf.constant(pos_bounds[:, 0], dtype=tf.float32)
+        self.vel_upper_bounds = tf.constant(vel_bounds[:, 1], dtype=tf.float32)
+        self.vel_lower_bounds = tf.constant(vel_bounds[:, 0], dtype=tf.float32)
+
+        a0 = np.array([0.151, 0.2322, 0.2859, 0.2355, 0.3329, 0.2989]).reshape((1, 1, -1))
+        a1 = np.array([-0.03, 0.03, 0, 0, -0.03, 0.03, 0, 0, -0.014, 0.025, -0.016, 0.03]).reshape((1, 2, -1))
+        a2 = np.array([0, 0, 0, 0, 0, 0, 0, 0, -4, -2.2, -5.7, -3.2]).reshape((1, 2, -1)) * 0.001
+        l0_se = np.array([0.039, 0.066, 0.172, 0.187, 0.204, 0.217]).reshape((1, 1, -1))
+        l0_ce = np.array([0.134, 0.140, 0.092, 0.093, 0.137, 0.127]).reshape((1, 1, -1))
+        l0_pe = l0_ce * 1.4
+        max_iso_force = np.array([838, 1207, 1422, 1549, 414, 603]).reshape((1, 1, -1))
+
+        self.a0 = tf.constant(a0, dtype=tf.float32)
+        self.a1 = tf.constant(a1, dtype=tf.float32)
+        self.a2 = tf.constant(a2, dtype=tf.float32)
+        self.l0_se = tf.constant(l0_se, dtype=tf.float32)
+        self.l0_ce = tf.constant(l0_ce, dtype=tf.float32)
+        self.l0_pe = tf.constant(l0_pe, dtype=tf.float32)
+        self.max_iso_force = tf.constant(max_iso_force, dtype=tf.float32)
+        self.min_iso_force = 1.  # in Newtons
+
+        self.m1 = 2.10  # masses of arm links
+        self.m2 = 1.65
+        self.L1g = 0.146  # center of mass of the links
+        self.L2g = 0.179
+        self.I1 = 0.024  # moments of inertia around the center of mass
+        self.I2 = 0.025
+        self.L1 = 0.335  # length of links
+        self.L2 = 0.263
+
+        self.vmax = 10 * self.l0_ce
+        self.k_pe = 1 / ((1.66 - self.l0_pe / self.l0_ce) ** 2)
+        self.k_se = 1 / (0.04 ** 2)
+
+        # pre-compute values for mass, coriolis, and gravity matrices
+        inertia_11_c = self.m1 * self.L1g ** 2 + self.I1 + self.m2 * (self.L2g ** 2 + self.L1 ** 2) + self.I2
+        inertia_12_c = self.m2 * (self.L2g ** 2) + self.I2
+        inertia_22_c = self.m2 * (self.L2g ** 2) + self.I2
+        inertia_11_m = 2 * self.m2 * self.L1 * self.L2g
+        inertia_12_m = self.m2 * self.L1 * self.L2g
+
+        # 0-th axis is for broadcasting to batch_size when used
+        inertia_c = np.array([[[inertia_11_c, inertia_12_c],
+                               [inertia_12_c, inertia_22_c]]]).astype(np.float32)
+        inertia_m = np.array([[[inertia_11_m, inertia_12_m],
+                               [inertia_12_m, 0.]]]).astype(np.float32)
+        self.inertia_c = inertia_c.reshape((1, 2, 2))  # 0-th axis is for broadcasting to batch_size when used
+        self.inertia_m = inertia_m.reshape((1, 2, 2))
+
+        self.coriolis_1 = -self.m2 * self.L1 * self.L2g
+        self.coriolis_2 = self.m2 * self.L1 * self.L2g
+        self.c_viscosity = 0.0  # put at zero but available if implemented later on
+
+        self.sloplin = 1000.
+        self.s_as = 1. / self.sloplin
+        self.rho_factor = 1.37e-4 * 5.27e4 * (2.9 - 1)
+        self.f_iso_n_den = .66 ** 2
+        self.b_rel_st_den = 5e-3 - 0.3
+
+    def __call__(self, excitation, joint_state, muscle_state, geometry_state):
+
+        # compute muscle activations
+        activation = tf.slice(muscle_state, [0, 0, 0], [-1, 1, -1])
+        muscle_len = tf.slice(muscle_state, [0, 1, 0], [-1, 1, -1])
+        excitation = tf.reshape(excitation, (-1, 1, self.n_muscles))
+        excitation = tf.clip_by_value(excitation, self.activation_lower_bound, 1.)
+
+        d_activation = 11.3 * (excitation - activation)
+        new_activation = activation + d_activation * self.dt
+        new_activation = tf.clip_by_value(new_activation, self.activation_lower_bound, 1.)
+        norm_muscle_len = muscle_len / self.l0_ce
+        rho = self.rho_factor * norm_muscle_len / (2.9 - norm_muscle_len)
+        cte = (rho * new_activation) ** 3
+        q = (5e-3 + cte) / (1 + cte)
+
+        # musculotendon geometry
+        musculotendon_len, musculotendon_vel, moment_arm = self.get_musculoskeletal_geometry(joint_state)
+        tendon_len = musculotendon_len - muscle_len
+        tendon_strain = tf.maximum((tendon_len - self.l0_se) / self.l0_se, 0.)
+        muscle_strain = tf.maximum((muscle_len - self.l0_pe) / self.l0_ce, 0.)
+
+        flse = tf.minimum(self.k_se * (tendon_strain ** 2), 1.5)
+        flpe = tf.minimum(self.k_pe * (muscle_strain ** 2), 1.5)
+        active_force = tf.maximum(flse - flpe, 0.)
+
+        # RK4 integration
+        muscle_vel_k1 = self.muscle_ode(norm_muscle_len, q, new_activation, active_force)
+        muscle_vel_k2 = self.muscle_ode(norm_muscle_len + self.dt * 0.5 * muscle_vel_k1, q, new_activation, active_force)
+        muscle_vel_k3 = self.muscle_ode(norm_muscle_len + self.dt * 0.5 * muscle_vel_k2, q, new_activation, active_force)
+        muscle_vel_k4 = self.muscle_ode(norm_muscle_len + self.dt * muscle_vel_k3, q, new_activation, active_force)
+        new_muscle_vel = (muscle_vel_k1 + 2 * muscle_vel_k2 + 2 * muscle_vel_k3 + muscle_vel_k4) / 6
+        new_muscle_len = (norm_muscle_len + self.dt * new_muscle_vel) * self.l0_ce
+
+        # apply moment arm
+        trq_inputs = - tf.reduce_sum(flse * self.max_iso_force * moment_arm, axis=-1)
+
+        # first two elements of state are joint position, last two elements are joint angular velocities
+        old_pos = tf.cast(joint_state[:, :2], dtype=tf.float32)
+        old_vel = tf.cast(joint_state[:, 2:], dtype=tf.float32)
+        c2 = tf.cos(old_pos[:, 1])
+        s2 = tf.sin(old_pos[:, 1])
+
+        # inertia matrix (batch_size x 2 x 2)
+        inertia = self.inertia_c + c2[:, tf.newaxis, tf.newaxis] * self.inertia_m
+
+        # coriolis torques (batch_size x 2) plus a damping term (scaled by self.c_viscosity)
+        coriolis_1 = self.coriolis_1 * s2 * (2 * old_vel[:, 0] * old_vel[:, 1] + old_vel[:, 1] ** 2) + \
+            self.c_viscosity * old_vel[:, 0]
+        coriolis_2 = self.coriolis_2 * s2 * (old_vel[:, 0] ** 2) + self.c_viscosity * old_vel[:, 1]
+        coriolis = tf.stack([coriolis_1, coriolis_2], axis=1)
+
+        rhs = -coriolis[:, :, tf.newaxis] + trq_inputs[:, :, tf.newaxis]
+
+        denom = 1 / (inertia[:, 0, 0] * inertia[:, 1, 1] - inertia[:, 0, 1] * inertia[:, 1, 0])
+        l_col = tf.stack([inertia[:, 1, 1], -inertia[:, 1, 0]], axis=1)
+        r_col = tf.stack([-inertia[:, 0, 1], inertia[:, 0, 0]], axis=1)
+        inertia_inv = denom[:, tf.newaxis, tf.newaxis] * tf.stack([l_col, r_col], axis=2)
+        new_acc = tf.squeeze(tf.matmul(inertia_inv, rhs))
+
+        # apply Euler
+        new_vel = old_vel + new_acc * self.dt
+        new_pos = old_pos + old_vel * self.dt
+
+        # clips to make sure things don't get totally crazy
+        new_vel = self.clip_velocity(new_pos, new_vel)
+        new_pos = tf.clip_by_value(new_pos, self.pos_lower_bounds, self.pos_upper_bounds)
+
+        new_state = tf.concat([new_pos, new_vel], axis=1)
+        new_cart_state = self.joint2cartesian(new_state)
+        new_muscle_state = tf.concat(
+            [
+                new_activation,
+                new_muscle_len,
+                new_muscle_vel * self.vmax,
+                flpe,
+                flse,
+                active_force
+            ], axis=1)
+        new_geometry_state = tf.concat(
+            [
+                musculotendon_len,
+                musculotendon_vel,
+                moment_arm
+            ], axis=1)
+
+        return new_state, new_cart_state, new_muscle_state, new_geometry_state
+
+    def muscle_ode(self, norm_muscle_len, q, new_activation, active_force):
+        # rho = self.rho_factor * norm_muscle_len / (2.9 - norm_muscle_len)
+        # cte = (rho * new_activation) ** 3
+        # q = (5e-3 + cte) / (1 + cte)
+
+        f_iso_n = 1 + (- norm_muscle_len ** 2 + 2 * norm_muscle_len - 1) / self.f_iso_n_den
+        f_iso_n = tf.maximum(f_iso_n, self.min_iso_force / self.max_iso_force)
+
+        q_f_iso_n = f_iso_n * q
+        # not_use_lin = q_f_iso_n >= 0.
+        # new_muscle_vel_lin = self.sloplin * (active_force - q_f_iso_n)
+        # q_f_iso_n = tf.where(not_use_lin, q_f_iso_n, 1.)
+
+        a_rel_st = tf.where(norm_muscle_len > 1., .41 * f_iso_n, .41)
+        b_rel_st = tf.where(q < 0.3, 5.2 * (1 - .9 * ((q - 0.3) / self.b_rel_st_den)) ** 2, 5.2)
+
+        dvdf_isom_con = b_rel_st / (q * (f_iso_n + a_rel_st))  # slope in the isometric point at wrt concentric part
+        dfdvcon0 = 1. / dvdf_isom_con
+
+        p1 = -(q_f_iso_n * 0.5) / (self.s_as - dfdvcon0 * 2)
+        p3 = - 1.5 * q_f_iso_n
+        p4 = - self.s_as
+        p2_containing_term = (4 * ((q_f_iso_n * 0.5) ** 2) * p4) / (self.s_as - dfdvcon0 * 2)
+
+        sqrt_term = active_force ** 2 - 2 * active_force * p1 * p4 + \
+            2 * active_force * p3 + p1 ** 2 * p4 ** 2 - 2 * p1 * p3 * p4 + p2_containing_term + p3 ** 2
+        # cond = tf.where(tf.logical_and(tf.logical_and(sqrt_term < 0, active_force >= q_f_iso_n), not_use_lin), -1, 1)
+        cond = tf.where(tf.logical_and(sqrt_term < 0, active_force >= q_f_iso_n), -1, 1)
+        tf.debugging.assert_non_negative(cond, message='root that should be used is negative.')
+        sqrt_term = tf.maximum(sqrt_term, 0.)
+
+        new_muscle_vel_nom = tf.where(
+            active_force < q_f_iso_n,
+            b_rel_st * (active_force - q_f_iso_n),
+            -active_force + p1 * self.s_as - p3 - tf.sqrt(sqrt_term)
+        )
+        new_muscle_vel_den = tf.where(
+            active_force < q_f_iso_n,
+            active_force + q * a_rel_st,
+            -2 * self.s_as,
+        )
+
+        new_muscle_vel = new_muscle_vel_nom / new_muscle_vel_den
+        # new_muscle_vel = tf.where(not_use_lin, new_muscle_vel, new_muscle_vel_lin)
+
+        return new_muscle_vel
+
+    def clip_velocity(self, pos, vel):
+        vel = tf.where(condition=tf.logical_and(vel < 0, pos <= self.pos_lower_bounds), x=tf.zeros_like(vel), y=vel)
+        vel = tf.where(condition=tf.logical_and(vel > 0, pos >= self.pos_upper_bounds), x=tf.zeros_like(vel), y=vel)
+        vel = tf.clip_by_value(vel, self.vel_lower_bounds, self.vel_upper_bounds)
+        return vel
+
+    def get_musculoskeletal_geometry(self, joint_state):
+        old_pos, old_vel = tf.split(joint_state[:, :, tf.newaxis], 2, axis=1)
+        old_pos = old_pos - np.array([np.pi / 2, 0.]).reshape((1, 2, 1))
+        old_pos2 = tf.pow(old_pos, 2)
+
+        musculotendon_len = tf.reduce_sum(old_pos * self.a1, axis=1, keepdims=True) +\
+            tf.reduce_sum(old_pos2 * self.a2, axis=1, keepdims=True) + self.a0
+        moment_arm = old_pos * self.a2 * 2 + self.a1
+        musculotendon_vel = tf.reduce_sum(old_vel * moment_arm, axis=1, keepdims=True)
+
+        # these outputs are **NOT** normalized
+        return musculotendon_len, musculotendon_vel, moment_arm
+
+    def joint2cartesian(self, joint_pos):
+        # compute hand position from joint position
+        # reshape to have all time steps lined up in 1st dimension
+        joint_pos = tf.reshape(joint_pos, (-1, self.state_dim))
+        joint_angle_sum = joint_pos[:, 0] + joint_pos[:, 1]
+
+        c1 = tf.cos(joint_pos[:, 0])
+        s1 = tf.sin(joint_pos[:, 0])
+        c12 = tf.cos(joint_angle_sum)
+        s12 = tf.sin(joint_angle_sum)
+
+        end_pos_x = self.L1 * c1 + self.L2 * c12
+        end_pos_y = self.L1 * s1 + self.L2 * s12
+        end_vel_x = - (self.L1 * s1 + self.L2 * s12) * joint_pos[:, 2]
+        end_vel_y = (self.L1 * c1 + self.L2 * c12) * joint_pos[:, 3]
+
+        end_pos = tf.stack([end_pos_x, end_pos_y, end_vel_x, end_vel_y], axis=1)
+        return end_pos
+
+    @staticmethod
+    def state2target(state, n_timesteps=1):
+        # convert a state array to a target array
+        targ = state[:, :, tf.newaxis]
+        targ = tf.repeat(targ, n_timesteps, axis=-1)
+        targ = tf.transpose(targ, [0, 2, 1])
+        return targ
+
+    def draw_random_uniform_states(self, batch_size=1):
+        # create a batch of new targets in the correct format for the tensorflow compiler
+        sz = (batch_size, self.space_dim)
+        lo = self.pos_lower_bounds
+        hi = self.pos_upper_bounds
+        pos = tf.random.uniform(sz, lo, hi)
+        vel = tf.zeros(sz)
+        return tf.concat([pos, vel], axis=1)
+
+    def set_state_limit_bounds(self, lb, ub):
+        lb = np.array(lb).reshape((-1, 1))  # ensure this is a 2D array
+        ub = np.array(ub).reshape((-1, 1))
+        bounds = np.hstack((lb, ub))
+        bounds = bounds * np.ones((self.dof, 2))  # if one bound pair inputed, broadcast to dof rows
+        return bounds
+
+    def get_initial_state(self, batch_size=1, initial_joint_state=None):
+        if initial_joint_state is None:
+            initial_joint_state = self.draw_random_uniform_states(batch_size=batch_size)
+        else:
+            batch_size = tf.shape(initial_joint_state)[0]
+        initial_cartesian_state = self.joint2cartesian(initial_joint_state)
+        activation = tf.ones((batch_size, 1, self.n_muscles)) * self.activation_lower_bound
+        musculotendon_len, musculotendon_vel, moment_arm = self.get_musculoskeletal_geometry(initial_joint_state)
+
+        kpe = self.k_pe
+        kse = self.k_se
+        lpe = self.l0_pe
+        lse = self.l0_se
+        lce = self.l0_ce
+        lmt = musculotendon_len
+
+        muscle_len = tf.where(
+            musculotendon_len < 0,
+            -1,
+            tf.where(
+                musculotendon_len < lse,
+                0.001 * self.l0_ce,
+                tf.where(
+                    musculotendon_len < lse + lpe,
+                    musculotendon_len - lse,
+                    (kpe * lpe * lse ** 2 - kse * lce ** 2 * lmt + kse * lce ** 2 * lse - lce * lse * tf.sqrt(kpe * kse)
+                     * (-lmt + lpe + lse)) / (kpe * lse ** 2 - kse * lce ** 2)
+                    )
+                )
+            )
+        tf.debugging.assert_non_negative(muscle_len, message='initial muscle length was < 0.')
+        z = tf.zeros_like(muscle_len)
+        initial_muscle_state = tf.concat((activation, muscle_len, musculotendon_vel, z, z, z), axis=1)
+        initial_geometry_state = tf.concat((musculotendon_len, musculotendon_vel, moment_arm), axis=1)
+        return [initial_joint_state, initial_cartesian_state, initial_muscle_state, initial_geometry_state]
