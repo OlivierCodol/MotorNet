@@ -1,2 +1,2 @@
-model_checkpoint_path: "50gru_1e-2dt_6muscles_weights"
-all_model_checkpoint_paths: "50gru_1e-2dt_6muscles_weights"
+model_checkpoint_path: "compliant_tendon50gru_1e-3dt_10ministeps"
+all_model_checkpoint_paths: "compliant_tendon50gru_1e-3dt_10ministeps"
