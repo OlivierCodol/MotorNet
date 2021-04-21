@@ -590,7 +590,7 @@ class PointMass(Skeleton):
 
 
 class CompliantTendonArm:
-    def __init__(self, timestep=0.001, **kwargs):
+    def __init__(self, timestep=0.001, min_activation=0.01, **kwargs):
         self.dof = 2  # degrees of freedom of the skeleton (eg number of joints)
         self.space_dim = 2  # the dimensionality of the space (eg 2 for cartesian xy space)
         self.input_dim = 6  # 6 muscles
@@ -607,7 +607,7 @@ class CompliantTendonArm:
         self.proprioceptive_delay = int(proprioceptive_delay / self.dt)
         self.visual_delay = int(visual_delay / self.dt)
 
-        self.activation_lower_bound = 0.01
+        self.min_activation = min_activation
         self.tau_activation = 0.015
         self.tau_deactivation = 0.05
 
@@ -682,15 +682,24 @@ class CompliantTendonArm:
         activation = tf.slice(muscle_state, [0, 0, 0], [-1, 1, -1])
         muscle_len = tf.slice(muscle_state, [0, 1, 0], [-1, 1, -1])
         excitation = tf.reshape(excitation, (-1, 1, self.n_muscles))
-        excitation = tf.clip_by_value(excitation, self.activation_lower_bound, 1.)
+        # excitation = tf.maximum(excitation, self.min_activation)
 
-        d_activation = 11.3 * (excitation - activation)
-        new_activation = activation + d_activation * self.dt
-        new_activation = tf.clip_by_value(new_activation, self.activation_lower_bound, 1.)
+        # d_activation = 11.3 * (excitation - activation)
+        # new_activation = activation + d_activation * self.dt
+        # new_activation = tf.maximum(new_activation, self.min_activation)
         norm_muscle_len = muscle_len / self.l0_ce
-        rho = self.rho_factor * norm_muscle_len / (2.9 - norm_muscle_len)
-        cte = (rho * new_activation) ** 3
-        q = (5e-3 + cte) / (1 + cte)
+        # rho = self.rho_factor * norm_muscle_len / (2.9 - norm_muscle_len)
+        # cte = (rho * new_activation) ** 3
+        # q = (5e-3 + cte) / (1 + cte)
+        activation = tf.clip_by_value(activation, self.min_activation, 1.)
+        excitation = tf.clip_by_value(excitation, self.min_activation, 1.)
+
+        tau_scaler = 0.5 + 1.5 * activation
+        tau = tf.where(excitation > activation, self.tau_activation * tau_scaler, self.tau_deactivation / tau_scaler)
+        d_activation = (excitation - activation) / tau
+        new_activation = activation + d_activation * self.dt
+        new_activation = tf.clip_by_value(new_activation, self.min_activation, 1.)
+        q = new_activation
 
         # musculotendon geometry
         musculotendon_len, musculotendon_vel, moment_arm = self.get_musculoskeletal_geometry(joint_state)
@@ -698,8 +707,8 @@ class CompliantTendonArm:
         tendon_strain = tf.maximum((tendon_len - self.l0_se) / self.l0_se, 0.)
         muscle_strain = tf.maximum((muscle_len - self.l0_pe) / self.l0_ce, 0.)
 
-        flse = tf.minimum(self.k_se * (tendon_strain ** 2), 1.5)
-        flpe = tf.minimum(self.k_pe * (muscle_strain ** 2), 1.5)
+        flse = tf.minimum(self.k_se * (tendon_strain ** 2), 3.)
+        flpe = tf.minimum(self.k_pe * (muscle_strain ** 2), 3.)
         active_force = tf.maximum(flse - flpe, 0.)
 
         # RK4 integration
@@ -873,14 +882,15 @@ class CompliantTendonArm:
         bounds = bounds * np.ones((self.dof, 2))  # if one bound pair inputed, broadcast to dof rows
         return bounds
 
-    def get_initial_state(self, batch_size=1, initial_joint_state=None):
-        if initial_joint_state is None:
+    def get_initial_state(self, batch_size=1, skeleton_state=None):
+        if skeleton_state is None:
             initial_joint_state = self.draw_random_uniform_states(batch_size=batch_size)
         else:
-            batch_size = tf.shape(initial_joint_state)[0]
-        initial_cartesian_state = self.joint2cartesian(initial_joint_state)
-        activation = tf.ones((batch_size, 1, self.n_muscles)) * self.activation_lower_bound
-        musculotendon_len, musculotendon_vel, moment_arm = self.get_musculoskeletal_geometry(initial_joint_state)
+            batch_size = tf.shape(skeleton_state)[0]
+            initial_joint_state = skeleton_state
+        initial_cartesian_state = self.joint2cartesian(skeleton_state)
+        activation = tf.ones((batch_size, 1, self.n_muscles)) * self.min_activation
+        musculotendon_len, musculotendon_vel, moment_arm = self.get_musculoskeletal_geometry(skeleton_state)
 
         kpe = self.k_pe
         kse = self.k_se
@@ -908,3 +918,27 @@ class CompliantTendonArm:
         initial_muscle_state = tf.concat((activation, muscle_len, musculotendon_vel, z, z, z), axis=1)
         initial_geometry_state = tf.concat((musculotendon_len, musculotendon_vel, moment_arm), axis=1)
         return [initial_joint_state, initial_cartesian_state, initial_muscle_state, initial_geometry_state]
+
+    def draw_fixed_states(self, position, velocity=None, batch_size=1):
+        if velocity is None:
+            velocity = np.zeros_like(position)
+        # in case input is a list, a numpy array or a tensorflow array
+        pos = np.array(position)
+        vel = np.array(velocity)
+        if len(pos.shape) == 1:
+            pos = pos.reshape((1, -1))
+        if len(vel.shape) == 1:
+            vel = vel.reshape((1, -1))
+        assert pos.shape == vel.shape
+        assert pos.shape[1] == self.dof
+        assert len(pos.shape) == 2
+        assert np.all(pos > self.pos_lower_bounds)
+        assert np.all(pos < self.pos_upper_bounds)
+        assert np.all(vel > self.vel_lower_bounds)
+        assert np.all(vel < self.vel_upper_bounds)
+
+        pos = tf.cast(pos, dtype=tf.float32)
+        vel = tf.cast(vel, dtype=tf.float32)
+        states = tf.concat([pos, vel], axis=1)
+        tiled_states = tf.tile(states, [batch_size, 1])[:batch_size, :]  # if more than one different positions input
+        return tiled_states
