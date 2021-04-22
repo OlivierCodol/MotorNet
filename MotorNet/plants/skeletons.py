@@ -633,7 +633,7 @@ class CompliantTendonArm:
         a0 = np.array([0.151, 0.2322, 0.2859, 0.2355, 0.3329, 0.2989]).reshape((1, 1, -1))
         a1 = np.array([-0.03, 0.03, 0, 0, -0.03, 0.03, 0, 0, -0.014, 0.025, -0.016, 0.03]).reshape((1, 2, -1))
         a2 = np.array([0, 0, 0, 0, 0, 0, 0, 0, -4, -2.2, -5.7, -3.2]).reshape((1, 2, -1)) * 0.001
-        l0_se = np.array([0.039, 0.066, 0.172, 0.187, 0.204, 0.217]).reshape((1, 1, -1))
+        l0_se = np.array([0.069, 0.066, 0.172, 0.187, 0.204, 0.217]).reshape((1, 1, -1))
         l0_ce = np.array([0.134, 0.140, 0.092, 0.093, 0.137, 0.127]).reshape((1, 1, -1))
         l0_pe = l0_ce * 1.4
         max_iso_force = np.array([838, 1207, 1422, 1549, 414, 603]).reshape((1, 1, -1))
@@ -690,6 +690,7 @@ class CompliantTendonArm:
         # compute muscle activations
         activation = tf.slice(muscle_state, [0, 0, 0], [-1, 1, -1])
         muscle_len = tf.slice(muscle_state, [0, 1, 0], [-1, 1, -1])
+        muscle_vel = tf.slice(muscle_state, [0, 2, 0], [-1, 1, -1])
         excitation = tf.reshape(excitation, (-1, 1, self.n_muscles))
         # excitation = tf.maximum(excitation, self.min_activation)
 
@@ -726,7 +727,7 @@ class CompliantTendonArm:
         muscle_vel_k3 = self.muscle_ode(norm_muscle_len + self.dt * 0.5 * muscle_vel_k2, q, new_activation, active_force)
         muscle_vel_k4 = self.muscle_ode(norm_muscle_len + self.dt * muscle_vel_k3, q, new_activation, active_force)
         new_muscle_vel = (muscle_vel_k1 + 2 * muscle_vel_k2 + 2 * muscle_vel_k3 + muscle_vel_k4) / 6
-        new_muscle_len = (norm_muscle_len + self.dt * new_muscle_vel) * self.l0_ce
+        new_muscle_len = (norm_muscle_len + self.dt * (new_muscle_vel - 0.0 * muscle_vel / self.vmax)) * self.l0_ce
 
         # apply moment arm
         trq_inputs = - tf.reduce_sum(flse * self.max_iso_force * moment_arm, axis=-1)
@@ -788,11 +789,14 @@ class CompliantTendonArm:
         # q = (5e-3 + cte) / (1 + cte)
 
         f_iso_n = 1 + (- norm_muscle_len ** 2 + 2 * norm_muscle_len - 1) / self.f_iso_n_den
-        f_iso_n = tf.maximum(f_iso_n, self.min_iso_force / self.max_iso_force)
+        f_iso_n = tf.maximum(f_iso_n, 0.01)  # self.min_iso_force / self.max_iso_force
 
         q_f_iso_n = f_iso_n * q
-        # not_use_lin = q_f_iso_n >= 0.
+        # lin_thres = 0.01
+        # not_use_lin = q_f_iso_n >= lin_thres
+        # transition_line = self.sloplin * (active_force - lin_thres)
         # new_muscle_vel_lin = self.sloplin * (active_force - q_f_iso_n)
+
         # q_f_iso_n = tf.where(not_use_lin, q_f_iso_n, 1.)
 
         a_rel_st = tf.where(norm_muscle_len > 1., .41 * f_iso_n, .41)
@@ -808,6 +812,7 @@ class CompliantTendonArm:
 
         sqrt_term = active_force ** 2 - 2 * active_force * p1 * p4 + \
             2 * active_force * p3 + p1 ** 2 * p4 ** 2 - 2 * p1 * p3 * p4 + p2_containing_term + p3 ** 2
+        # this is more stringent than if we factored in the smooth linear transition
         # cond = tf.where(tf.logical_and(tf.logical_and(sqrt_term < 0, active_force >= q_f_iso_n), not_use_lin), -1, 1)
         cond = tf.where(tf.logical_and(sqrt_term < 0, active_force >= q_f_iso_n), -1, 1)
         tf.debugging.assert_non_negative(cond, message='root that should be used is negative.')
@@ -825,6 +830,7 @@ class CompliantTendonArm:
         )
 
         new_muscle_vel = new_muscle_vel_nom / new_muscle_vel_den
+        # new_muscle_vel = tf.minimum(new_muscle_vel_nom / new_muscle_vel_den, transition_line)
         # new_muscle_vel = tf.where(not_use_lin, new_muscle_vel, new_muscle_vel_lin)
 
         return new_muscle_vel
@@ -897,9 +903,9 @@ class CompliantTendonArm:
         else:
             batch_size = tf.shape(skeleton_state)[0]
             initial_joint_state = skeleton_state
-        initial_cartesian_state = self.joint2cartesian(skeleton_state)
+        initial_cartesian_state = self.joint2cartesian(initial_joint_state)
         activation = tf.ones((batch_size, 1, self.n_muscles)) * self.min_activation
-        musculotendon_len, musculotendon_vel, moment_arm = self.get_musculoskeletal_geometry(skeleton_state)
+        musculotendon_len, musculotendon_vel, moment_arm = self.get_musculoskeletal_geometry(initial_joint_state)
 
         kpe = self.k_pe
         kse = self.k_se
