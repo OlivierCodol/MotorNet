@@ -4,18 +4,16 @@ from tensorflow.keras.layers import Layer, GRUCell, Dense
 
 
 class GRUController(Layer):
-    def __init__(
-            self,
-            plant,
-            n_hidden_layers=1,
-            n_units=20,
-            activation='tanh',
-            kernel_regularizer=0.,
-            activity_regularizer=0.,
-            **kwargs):
+    def __init__(self, plant, n_units=20, n_hidden_layers=1, activation='tanh', kernel_regularizer=0.,
+                 activity_regularizer=0., proprioceptive_noise_sd=0., visual_noise_sd=0., **kwargs):
 
         if type(n_units) == int:
             n_units = list(np.repeat(n_units, n_hidden_layers).astype('int32'))
+
+        # set feedback noise levels
+        # TODO: feedback signals should really be normalized so that noise levels are comparable between inputs
+        self.proprioceptive_noise_sd = proprioceptive_noise_sd
+        self.visual_noise_sd = visual_noise_sd
 
         # plant states
         self.proprioceptive_delay = plant.proprioceptive_delay
@@ -90,9 +88,13 @@ class GRUController(Layer):
         u = self.layers[-1](x)
         jstate, cstate, mstate, gstate = self.plant(u, old_joint_pos, old_muscle_state, old_geometry_state)
 
+        # add our feedback noise
+        jstate_noisy = jstate + tf.random.normal(tf.shape(jstate), mean=0., stddev=self.proprioceptive_noise_sd)
+        cstate_noisy = cstate + tf.random.normal(tf.shape(cstate), mean=0., stddev=self.visual_noise_sd)
+
         # update feedback backlog
-        new_proprio_feedback = tf.concat([proprio_backlog, jstate[:, :, tf.newaxis]], axis=2)
-        new_visual_feedback = tf.concat([visual_backlog, cstate[:, :, tf.newaxis]], axis=2)
+        new_proprio_feedback = tf.concat([proprio_backlog, jstate_noisy[:, :, tf.newaxis]], axis=2)
+        new_visual_feedback = tf.concat([visual_backlog, cstate_noisy[:, :, tf.newaxis]], axis=2)
 
         # pack new states
         new_states = [jstate, cstate, mstate, gstate, new_proprio_feedback, new_visual_feedback]
@@ -118,6 +120,10 @@ class GRUController(Layer):
         hidden_states = [tf.zeros((batch_size, n_units), dtype=dtype) for n_units in self.n_units]
         proprio_feedback = tf.tile(states[0][:, :, tf.newaxis], [1, 1, self.proprioceptive_delay])
         visual_feedback = tf.tile(states[1][:, :, tf.newaxis], [1, 1, self.visual_delay])
+
+        # add our feedback noise
+        proprio_feedback += tf.random.normal(tf.shape(proprio_feedback), mean=0., stddev=self.proprioceptive_noise_sd)
+        visual_feedback += tf.random.normal(tf.shape(visual_feedback), mean=0., stddev=self.visual_noise_sd)
 
         states.append(proprio_feedback)
         states.append(visual_feedback)

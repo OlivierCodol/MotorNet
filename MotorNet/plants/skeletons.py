@@ -14,6 +14,9 @@ class Arm:
         self.n_muscles = 6
         self.dt = timestep
 
+        # set excitation noise level
+        self.excitation_noise_sd = kwargs.get('excitation_noise_sd', 0.)
+
         # default is no delay
         proprioceptive_delay = kwargs.get('proprioceptive_delay', timestep)
         visual_delay = kwargs.get('visual_delay', timestep)
@@ -97,6 +100,9 @@ class Arm:
         self.c_viscosity = 0.0  # put at zero but available if implemented later on
 
     def __call__(self, excitation, joint_state, muscle_state, geometry_state):
+
+        # add noise to incoming excitation
+        excitation += tf.random.normal(tf.shape(excitation), mean=0., stddev=self.excitation_noise_sd)
 
         # compute muscle activations
         activation = tf.slice(muscle_state, [0, 0, 0], [-1, 1, -1])
@@ -268,6 +274,9 @@ class Skeleton:
         self.dt = timestep
         self.init = False
         self.built = False
+
+        # set excitation noise level
+        self.excitation_noise_sd = kwargs.get('excitation_noise_sd', 0.)
 
         # handle position & velocity ranges
         pos_lower_bound = kwargs.get('pos_lower_bound', -1.)
