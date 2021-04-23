@@ -241,6 +241,13 @@ class Arm:
         vel = tf.zeros(sz)
         return tf.concat([pos, vel], axis=1)
 
+    def draw_center_states(self, batch_size=1):
+        # create a batch of new targets in the correct format for the tensorflow compiler
+        sz = (batch_size, self.space_dim)
+        pos = tf.tile(tf.expand_dims(tf.constant([np.deg2rad(45.), np.deg2rad(90.)], dtype=tf.float32), axis=0), [batch_size, 1])
+        vel = tf.zeros(sz)
+        return tf.concat([pos, vel], axis=1)
+
     def set_state_limit_bounds(self, lb, ub):
         lb = np.array(lb).reshape((-1, 1))  # ensure this is a 2D array
         ub = np.array(ub).reshape((-1, 1))
@@ -248,9 +255,12 @@ class Arm:
         bounds = bounds * np.ones((self.dof, 2))  # if one bound pair inputed, broadcast to dof rows
         return bounds
 
-    def get_initial_state(self, batch_size=1, initial_joint_state=None):
+    def get_initial_state(self, batch_size=1, initial_joint_state=None, start_mode='random'):
         if initial_joint_state is None:
-            initial_joint_state = self.draw_random_uniform_states(batch_size=batch_size)
+            if start_mode == 'random':
+                initial_joint_state = self.draw_random_uniform_states(batch_size=batch_size)
+            elif start_mode == 'center':
+                initial_joint_state = self.draw_center_states(batch_size=batch_size)
         else:
             batch_size = tf.shape(initial_joint_state)[0]
         initial_cartesian_state = self.joint2cartesian(initial_joint_state)
