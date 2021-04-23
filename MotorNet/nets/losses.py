@@ -13,7 +13,7 @@ def position_loss():
     def loss(y_true, y_pred):
         true_pos, _ = tf.split(y_true, 2, axis=-1)
         pred_pos, _ = tf.split(y_pred, 2, axis=-1)
-        return tf.reduce_sum(tf.abs(true_pos - pred_pos), axis=-1)
+        return tf.reduce_mean(tf.abs(true_pos - pred_pos), axis=-1)
     return loss
 
 
