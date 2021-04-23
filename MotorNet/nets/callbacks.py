@@ -23,9 +23,11 @@ class BatchLogger(Callback):
 
 
 class TrainingPlotter(Callback):
-    def __init__(self, task):
+    def __init__(self, task, init_states, plot_freq=20):
         super().__init__()
         self.task = task
+        self.init_states = init_states
+        self.plot_freq = plot_freq
 
     def on_train_begin(self, logs=None):
         self.loss = []
@@ -39,7 +41,14 @@ class TrainingPlotter(Callback):
         self.cartesian_loss.append(logs.get('RNN_loss'))
         self.muscle_loss.append(logs.get('RNN_4_loss'))
 
-        if len(self.loss) > 1 and batch % 10 == 0:
+        if batch % self.plot_freq == 0 or len(self.loss) == 1:
+            [inputs, targets] = self.task.generate(batch_size=3)
+            results = self.model([inputs, self.init_states], training=False)
+            j_results = results['joint position']
+            c_results = results['cartesian position']
+            m_results = results['muscle state']
+
+
             clear_output(wait=True)
             N = np.arange(0, len(self.loss))
             fig = plt.figure(constrained_layout=True)
@@ -50,3 +59,33 @@ class TrainingPlotter(Callback):
             ax1.set(xlabel='iteration', ylabel='loss')
             ax1.legend()
             plt.show()
+
+
+            for trial in range(3):
+                plt.figure(figsize=(14, 2.5)).set_tight_layout(True)
+
+                plt.subplot(141)
+                plt.plot(j_results[trial, :, 0].numpy().squeeze(), label='sho')
+                plt.plot(j_results[trial, :, 1].numpy().squeeze(), label='elb')
+                plt.legend()
+                plt.xlabel('time (ms)')
+                plt.ylabel('angle (rad)')
+
+                plt.subplot(142)
+                plt.plot(j_results[trial, :, 2].numpy().squeeze(), label='sho')
+                plt.plot(j_results[trial, :, 3].numpy().squeeze(), label='elb')
+                plt.legend()
+                plt.xlabel('time (ms)')
+                plt.ylabel('angle velocity (rad/sec)')
+
+                plt.subplot(143)
+                plt.plot(m_results[trial, :, 0, :].numpy().squeeze())
+                plt.xlabel('time (ms)')
+                plt.ylabel('activation (a.u.)')
+
+                plt.subplot(144)
+                plt.plot(m_results[trial, :, 2, :].numpy().squeeze())
+                plt.xlabel('time (ms)')
+                plt.ylabel('muscle velocity (m/sec)')
+
+                plt.show()
