@@ -2,7 +2,8 @@ import numpy as np
 import scipy.io
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
-
+import tensorflow as tf
+from matplotlib import animation
 
 def compute_limits(data):
     data_range = data.ptp()
@@ -93,3 +94,87 @@ def plot_opensim(results, save_path):
         variable = 'asd'
         with open(save_path + '.sto', "w") as text_file:
             print(f"Stuff: {variable}", file=text_file)
+            
+            
+def animate_arm_trajectory(joint_position, plant,  path_name = './Arm_animation.gif'):
+    
+    assert joint_position.shape[0] == 1
+    joint_position = tf.reshape(joint_position, (-1, plant.state_dim))
+
+
+    fig = plt.figure() 
+    ax = plt.axes(xlim=(-1, 1), ylim=(-1, 1))  
+    line, = ax.plot([], [], lw=2, alpha=0.7, color='red')# Movement path
+    L1, = ax.plot([], [], lw=4)    # L1
+    L2, = ax.plot([], [], lw=4)    # L1
+    
+    #plt.title('Creating a growing coil with matplotlib!') 
+    # Axis control 
+    plt.axis('off') 
+    plt.style.use('dark_background')
+
+    
+    def my_joint2cartesian(plant, joint_pos):
+        joint_pos = tf.reshape(joint_pos, (-1, plant.state_dim))
+        joint_angle_sum = joint_pos[:, 0] + joint_pos[:, 1]
+
+        c1 = tf.cos(joint_pos[:, 0])
+        s1 = tf.sin(joint_pos[:, 0])
+        c12 = tf.cos(joint_angle_sum)
+        s12 = tf.sin(joint_angle_sum)
+
+        end_pos_x_l1 = plant.L1 * c1
+        end_pos_y_l1 = plant.L1 * s1
+        end_pos_x_l2 = plant.L2 * c12
+        end_pos_y_l2 = plant.L2 * s12
+
+        return end_pos_x_l1, end_pos_y_l1, end_pos_x_l2, end_pos_y_l2
+
+
+
+    # Initilization of data lists 
+    def init(): 
+        # creating void frame 
+        line.set_data([], []) 
+        L1.set_data([], [])
+        L2.set_data([], [])
+        ax.scatter([0],[0])
+        return line, 
+
+    # Empty List for trajectories and arm position 
+    xdata, ydata = [], [] 
+    L1_xdata, L1_ydata = [], [] 
+    L2_xdata, L2_ydata = [], [] 
+
+
+    # animation 
+    def animate(i): 
+
+        # Get the position of end_point, L1, and L2 
+        end_pos_x_l1, end_pos_y_l1, end_pos_x_l2, end_pos_y_l2 = my_joint2cartesian(plant, joint_position[i:i+1,:])
+
+        # Append the endpoint position 
+        xdata.append(end_pos_x_l1 + end_pos_x_l2) 
+        ydata.append(end_pos_y_l1 + end_pos_y_l2) 
+        line.set_data(xdata, ydata)
+
+
+        # Append the L1 position 
+        L1_xdata = [0 ,end_pos_x_l1] 
+        L1_ydata  = [0 ,end_pos_y_l1] 
+        L1.set_data(L1_xdata, L1_ydata)
+
+        # Append the L2 position
+        L2_xdata = [end_pos_x_l1, end_pos_x_l1 + end_pos_x_l2] 
+        L2_ydata  = [end_pos_y_l1, end_pos_y_l1 + end_pos_y_l2 ] 
+        L2.set_data(L2_xdata, L2_ydata)
+
+
+        return line, L1, L2
+
+    # call animation	 
+    anim = animation.FuncAnimation(fig, animate, init_func=init, 
+                                frames=joint_position.shape[0], interval=plant.dt, blit=True) 
+
+    # save the animated file, (Used pillow, since it is usually installed by default)
+    anim.save(path_name, writer='pillow')
