@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow import keras
 
+
 class MotorNetModel(keras.Model):
     def train_step(self, data):
         # Unpack the data. Its structure depends on your model and

@@ -18,12 +18,13 @@ class GRUController(Layer):
         # plant states
         self.proprioceptive_delay = plant.proprioceptive_delay
         self.visual_delay = plant.visual_delay
+        self.n_muscles = plant.n_muscles
         self.state_size = [tf.TensorShape([plant.output_dim]),
                            tf.TensorShape([plant.output_dim]),
-                           tf.TensorShape([plant.muscle_state_dim, plant.n_muscles]),
-                           tf.TensorShape([plant.geometry_state_dim, plant.n_muscles]),
-                           tf.TensorShape([plant.n_muscles*2, self.proprioceptive_delay]),
-                           tf.TensorShape([2, self.visual_delay])]
+                           tf.TensorShape([plant.muscle_state_dim, self.n_muscles]),
+                           tf.TensorShape([plant.geometry_state_dim, self.n_muscles]),
+                           tf.TensorShape([self.n_muscles * 2, self.proprioceptive_delay]),  # muscle length & velocity
+                           tf.TensorShape([plant.space_dim, self.visual_delay])]
         # hidden states for GRU layer(s)
         for n in n_units:
             self.state_size.append(tf.TensorShape([n]))
@@ -88,15 +89,13 @@ class GRUController(Layer):
         u = self.layers[-1](x)
         jstate, cstate, mstate, gstate = self.plant(u, old_joint_pos, old_muscle_state, old_geometry_state)
 
-        # add our feedback noise
-        shape = tf.shape(mstate)
-        mstate_temp = tf.reshape(mstate[:, 1:, :], shape=[shape[0], 2*shape[2]])
-        mstate_noisy = mstate_temp + tf.random.normal(tf.shape(mstate_temp), mean=0., stddev=self.proprioceptive_noise_sd)
-        cstate_noisy = cstate[:, 0:2] + tf.random.normal(tf.shape(cstate[:, 0:2]), mean=0., stddev=self.visual_noise_sd)
-
-        # update feedback backlog
-        new_proprio_feedback = tf.concat([proprio_backlog, mstate_noisy[:, :, tf.newaxis]], axis=2)
-        new_visual_feedback = tf.concat([visual_backlog, cstate_noisy[:, :, tf.newaxis]], axis=2)
+        # add feedback noise & update feedback backlog
+        proprio_true = tf.reshape(mstate[:, 1:3, :], shape=(-1, self.n_muscles * 2))  # flatten len / vel / n_muscles
+        visual_true, _ = tf.split(cstate, 2, axis=-1)  # position only (discard velocity)
+        proprio_noisy = proprio_true + tf.random.normal(tf.shape(proprio_true), stddev=self.proprioceptive_noise_sd)
+        visual_noisy = visual_true + tf.random.normal(tf.shape(visual_true), stddev=self.visual_noise_sd)
+        new_proprio_feedback = tf.concat([proprio_backlog, proprio_noisy[:, :, tf.newaxis]], axis=2)
+        new_visual_feedback = tf.concat([visual_backlog, visual_noisy[:, :, tf.newaxis]], axis=2)
 
         # pack new states
         new_states = [jstate, cstate, mstate, gstate, new_proprio_feedback, new_visual_feedback]
@@ -113,21 +112,22 @@ class GRUController(Layer):
 
         return output, new_states
 
-    def get_initial_state(self, inputs=None, batch_size=1, start_mode='random', dtype=tf.float32):
+    def get_initial_state(self, inputs=None, batch_size=1, dtype=tf.float32):
         if inputs is not None:
-            batch_size = tf.shape(inputs)[0]
-            states = self.plant.get_initial_state(skeleton_state=inputs, start_mode=start_mode)
+            states = self.plant.get_initial_state(joint_state=inputs, batch_size=batch_size)
         else:
-            states = self.plant.get_initial_state(batch_size=batch_size, start_mode=start_mode)
+            states = self.plant.get_initial_state(batch_size=batch_size)
         hidden_states = [tf.zeros((batch_size, n_units), dtype=dtype) for n_units in self.n_units]
-        shape = tf.shape(states[2])
-        temp_proprio = tf.reshape(states[2][:, 1:, :], shape=(shape[0], 2*shape[2]))
-        proprio_feedback = tf.tile(temp_proprio[:, :, tf.newaxis], [1, 1, self.proprioceptive_delay])
-        visual_feedback = tf.tile(states[1][:, 0:2, tf.newaxis], [1, 1, self.visual_delay])
 
-        # add our feedback noise
-        proprio_feedback += tf.random.normal(tf.shape(proprio_feedback), mean=0., stddev=self.proprioceptive_noise_sd)
-        visual_feedback += tf.random.normal(tf.shape(visual_feedback), mean=0., stddev=self.visual_noise_sd)
+        # flatten len / vel / n_muscles for proprioception feedback
+        proprio_true = tf.reshape(states[2][:, 1:3, :], shape=(batch_size, self.n_muscles * 2))
+        visual_true, _ = tf.split(states[1], 2, axis=-1)  # position only (discard velocity)
+        proprio_feedback = tf.tile(proprio_true[:, :, tf.newaxis], [1, 1, self.proprioceptive_delay])
+        visual_feedback = tf.tile(visual_true[:, :, tf.newaxis], [1, 1, self.visual_delay])
+
+        # add feedback noise
+        proprio_feedback += tf.random.normal(tf.shape(proprio_feedback), stddev=self.proprioceptive_noise_sd)
+        visual_feedback += tf.random.normal(tf.shape(visual_feedback), stddev=self.visual_noise_sd)
 
         states.append(proprio_feedback)
         states.append(visual_feedback)
