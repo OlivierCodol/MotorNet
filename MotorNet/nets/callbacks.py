@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from IPython.display import clear_output
 
+
 class BatchLogger(Callback):
     """A Logger that logs metrics per batch steps instead of per epoch step."""
     def __init__(self):
@@ -28,6 +29,10 @@ class TrainingPlotter(Callback):
         self.task = task
         self.init_states = init_states
         self.plot_freq = plot_freq
+        self.loss = []
+        self.logs = []
+        self.cartesian_loss = []
+        self.muscle_loss = []
 
     def on_train_begin(self, logs=None):
         self.loss = []
@@ -48,18 +53,16 @@ class TrainingPlotter(Callback):
             c_results = results['cartesian position']
             m_results = results['muscle state']
 
-
             clear_output(wait=True)
-            N = np.arange(0, len(self.loss))
+            n = np.arange(0, len(self.loss))
             fig = plt.figure(constrained_layout=True)
-            gs = fig.add_gridspec(1,1)
-            ax1 = fig.add_subplot(gs[0,0])
-            ax1.plot(N, self.cartesian_loss, label='cartesian loss')
-            ax1.plot(N, self.muscle_loss, label='activation loss')
+            gs = fig.add_gridspec(1, 1)
+            ax1 = fig.add_subplot(gs[0, 0])
+            ax1.plot(n, self.cartesian_loss, label='cartesian loss')
+            ax1.plot(n, self.muscle_loss, label='activation loss')
             ax1.set(xlabel='iteration', ylabel='loss')
             ax1.legend()
             plt.show()
-
 
             for trial in range(3):
                 plt.figure(figsize=(14, 2.5)).set_tight_layout(True)
