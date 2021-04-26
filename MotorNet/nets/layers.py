@@ -5,7 +5,7 @@ from tensorflow.keras.layers import Layer, GRUCell, Dense
 
 class GRUController(Layer):
     def __init__(self, plant, n_units=20, n_hidden_layers=1, activation='tanh', kernel_regularizer=0.,
-                 activity_regularizer=0., proprioceptive_noise_sd=0., visual_noise_sd=0., **kwargs):
+                 activity_regularizer=0., recurrent_regularizer=0., proprioceptive_noise_sd=0., visual_noise_sd=0., **kwargs):
 
         if type(n_units) == int:
             n_units = list(np.repeat(n_units, n_hidden_layers).astype('int32'))
@@ -32,6 +32,7 @@ class GRUController(Layer):
         self.plant = plant
         self.kernel_regularizer = tf.keras.regularizers.l2(kernel_regularizer)
         self.activity_regularizer = tf.keras.regularizers.l2(activity_regularizer)
+        self.recurrent_regularizer = tf.keras.regularizers.l2(recurrent_regularizer)
         self.n_hidden_layers = n_hidden_layers
         self.activation = activation
         self.n_units = n_units
@@ -45,7 +46,8 @@ class GRUController(Layer):
                             activation=self.activation,
                             name='hidden_layer_' + str(k),
                             kernel_regularizer=self.kernel_regularizer,
-                            activity_regularizer=self.activity_regularizer)
+                            activity_regularizer=self.activity_regularizer,
+                            recurrent_regularizer=self.recurrent_regularizer)
             self.layers.append(layer)
         output_layer = Dense(units=self.plant.input_dim,
                              activation='sigmoid',
