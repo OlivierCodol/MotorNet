@@ -9,6 +9,7 @@ class Task(ABC):
         if task_args is None:
             task_args = {}
         self.plant = plant
+        self.initial_joint_state = None
         self.task_args = task_args
         self.n_timesteps = n_timesteps
         self.batch_size = batch_size
@@ -27,13 +28,20 @@ class Task(ABC):
     def get_losses(self):
         return [self.losses, self.loss_weights]
 
+    def get_initial_state(self):
+        if self.initial_joint_state is not None:
+            return np.expand_dims(self.initial_joint_state, axis=0)
+        else:
+            return None
+
 
 class TaskStaticTarget(Task):
     def __init__(self, plant, n_timesteps=5000, batch_size=1, task_args=None):
         super().__init__(plant, n_timesteps, batch_size, task_args)
         # define losses and loss weights for this task
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
-        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
+        self.loss_weights = {'cartesian position': 1, 'muscle state': 5}
+        self.initial_joint_state = np.deg2rad([45, 90])
 
     def generate(self, **kwargs):
         self.n_timesteps = kwargs.get('n_timesteps', self.n_timesteps)
@@ -48,7 +56,8 @@ class TaskDelayedReach(Task):
         super().__init__(plant, n_timesteps, batch_size, task_args)
         # define losses and loss weights for this task
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
-        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.1}
+        self.loss_weights = {'cartesian position': 1, 'muscle state': 5}
+        self.initial_joint_state = np.deg2rad([45, 90])
 
         if "bump_length" in self.task_args:
             self.bump_length = int(self.task_args['bump_length'] / 1000 / plant.dt)
@@ -69,7 +78,7 @@ class TaskDelayedReach(Task):
         goal_states = self.plant.draw_random_uniform_states(batch_size=self.batch_size)
         targets = self.plant.state2target(state=self.plant.joint2cartesian(goal_states),
                                           n_timesteps=self.n_timesteps).numpy()
-        temp_center = self.plant.get_initial_state(batch_size=1, start_mode='center')
+        temp_center = self.plant.get_initial_state(batch_size=1, joint_state=self.get_initial_state())
         center = temp_center[1][0, :]
         temp_inputs = []
         for i in range(self.batch_size):
