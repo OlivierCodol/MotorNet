@@ -124,8 +124,10 @@ class GRUController(Layer):
             states = self.plant.get_initial_state(batch_size=batch_size)
         hidden_states = [tf.zeros((batch_size, n_units), dtype=dtype) for n_units in self.n_units]
 
-        # flatten len / vel / n_muscles for proprioception feedback
-        proprio_true = tf.reshape(states[2][:, 1:3, :], shape=(batch_size, self.n_muscles * 2))
+        muscle_len = tf.slice(states[2], [0, 1, 0], [-1, 1, -1]) / self.plant.Muscle.l0_ce
+        muscle_vel = tf.slice(states[2], [0, 2, 0], [-1, 1, -1]) / self.plant.Muscle.vmax
+        # flatten len / vel / n_muscles:
+        proprio_true = tf.reshape(tf.concat([muscle_len, muscle_vel], axis=1), shape=(-1, self.n_muscles * 2))
         visual_true, _ = tf.split(states[1], 2, axis=-1)  # position only (discard velocity)
         proprio_feedback = tf.tile(proprio_true[:, :, tf.newaxis], [1, 1, self.proprioceptive_delay])
         visual_feedback = tf.tile(visual_true[:, :, tf.newaxis], [1, 1, self.visual_delay])
