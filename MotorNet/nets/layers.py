@@ -92,7 +92,10 @@ class GRUController(Layer):
         jstate, cstate, mstate, gstate = self.plant(u, old_joint_pos, old_muscle_state, old_geometry_state)
 
         # add feedback noise & update feedback backlog
-        proprio_true = tf.reshape(mstate[:, 1:3, :], shape=(-1, self.n_muscles * 2))  # flatten len / vel / n_muscles
+        muscle_len = tf.slice(mstate, [0, 1, 0], [-1, 1, -1]) / self.plant.Muscle.l0_ce
+        muscle_vel = tf.slice(mstate, [0, 2, 0], [-1, 1, -1]) / self.plant.Muscle.vmax
+        # flatten len / vel / n_muscles:
+        proprio_true = tf.reshape(tf.concat([muscle_len, muscle_vel], axis=1), shape=(-1, self.n_muscles * 2))
         visual_true, _ = tf.split(cstate, 2, axis=-1)  # position only (discard velocity)
         proprio_noisy = proprio_true + tf.random.normal(tf.shape(proprio_true), stddev=self.proprioceptive_noise_sd)
         visual_noisy = visual_true + tf.random.normal(tf.shape(visual_true), stddev=self.visual_noise_sd)

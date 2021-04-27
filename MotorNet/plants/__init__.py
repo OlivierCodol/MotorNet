@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from MotorNet.plants.skeletons import TwoDofArm
+from MotorNet.plants.muscles import RigidTendonHillMuscle, RigidTendonHillMuscleThelen
 
 
 class Plant:
@@ -242,7 +243,7 @@ class PlantWrapper(Plant):
         return new_joint_state, new_cartesian_state, new_muscle_state, new_geometry_state
 
 
-class RigidTendonArm(Plant):
+class RigidTendonArm(PlantWrapper):
 
     def __init__(self, timestep=0.01, **kwargs):
 
@@ -251,130 +252,93 @@ class RigidTendonArm(Plant):
 
         super().__init__(
             skeleton=TwoDofArm(m1=2.10, m2=1.65, L1g=.146, L2g=.179, I1=.024, I2=.025, L1=.335, L2=.263),
+            muscle_type=RigidTendonHillMuscle(),
             timestep=timestep,
             pos_lower_bound=(sho_limit[0], elb_limit[0]),
             pos_upper_bound=(sho_limit[1], elb_limit[1]),
             **kwargs)
 
-        self.input_dim = 6  # 6 muscles
-        self.muscle_state_dim = 3
-        self.geometry_state_dim = 4
+        # build muscle system
+        self.muscle_state_dim = self.Muscle.state_dim
+        self.geometry_state_dim = 2 + self.Skeleton.dof  # musculotendon length & velocity + as many moments as dofs
         self.n_muscles = 6
+        self.input_dim = self.n_muscles
+        self.muscle_name = ['pectoralis', 'deltoid', 'brachioradialis', 'tricepslat', 'biceps', 'tricepslong']
+        self.tobuild__muscle = self.Muscle.to_build_dict
+        self.Muscle.build(
+            timestep=0.01,
+            max_isometric_force=[838, 1207, 1422, 1549, 414, 603],
+            tendon_length=[0.069, 0.066, 0.172, 0.187, 0.204, 0.217],
+            optimal_muscle_length=[0.134, 0.140, 0.092, 0.093, 0.137, 0.127])
+        self.built = True
 
-        self.min_activation = 0.001
-        self.tau_activation = 0.015
-        self.tau_deactivation = 0.05
-
-        self.a0 = tf.constant([0.151, 0.2322, 0.2859, 0.2355, 0.3329, 0.2989], shape=(1, 1, 6), dtype=tf.float32)
-        self.a1 = tf.constant([-.03, .03, 0, 0, -.03, .03,
-                               0, 0, -.014, .025, -.016, .03], shape=(1, 2, 6), dtype=tf.float32)
-        self.a2 = tf.constant([0, 0, 0, 0, 0, 0, 0, 0, -4, -2.2, -5.7, -3.2], shape=(1, 2, 6), dtype=tf.float32) * 0.001
-        self.l0_se = tf.constant([0.069, 0.066, 0.172, 0.187, 0.204, 0.217], shape=(1, 1, 6), dtype=tf.float32)
-        self.l0_ce = tf.constant([0.134, 0.140, 0.092, 0.093, 0.137, 0.127], shape=(1, 1, 6), dtype=tf.float32)
-        self.l0_pe = self.l0_ce * 1.15
-        self.max_iso_force = tf.constant([838, 1207, 1422, 1549, 414, 603], shape=(1, 1, 6), dtype=tf.float32)
-
-        # pre-computed for speed
-        self.s_as = 0.001
-        self.f_iso_n_den = .66 ** 2
-        self.b_rel_st_den = 5e-3 - 0.3
-        self.vmax = 10 * self.l0_ce
-        self.k_pe = 1 / ((1.66 - self.l0_pe / self.l0_ce) ** 2)
-        self.k_se = 1 / (0.04 ** 2)
-        self.q_crit = 0.3
-
-    def __call__(self, excitation, joint_state, muscle_state, geometry_state, endpoint_load=0.):
-        # compute muscle activations
-        activation = tf.slice(muscle_state, [0, 0, 0], [-1, 1, -1])
-        excitation = tf.reshape(excitation, (-1, 1, self.n_muscles))
-        excitation += tf.random.normal(tf.shape(excitation), stddev=self.excitation_noise_sd)
-        activation = tf.clip_by_value(activation, self.min_activation, 1.)
-        excitation = tf.clip_by_value(excitation, self.min_activation, 1.)
-
-        tau_scaler = 0.5 + 1.5 * activation
-        tau = tf.where(excitation > activation, self.tau_activation * tau_scaler, self.tau_deactivation / tau_scaler)
-        d_activation = (excitation - activation) / tau
-        new_activation = activation + d_activation * self.dt
-        new_activation = tf.clip_by_value(new_activation, self.min_activation, 1.)
-
-        musculotendon_len, musculotendon_vel, moment_arm = self.get_geometry(joint_state)
-        muscle_len = tf.maximum(musculotendon_len - self.l0_se, 0.001)
-        muscle_vel = musculotendon_vel
-        muscle_strain = tf.maximum((muscle_len - self.l0_pe) / self.l0_ce, 0.)
-        muscle_len_n = muscle_len / self.l0_ce
-        muscle_vel_n = muscle_vel / self.vmax
-
-        # muscle forces
-        flpe = tf.minimum(self.k_pe * (muscle_strain ** 2), 3.)
-        flce = tf.maximum(1 + (- muscle_len_n ** 2 + 2 * muscle_len_n - 1) / self.f_iso_n_den, 0.01)
-
-        a_rel_st = tf.where(muscle_len_n > 1., .41 * flce, .41)
-        b_rel_st = tf.where(
-            condition=new_activation < self.q_crit,
-            x=5.2 * (1 - .9 * ((new_activation - self.q_crit) / (5e-3 - self.q_crit))) ** 2,
-            y=5.2)
-        dvdf_isom_con = b_rel_st / (new_activation * (flce + a_rel_st))  # slope at isometric point wrt concentric curve
-        dfdvcon0 = 1. / dvdf_isom_con
-
-        p1 = -(flce * new_activation * .5) / (self.s_as - dfdvcon0 * 2.)
-        p2 = ((flce * new_activation * .5) ** 2) / (self.s_as - dfdvcon0 * 2.)
-        p3 = -1.5 * flce * new_activation
-        p4 = -self.s_as
-
-        nom = tf.where(
-            condition=muscle_vel_n < 0,
-            x=muscle_vel_n * new_activation * a_rel_st + flce * new_activation * b_rel_st,
-            y=-p1 * p3 - p1 * p4 * muscle_vel_n + p2 - p3 * muscle_vel_n - p4 * muscle_vel_n ** 2)
-        den = tf.where(condition=muscle_vel_n < 0, x=b_rel_st - muscle_vel_n, y=p1 + muscle_vel_n)
-        active_force = tf.maximum(nom / den, 0.)
-
-        f = (active_force + flpe) * self.max_iso_force
-
-        generalized_forces = tf.reduce_sum(- f * moment_arm, axis=-1)
-        new_joint_state = self.Skeleton(generalized_forces, joint_state, endpoint_load=endpoint_load)
-        new_cartesian_state = self.Skeleton.joint2cartesian(joint_state=new_joint_state)
-
-        new_muscle_state = tf.concat(
-            [
-                new_activation,
-                muscle_len,
-                muscle_vel,
-            ], axis=1)
-
-        new_geometry_state = tf.concat(
-            [
-                musculotendon_len,
-                musculotendon_vel,
-                moment_arm
-            ], axis=1)
-
-        return new_joint_state, new_cartesian_state, new_muscle_state, new_geometry_state
+        a0 = [0.151, 0.2322, 0.2859, 0.2355, 0.3329, 0.2989]
+        a1 = [-.03, .03, 0, 0, -.03, .03, 0, 0, -.014, .025, -.016, .03]
+        a2 = [0, 0, 0, 0, 0, 0, 0, 0, -4e-3, -2.2e-3, -5.7e-3, -3.2e-3]
+        self.a0 = tf.constant(a0, shape=(1, 1, 6), dtype=tf.float32)
+        self.a1 = tf.constant(a1, shape=(1, 2, 6), dtype=tf.float32)
+        self.a2 = tf.constant(a2, shape=(1, 2, 6), dtype=tf.float32)
 
     def get_geometry(self, joint_state):
         old_pos, old_vel = tf.split(joint_state[:, :, tf.newaxis], 2, axis=1)
         old_pos = old_pos - np.array([np.pi / 2, 0.]).reshape((1, 2, 1))
         old_pos2 = tf.pow(old_pos, 2)
-
         moment_arm = old_pos * self.a2 * 2 + self.a1
         musculotendon_len = tf.reduce_sum(old_pos * self.a1 + old_pos2 * self.a2, axis=1, keepdims=True) + self.a0
         musculotendon_vel = tf.reduce_sum(old_vel * moment_arm, axis=1, keepdims=True)
-
-        # these outputs are **NOT** normalized
-        # variables are not concatenated here for speed
-        return musculotendon_len, musculotendon_vel, moment_arm
-
-    def get_initial_state(self, batch_size=1, joint_state=None):
-        joint0 = self.parse_initial_joint_state(joint_state=joint_state, batch_size=batch_size)
-        cartesian0 = self.Skeleton.joint2cartesian(joint_state=joint0)
-        musculotendon_len, musculotendon_vel, moment_arm = self.get_geometry(joint0)
-        activation = tf.ones_like(musculotendon_len) * self.min_activation
-        muscle_len = tf.maximum(musculotendon_len - self.l0_se, 0.001 * self.l0_ce)
-        muscle0 = tf.concat((activation, muscle_len, musculotendon_vel), axis=1)
-        geometry0 = tf.concat((musculotendon_len, musculotendon_vel, moment_arm), axis=1)
-        return [joint0, cartesian0, muscle0, geometry0]
+        return tf.concat([musculotendon_len, musculotendon_vel, moment_arm], axis=1)
 
 
-class RigidTendonArmThelen(RigidTendonArm):
+class RigidTendonArmThelen(PlantWrapper):
+
+    def __init__(self, timestep=0.01, **kwargs):
+
+        sho_limit = np.deg2rad([0, 135])  # mechanical constraints - used to be -90 180
+        elb_limit = np.deg2rad([0, 155])
+        # skeleton = TwoDofArm(m1=2.10, m2=1.65, L1g=.146, L2g=.179, I1=.024, I2=.025, L1=.335, L2=.263),
+        skeleton = TwoDofArm(m1=1.82, m2=1.43, L1g=.135, L2g=.165, I1=.051, I2=.057, L1=.309, L2=.333)
+
+        super().__init__(
+            skeleton=skeleton,
+            muscle_type=RigidTendonHillMuscleThelen(),
+            timestep=timestep,
+            pos_lower_bound=(sho_limit[0], elb_limit[0]),
+            pos_upper_bound=(sho_limit[1], elb_limit[1]),
+            **kwargs)
+
+        # build muscle system
+        self.muscle_state_dim = self.Muscle.state_dim
+        self.geometry_state_dim = 2 + self.Skeleton.dof  # musculotendon length & velocity + as many moments as dofs
+        self.n_muscles = 6
+        self.input_dim = self.n_muscles
+        self.muscle_name = ['pectoralis', 'deltoid', 'brachioradialis', 'tricepslat', 'biceps', 'tricepslong']
+        self.tobuild__muscle = self.Muscle.to_build_dict
+        self.Muscle.build(
+            timestep=0.01,
+            max_isometric_force=[838, 1207, 1422, 1549, 414, 603],
+            tendon_length=[0.039, 0.066, 0.172, 0.187, 0.204, 0.217],
+            optimal_muscle_length=[0.134, 0.140, 0.092, 0.093, 0.137, 0.127])
+        self.built = True
+
+        a0 = [0.151, 0.2322, 0.2859, 0.2355, 0.3329, 0.2989]
+        a1 = [-.03, .03, 0, 0, -.03, .03, 0, 0, -.014, .025, -.016, .03]
+        a2 = [0, 0, 0, 0, 0, 0, 0, 0, -4e-3, -2.2e-3, -5.7e-3, -3.2e-3]
+        self.a0 = tf.constant(a0, shape=(1, 1, 6), dtype=tf.float32)
+        self.a1 = tf.constant(a1, shape=(1, 2, 6), dtype=tf.float32)
+        self.a2 = tf.constant(a2, shape=(1, 2, 6), dtype=tf.float32)
+
+    def get_geometry(self, joint_state):
+        old_pos, old_vel = tf.split(joint_state[:, :, tf.newaxis], 2, axis=1)
+        old_pos = old_pos - np.array([np.pi / 2, 0.]).reshape((1, 2, 1))
+        old_pos2 = tf.pow(old_pos, 2)
+        moment_arm = old_pos * self.a2 * 2 + self.a1
+        musculotendon_len = tf.reduce_sum(old_pos * self.a1, axis=1, keepdims=True) + \
+                            tf.reduce_sum(old_pos2 * self.a2, axis=1, keepdims=True) + self.a0
+        musculotendon_vel = tf.reduce_sum(old_vel * moment_arm, axis=1, keepdims=True)
+        return tf.concat([musculotendon_len, musculotendon_vel, moment_arm], axis=1)
+
+
+class RigidTendonArmThelen2(RigidTendonArm):
 
     def __init__(self, **kwargs):
 
