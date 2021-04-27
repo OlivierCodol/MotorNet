@@ -206,9 +206,9 @@ class PointMass(Skeleton):
         super().__init__(dof=space_dim, space_dim=space_dim, **kwargs)
         self.mass = mass
 
-    def __call__(self, inputs, joint_state, joint_load=np.zeros(1)):
-        joint_load = tf.constant(joint_load, shape=(1, self.dof), dtype=tf.float32)
-        new_acc = inputs + joint_load  # load will broadcast to match batch_size
+    def __call__(self, inputs, joint_state, endpoint_load=np.zeros(1)):
+        endpoint_load = tf.constant(endpoint_load, shape=(1, self.dof), dtype=tf.float32)
+        new_acc = inputs + endpoint_load  # load will broadcast to match batch_size
 
         old_vel = tf.cast(joint_state[:, self.dof:], dtype=tf.float32)
         old_pos = tf.cast(joint_state[:, :self.dof], dtype=tf.float32)

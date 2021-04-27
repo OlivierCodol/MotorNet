@@ -62,19 +62,24 @@ class ReluMuscle(Muscle):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.state_name = ['excitation',
+                           'muscle lenth',
+                           'muscle velocity',
                            'force']
         self.state_dim = len(self.state_name)
 
-    def __call__(self, excitation, *args, **kwargs):
+    def __call__(self, excitation, muscle_state, geometry_state, **kwargs):
         excitation = excitation[:, tf.newaxis, :]
         forces = tf.nn.relu(excitation) * self.max_iso_force
-        muscle_state = tf.concat([excitation, forces], axis=1)
+        muscle_len = tf.slice(geometry_state, [0, 0, 0], [-1, 1, -1])
+        muscle_vel = tf.slice(geometry_state, [0, 1, 0], [-1, 1, -1])
+        muscle_state = tf.concat([excitation, muscle_len, muscle_vel, forces], axis=1)
         return forces, muscle_state
 
     def get_initial_muscle_state(self, batch_size, geometry_state):
         excitation0 = tf.ones((batch_size, 1, self.n_muscles)) * self.min_activation
         force0 = tf.zeros((batch_size, 1, self.n_muscles))
-        muscle_state0 = tf.concat([excitation0, force0], axis=1)
+        len_vel = tf.slice(geometry_state, [0, 0, 0], [-1, 2, -1])
+        muscle_state0 = tf.concat([excitation0, len_vel, force0], axis=1)
         return muscle_state0
 
 
@@ -89,7 +94,7 @@ class RigidTendonHillMuscle(Muscle):
 
         self.state_name = ['activation',
                            'muscle length',
-                           'muscle_velocity',
+                           'muscle velocity',
                            'force-length PE',
                            'force-length CE',
                            'force-velocity CE']
@@ -194,7 +199,7 @@ class RigidTendonHillMuscleThelen(Muscle):
 
         self.state_name = ['activation',
                            'muscle length',
-                           'muscle_velocity',
+                           'muscle velocity',
                            'force-length PE',
                            'force-length CE',
                            'force-velocity CE']
@@ -302,7 +307,7 @@ class CompliantTendonHillMuscle(Muscle):
         super().__init__(min_activation=min_activation, **kwargs)
         self.state_name = ['activation',
                            'muscle length',
-                           'muscle_velocity',
+                           'muscle velocity',
                            'force-length PE',
                            'force-length SE',
                            'active force']
