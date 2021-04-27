@@ -51,13 +51,12 @@ class Plant:
         vel = tf.zeros(sz)
         return tf.concat([pos, vel], axis=1)
 
-    def parse_initial_joint_state(self, joint_state, batch_size):
-        if joint_state is not None and tf.shape(joint_state)[0] > 1:
-            batch_size = tf.shape(joint_state)[0]
-
+    def parse_initial_joint_state(self, joint_state, batch_size=1):
         if joint_state is None:
             joint0 = self.draw_random_uniform_states(batch_size=batch_size)
         else:
+            if tf.shape(joint_state)[0] > 1:
+                batch_size = 1
             n_state = joint_state.shape[1]
             if n_state == self.state_dim:
                 position, velocity = tf.split(joint_state, 2, axis=-1)
@@ -90,7 +89,7 @@ class Plant:
         pos = tf.cast(pos, dtype=tf.float32)
         vel = tf.cast(vel, dtype=tf.float32)
         states = tf.concat([pos, vel], axis=1)
-        tiled_states = tf.tile(states, [batch_size, 1])[:batch_size, :]  # if more than one different positions input
+        tiled_states = tf.tile(states, [batch_size, 1])
         return tiled_states
 
     def set_state_limit_bounds(self, lb, ub):
