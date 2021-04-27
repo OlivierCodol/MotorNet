@@ -43,8 +43,8 @@ class TrainingPlotter(Callback):
     def on_batch_end(self, batch, logs=None):
         self.logs.append(logs)
         self.loss.append(logs.get('loss'))
-        self.cartesian_loss.append(logs.get('RNN_loss'))
-        self.muscle_loss.append(logs.get('RNN_4_loss'))
+        self.cartesian_loss.append(logs.get('RNN_loss') * self.task.loss_weights['cartesian position'])
+        self.muscle_loss.append(logs.get('RNN_4_loss') * self.task.loss_weights['muscle state'])
 
         if batch % self.plot_freq == 0 or len(self.loss) == 1:
             [inputs, targets] = self.task.generate(batch_size=3)
