@@ -221,8 +221,6 @@ class RigidTendonHillMuscleThelen(Muscle):
         self.ce_3 = None
         self.ce_4 = None
         self.ce_5 = None
-        self.ce_6 = None
-        self.ce_7 = None
 
         self.to_build_dict = {'timestep': [],
                               'max_isometric_force': [],
@@ -242,19 +240,17 @@ class RigidTendonHillMuscleThelen(Muscle):
         self.max_iso_force = tf.reshape(tf.cast(max_isometric_force, dtype=tf.float32), (1, 1, self.n_muscles))
         self.l0_ce = tf.reshape(tf.cast(optimal_muscle_length, dtype=tf.float32), (1, 1, self.n_muscles))
         self.l0_pe = self.l0_ce * normalized_slack_muscle_length
-        self.l0_se = tf.reshape(tf.cast(tendon_length, dtype=tf.float32), (1, 1, self.n_muscles))
         self.musculotendon_slack_len = self.l0_pe + self.l0_se
         self.vmax = 10 * self.l0_ce
+        self.l0_se = tf.reshape(tf.cast(tendon_length, dtype=tf.float32), (1, 1, self.n_muscles))
 
         # pre-computed for speed
         self.ce_0 = 3. * self.vmax
-        self.ce_1 = 3. * self.ce_Af * self.vmax * self.ce_fmlen
-        self.ce_2 = 3. * self.ce_Af * self.vmax
-        self.ce_3 = 8. * self.ce_Af * self.ce_fmlen
-        self.ce_4 = self.ce_Af * self.ce_fmlen
-        self.ce_5 = self.ce_Af * self.vmax
-        self.ce_6 = 8. * self.ce_fmlen
-        self.ce_7 = self.ce_Af * self.ce_fmlen * self.vmax
+        self.ce_1 = self.ce_Af * self.vmax
+        self.ce_2 = 3. * self.ce_Af * self.vmax * self.ce_fmlen - 3. * self.ce_Af * self.vmax
+        self.ce_3 = 8. * self.ce_Af * self.ce_fmlen + 8. * self.ce_fmlen
+        self.ce_4 = self.ce_Af * self.ce_fmlen * self.vmax - self.ce_1
+        self.ce_5 = 8. * (self.ce_Af + 1.)
 
         self.built = True
 
@@ -277,27 +273,16 @@ class RigidTendonHillMuscleThelen(Muscle):
         new_activation3 = new_activation * 3.
         nom = tf.where(condition=muscle_vel <= 0,
                        x=self.ce_Af * (new_activation * self.ce_0 + 4. * muscle_vel + self.vmax),
-                       y=(self.ce_1 * new_activation
-                          - self.ce_2 * new_activation
-                          + self.ce_3 * muscle_vel
-                          + self.ce_7
-                          - self.ce_5
-                          + self.ce_6 * muscle_vel))
+                       y=self.ce_2 * new_activation + self.ce_3 * muscle_vel + self.ce_4)
         den = tf.where(condition=muscle_vel <= 0,
-                       x=(new_activation3 * self.ce_5 + self.ce_5 - 4. * muscle_vel),
-                       y=(new_activation3 * self.ce_7
-                          - new_activation3 * self.ce_5
-                          + self.ce_7
-                          + 8. * self.ce_Af * muscle_vel
-                          - self.ce_5
-                          + 8. * muscle_vel))
-        force_vel_ce = tf.maximum(nom / den, 0.)
-        force_len_pe = tf.maximum((tf.exp(self.pe_1 * (muscle_len - self.l0_pe) / self.l0_ce) - 1) / self.pe_den, 0.)
-        force_len_ce = tf.exp((- ((muscle_len / self.l0_ce) - 1) ** 2) / self.ce_gamma)
+                       x=new_activation3 * self.ce_1 + self.ce_1 - 4. * muscle_vel,
+                       y=self.ce_4 * new_activation3 + self.ce_5 * muscle_vel + self.ce_4)
+        fvce = tf.maximum(nom / den, 0.)
+        flpe = tf.maximum((tf.exp(self.pe_1 * (muscle_len - self.l0_pe) / self.l0_ce) - 1) / self.pe_den, 0.)
+        flce = tf.exp((- ((muscle_len / self.l0_ce) - 1) ** 2) / self.ce_gamma)
 
-        force = (new_activation * force_len_ce * force_vel_ce + force_len_pe) * self.max_iso_force
-        new_muscle_state = tf.concat(
-            [new_activation, muscle_len, muscle_vel, force_len_pe, force_len_ce, force_vel_ce], axis=1)
+        force = (new_activation * flce * fvce + flpe) * self.max_iso_force
+        new_muscle_state = tf.concat([new_activation, muscle_len, muscle_vel, flpe, flce, fvce], axis=1)
         return force, new_muscle_state
 
 
@@ -367,19 +352,12 @@ class CompliantTendonHillMuscle(Muscle):
         muscle_vel_k3 = self.muscle_ode(muscle_len_n + self.dt * 0.5 * muscle_vel_k2, new_activation, active_force)
         muscle_vel_k4 = self.muscle_ode(muscle_len_n + self.dt * muscle_vel_k3, new_activation, active_force)
         new_muscle_vel_n = (muscle_vel_k1 + 2 * muscle_vel_k2 + 2 * muscle_vel_k3 + muscle_vel_k4) / 6
+        new_muscle_vel = new_muscle_vel_n * self.vmax
         new_muscle_len = (muscle_len_n + self.dt * new_muscle_vel_n) * self.l0_ce
 
-        new_muscle_state = tf.concat(
-            [
-                new_activation,
-                new_muscle_len,
-                new_muscle_vel_n * self.vmax,
-                flpe,
-                flse,
-                active_force
-            ], axis=1)
-
-        return flse, new_muscle_state
+        force = flse * self.max_iso_force
+        new_muscle_state = tf.concat([new_activation, new_muscle_len, new_muscle_vel, flpe, flse, active_force], axis=1)
+        return force, new_muscle_state
 
     def muscle_ode(self, norm_muscle_len, activation, active_force):
         f_iso_n = 1 + (- norm_muscle_len ** 2 + 2 * norm_muscle_len - 1) / self.f_iso_n_den
@@ -401,7 +379,7 @@ class CompliantTendonHillMuscle(Muscle):
         # defensive code to avoid propagation of negative square root in the non-selected tf.where outcome
         # the assertion is to ensure that any negative root is indeed a non-selected item.
         sqrt_term = active_force ** 2 - 2 * active_force * p1 * p4 + \
-                    2 * active_force * p3 + p1 ** 2 * p4 ** 2 - 2 * p1 * p3 * p4 + p2_containing_term + p3 ** 2
+            2 * active_force * p3 + p1 ** 2 * p4 ** 2 - 2 * p1 * p3 * p4 + p2_containing_term + p3 ** 2
         cond = tf.where(tf.logical_and(sqrt_term < 0, active_force >= f_x_a), -1, 1)
         tf.debugging.assert_non_negative(cond, message='root that should be used is negative.')
         sqrt_term = tf.maximum(sqrt_term, 0.)
@@ -452,5 +430,5 @@ class CompliantTendonHillMuscle(Muscle):
         )
         tf.debugging.assert_non_negative(muscle_len, message='initial muscle length was < 0.')
         muscle0_temp = tf.concat((activation, muscle_len, musculotendon_vel), axis=1)
-        muscle0 = self.__call__(activation, muscle0_temp, geometry_state)
+        _, muscle0 = self.__call__(activation, muscle0_temp, geometry_state)
         return muscle0
