@@ -1,6 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from MotorNet.nets.losses import position_loss, activation_squared_loss
+from MotorNet.nets.losses import position_loss, activation_squared_loss, empty_loss
 import tensorflow as tf
 
 
@@ -28,6 +28,9 @@ class Task(ABC):
     def get_losses(self):
         return [self.losses, self.loss_weights]
 
+    def get_perturbation_dim_start(self):
+        return None
+
     def get_initial_state(self):
         if self.initial_joint_state is not None:
             return np.expand_dims(self.initial_joint_state, axis=0)
@@ -40,15 +43,34 @@ class TaskStaticTarget(Task):
         super().__init__(plant, n_timesteps, batch_size, task_args)
         # define losses and loss weights for this task
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
-        self.loss_weights = {'cartesian position': 1, 'muscle state': 5}
-        self.initial_joint_state = np.deg2rad([45, 90])
+        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.01}
+        self.initial_joint_state = np.deg2rad([45., 90., 0., 0.])
 
     def generate(self, **kwargs):
         self.n_timesteps = kwargs.get('n_timesteps', self.n_timesteps)
         self.batch_size = kwargs.get('batch_size', self.batch_size)
         goal_states = self.plant.draw_random_uniform_states(batch_size=self.batch_size)
         targets = self.plant.state2target(state=self.plant.joint2cartesian(goal_states), n_timesteps=self.n_timesteps)
-        return [targets, targets]
+        return [targets[:, :, 0:2], targets]
+
+class TaskStaticTargetWithPerturbations(Task):
+    def __init__(self, plant, n_timesteps=5000, batch_size=1, task_args=None):
+        super().__init__(plant, n_timesteps, batch_size, task_args)
+        # define losses and loss weights for this task
+        self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
+        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.01}
+        self.initial_joint_state = np.deg2rad([45., 90., 0., 0.])
+
+    def generate(self, **kwargs):
+        self.n_timesteps = kwargs.get('n_timesteps', self.n_timesteps)
+        self.batch_size = kwargs.get('batch_size', self.batch_size)
+        goal_states = self.plant.draw_random_uniform_states(batch_size=self.batch_size)
+        targets = self.plant.state2target(state=self.plant.joint2cartesian(goal_states), n_timesteps=self.n_timesteps)
+        perturbations = tf.constant(3., shape=(self.batch_size, self.n_timesteps, 2))
+        return [tf.concat([targets[:, :, 0:2], perturbations], axis=2), targets]
+
+    def get_perturbation_dim_start(self):
+        return 2
 
 
 class TaskDelayedReach(Task):
@@ -56,8 +78,8 @@ class TaskDelayedReach(Task):
         super().__init__(plant, n_timesteps, batch_size, task_args)
         # define losses and loss weights for this task
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
-        self.loss_weights = {'cartesian position': 1, 'muscle state': 5}
-        self.initial_joint_state = np.deg2rad([45, 90])
+        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.01}
+        self.initial_joint_state = np.deg2rad([45., 90., 0., 0.])
 
         if "bump_length" in self.task_args:
             self.bump_length = int(self.task_args['bump_length'] / 1000 / plant.dt)
@@ -70,7 +92,7 @@ class TaskDelayedReach(Task):
         if "delay_range" in self.task_args:
             self.delay_range = np.array(self.task_args['delay_range']) / 1000 / plant.dt
         else:
-            self.delay_range = np.array([100, 1000]) / 1000 / plant.dt
+            self.delay_range = np.array([100, 900]) / 1000 / plant.dt
 
     def generate(self, **kwargs):
         self.n_timesteps = kwargs.get('n_timesteps', self.n_timesteps)
