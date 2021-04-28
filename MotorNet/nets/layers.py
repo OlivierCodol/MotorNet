@@ -5,13 +5,13 @@ from tensorflow.keras.layers import Layer, GRUCell, Dense
 
 class GRUController(Layer):
     def __init__(self, plant, n_units=20, n_hidden_layers=1, activation='tanh', kernel_regularizer=0.,
-                 activity_regularizer=0., recurrent_regularizer=0., proprioceptive_noise_sd=0., visual_noise_sd=0., **kwargs):
+                 activity_regularizer=0., recurrent_regularizer=0., proprioceptive_noise_sd=0., visual_noise_sd=0.,
+                 perturbation_dim_start=None, **kwargs):
 
         if type(n_units) == int:
             n_units = list(np.repeat(n_units, n_hidden_layers).astype('int32'))
 
         # set feedback noise levels
-        # TODO: feedback signals should really be normalized so that noise levels are comparable between inputs
         self.proprioceptive_noise_sd = proprioceptive_noise_sd
         self.visual_noise_sd = visual_noise_sd
 
@@ -28,6 +28,9 @@ class GRUController(Layer):
         # hidden states for GRU layer(s)
         for n in n_units:
             self.state_size.append(tf.TensorShape([n]))
+
+        # set perturbation dimensions of input
+        self.perturbation_dim_start = perturbation_dim_start
 
         self.output_size = self.state_size
         self.plant = plant
@@ -74,6 +77,11 @@ class GRUController(Layer):
         new_hidden_states_dict = {}
         new_hidden_states = []
 
+        # split perturbation signal out of the back of inputs
+        # the perturbation signal must be the last 2 dimensions of inputs
+        if self.perturbation_dim_start is not None:
+            inputs, perturbation = tf.split(inputs, [inputs.shape[1]-self.perturbation_dim_start, self.perturbation_dim_start], axis=1)
+
         # take out feedback backlog
         proprio_backlog = tf.slice(old_proprio_feedback, [0, 0, 1], [-1, -1, -1])
         visual_backlog = tf.slice(old_visual_feedback, [0, 0, 1], [-1, -1, -1])
@@ -89,7 +97,11 @@ class GRUController(Layer):
             new_hidden_states_dict['gru_hidden' + str(k)] = new_hidden_state
             new_hidden_states.append(new_hidden_state)
         u = self.layers[-1](x)
-        jstate, cstate, mstate, gstate = self.plant(u, old_joint_pos, old_muscle_state, old_geometry_state)
+        if self.perturbation_dim_start is not None:
+            jstate, cstate, mstate, gstate = self.plant(u, old_joint_pos, old_muscle_state, old_geometry_state,
+                                                        joint_load=perturbation)
+        else:
+            jstate, cstate, mstate, gstate = self.plant(u, old_joint_pos, old_muscle_state, old_geometry_state)
 
         # add feedback noise & update feedback backlog
         muscle_len = tf.slice(mstate, [0, 1, 0], [-1, 1, -1]) / self.plant.Muscle.l0_ce
