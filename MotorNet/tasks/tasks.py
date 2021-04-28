@@ -39,10 +39,8 @@ class TaskStaticTarget(Task):
     def __init__(self, plant, n_timesteps=5000, batch_size=1, task_args=None):
         super().__init__(plant, n_timesteps, batch_size, task_args)
         # define losses and loss weights for this task
-        self.losses['cartesian position'] = position_loss()
-        self.losses['muscle state'] = activation_squared_loss()
-        self.loss_weights['cartesian position'] = 1
-        self.loss_weights['muscle state'] = 20
+        self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
+        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.01}
         self.initial_joint_state = np.deg2rad([45., 90., 0., 0.])
 
     def generate(self, **kwargs):
@@ -50,7 +48,7 @@ class TaskStaticTarget(Task):
         self.batch_size = kwargs.get('batch_size', self.batch_size)
         goal_states = self.plant.draw_random_uniform_states(batch_size=self.batch_size)
         targets = self.plant.state2target(state=self.plant.joint2cartesian(goal_states), n_timesteps=self.n_timesteps)
-        return [targets[:, :, 0:2], targets[:, :, 0:2]]
+        return [targets, targets]
 
 
 class TaskDelayedReach(Task):
@@ -58,7 +56,7 @@ class TaskDelayedReach(Task):
         super().__init__(plant, n_timesteps, batch_size, task_args)
         # define losses and loss weights for this task
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
-        self.loss_weights = {'cartesian position': 1, 'muscle state': 20}
+        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.01}
         self.initial_joint_state = np.deg2rad([45., 90., 0., 0.])
 
         if "bump_length" in self.task_args:
