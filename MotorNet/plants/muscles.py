@@ -240,9 +240,9 @@ class RigidTendonHillMuscleThelen(Muscle):
         self.max_iso_force = tf.reshape(tf.cast(max_isometric_force, dtype=tf.float32), (1, 1, self.n_muscles))
         self.l0_ce = tf.reshape(tf.cast(optimal_muscle_length, dtype=tf.float32), (1, 1, self.n_muscles))
         self.l0_pe = self.l0_ce * normalized_slack_muscle_length
+        self.l0_se = tf.reshape(tf.cast(tendon_length, dtype=tf.float32), (1, 1, self.n_muscles))
         self.musculotendon_slack_len = self.l0_pe + self.l0_se
         self.vmax = 10 * self.l0_ce
-        self.l0_se = tf.reshape(tf.cast(tendon_length, dtype=tf.float32), (1, 1, self.n_muscles))
 
         # pre-computed for speed
         self.ce_0 = 3. * self.vmax
