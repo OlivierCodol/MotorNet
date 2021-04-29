@@ -6,7 +6,7 @@ from tensorflow.keras.layers import Layer, GRUCell, Dense
 class GRUController(Layer):
     def __init__(self, plant, n_units=20, n_hidden_layers=1, activation='tanh', kernel_regularizer=0.,
                  activity_regularizer=0., recurrent_regularizer=0., proprioceptive_noise_sd=0., visual_noise_sd=0.,
-                 perturbation_dim_start=None, n_ministeps=1, **kwargs):
+                 n_ministeps=1, **kwargs):
 
         if type(n_units) == int:
             n_units = list(np.repeat(n_units, n_hidden_layers).astype('int32'))
@@ -29,8 +29,7 @@ class GRUController(Layer):
         for n in n_units:
             self.state_size.append(tf.TensorShape([n]))
 
-        # set perturbation dimensions of input
-        self.perturbation_dim_start = perturbation_dim_start
+        self.perturbation_dim_start = None
         self.n_ministeps = int(np.maximum(n_ministeps, 1))
         self.output_size = self.state_size
         self.plant = plant
@@ -80,7 +79,8 @@ class GRUController(Layer):
         # split perturbation signal out of the back of inputs
         # the perturbation signal must be the last 2 dimensions of inputs
         if self.perturbation_dim_start is not None:
-            inputs, perturbation = tf.split(inputs, [inputs.shape[1]-self.perturbation_dim_start, self.perturbation_dim_start], axis=1)
+            inputs, perturbation = tf.split(inputs, [inputs.shape[1]-self.perturbation_dim_start,
+                                                     self.perturbation_dim_start], axis=1)
 
         # take out feedback backlog
         proprio_backlog = tf.slice(old_proprio_feedback, [0, 0, 1], [-1, -1, -1])
