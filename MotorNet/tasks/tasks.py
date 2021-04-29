@@ -18,7 +18,7 @@ class Task(ABC):
         self.loss_weights = {}
 
     @abstractmethod
-    def generate(self, batch_size, n_timesteps):
+    def generate(self, batch_size, n_timesteps, **kwargs):
         return
 
     def get_initial_state(self, batch_size):
@@ -39,10 +39,10 @@ class TaskStaticTarget(Task):
         super().__init__(plant, task_args)
         # define losses and loss weights for this task
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
-        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
+        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2} #0.2
         self.initial_joint_state = np.deg2rad([45., 90., 0., 0.])
 
-    def generate(self, batch_size, n_timesteps):
+    def generate(self, batch_size, n_timesteps, **kwargs):
         self.last_batch_size = batch_size
         self.last_n_timesteps = n_timesteps
         init_states = self.get_initial_state(batch_size=batch_size)
@@ -59,7 +59,7 @@ class TaskStaticTargetWithPerturbations(Task):
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
         self.initial_joint_state = np.deg2rad([45., 90., 0., 0.])
 
-    def generate(self, batch_size, n_timesteps):
+    def generate(self, batch_size, n_timesteps, **kwargs):
         self.last_batch_size = batch_size
         self.last_n_timesteps = n_timesteps
         init_states = self.get_initial_state(batch_size=batch_size)
@@ -78,7 +78,6 @@ class TaskDelayedReach(Task):
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
         self.initial_joint_state = np.deg2rad([45., 90., 0., 0.])
-
         if "bump_length" in self.task_args:
             self.bump_length = int(self.task_args['bump_length'] / 1000 / plant.dt)
         else:
@@ -92,14 +91,16 @@ class TaskDelayedReach(Task):
         else:
             self.delay_range = np.array([100, 900]) / 1000 / plant.dt
 
-    def generate(self, batch_size, n_timesteps):
+    def generate(self, batch_size, n_timesteps, **kwargs):
         self.last_batch_size = batch_size
         self.last_n_timesteps = n_timesteps
+        testing_mode = kwargs.get('testing_mode', False) # I'll get back to this soon
         init_states = self.get_initial_state(batch_size=batch_size)
+        center = self.plant.joint2cartesian(init_states[0][0, :])
         goal_states = self.plant.draw_random_uniform_states(batch_size=batch_size)
         targets = self.plant.state2target(state=self.plant.joint2cartesian(goal_states),
                                           n_timesteps=n_timesteps).numpy()
-        center = init_states[0][0, :]
+
         temp_inputs = []
         for i in range(batch_size):
             delay_time = generate_delay_time(self.delay_range[0], self.delay_range[1], 'random')
