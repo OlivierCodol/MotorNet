@@ -39,7 +39,7 @@ class TaskStaticTarget(Task):
         super().__init__(plant, task_args)
         # define losses and loss weights for this task
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
-        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.1}
+        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
         self.initial_joint_state = np.deg2rad([45., 90., 0., 0.])
 
     def generate(self, batch_size, n_timesteps):
@@ -56,7 +56,7 @@ class TaskStaticTargetWithPerturbations(Task):
         super().__init__(plant, task_args)
         # define losses and loss weights for this task
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
-        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.1}
+        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
         self.initial_joint_state = np.deg2rad([45., 90., 0., 0.])
 
     def generate(self, batch_size, n_timesteps):
@@ -76,7 +76,7 @@ class TaskDelayedReach(Task):
         super().__init__(plant, task_args)
         # define losses and loss weights for this task
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
-        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.1}
+        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
         self.initial_joint_state = np.deg2rad([45., 90., 0., 0.])
 
         if "bump_length" in self.task_args:

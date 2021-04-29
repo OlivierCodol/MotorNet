@@ -34,22 +34,23 @@ class TrainingPlotter(Callback):
         self.muscle_loss = []
         self.activity_loss = []
         self.weight_loss = []
+        self.something_loss = []
 
     def on_train_begin(self, logs=None):
         self.loss = []
         self.logs = []
         self.cartesian_loss = []
         self.muscle_loss = []
-        self.activity_loss = []
-        self.weight_loss = []
+        self.recurrent_weight_loss = []
+        self.kernel_weight_loss = []
 
     def on_batch_end(self, batch, logs=None):
         self.logs.append(logs)
         self.loss.append(logs.get('loss'))
         self.cartesian_loss.append(logs.get('RNN_loss') * self.task.loss_weights['cartesian position'])
         self.muscle_loss.append(logs.get('RNN_4_loss') * self.task.loss_weights['muscle state'])
-        self.activity_loss.append((self.model.losses[0]))
-        self.weight_loss.append((self.model.losses[1]))
+        self.recurrent_weight_loss.append((self.model.losses[1]))
+        self.kernel_weight_loss.append((self.model.losses[0]))
 
         if batch % self.plot_freq == 0 or len(self.loss) == 1:
             [inputs, targets, init_states] = self.task.generate(batch_size=3, n_timesteps=self.task.last_n_timesteps)
@@ -66,8 +67,8 @@ class TrainingPlotter(Callback):
             ax1 = fig.add_subplot(gs[0, 0])
             ax1.plot(n, self.cartesian_loss, label='cartesian loss')
             ax1.plot(n, self.muscle_loss, label='muscle activation loss')
-            ax1.plot(n, self.activity_loss, label='RNN activity loss')
-            ax1.plot(n, self.weight_loss, label='RNN weight loss')
+            ax1.plot(n, self.recurrent_weight_loss, label='recurrent weight loss')
+            ax1.plot(n, self.kernel_weight_loss, label='kernel weight loss')
             ax1.set(xlabel='iteration', ylabel='loss')
             ax1.legend()
             plt.show()
@@ -78,11 +79,11 @@ class TrainingPlotter(Callback):
                 plt.subplot(141)
                 plt.plot(targets[trial, :, 0].numpy().squeeze(), color='#1f77b4', linestyle='dashed')
                 plt.plot(targets[trial, :, 1].numpy().squeeze(), color='#ff7f0e', linestyle='dashed')
-                plt.plot(j_results[trial, :, 0].numpy().squeeze(), color='#1f77b4', label='sho')
-                plt.plot(j_results[trial, :, 1].numpy().squeeze(), color='#ff7f0e', label='elb')
+                plt.plot(c_results[trial, :, 0].numpy().squeeze(), color='#1f77b4', label='x')
+                plt.plot(c_results[trial, :, 1].numpy().squeeze(), color='#ff7f0e', label='y')
                 plt.legend()
                 plt.xlabel('time (ms)')
-                plt.ylabel('angle (rad)')
+                plt.ylabel('x/y position')
 
                 #plt.subplot(142)
                 #plt.plot(j_results[trial, :, 2].numpy().squeeze(), label='sho')
