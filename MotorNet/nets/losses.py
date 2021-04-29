@@ -21,5 +21,5 @@ def activation_squared_loss():
     @tf.autograph.experimental.do_not_convert
     def loss(y_true, y_pred):
         activations = tf.slice(y_pred, [0, 0, 0, 0], [-1, -1, 1, -1])
-        return tf.sqrt(tf.reduce_mean(activations ** 2))
+        return tf.reduce_mean(activations ** 2)
     return loss
