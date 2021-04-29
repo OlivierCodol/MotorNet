@@ -100,6 +100,8 @@ def animate_arm_trajectory(joint_position, plant,  path_name = './Arm_animation.
     
     assert joint_position.shape[0] == 1
     joint_position = tf.reshape(joint_position, (-1, plant.state_dim))
+    
+    plant = plant.Skeleton
 
 
     fig = plt.figure() 
@@ -108,7 +110,7 @@ def animate_arm_trajectory(joint_position, plant,  path_name = './Arm_animation.
     L1, = ax.plot([], [], lw=4)    # L1
     L2, = ax.plot([], [], lw=4)    # L1
     
-    #plt.title('Creating a growing coil with matplotlib!') 
+    #plt.title('Desired Title') 
     # Axis control 
     plt.axis('off') 
     plt.style.use('dark_background')
@@ -177,4 +179,6 @@ def animate_arm_trajectory(joint_position, plant,  path_name = './Arm_animation.
                                 frames=joint_position.shape[0], interval=plant.dt, blit=True) 
 
     # save the animated file, (Used pillow, since it is usually installed by default)
-    anim.save(path_name, writer='pillow')
+    Writer = animation.writers['pillow']
+    writer = Writer(fps=1./plant.dt)
+    anim.save(path_name, writer=writer)
