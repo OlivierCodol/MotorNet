@@ -24,15 +24,16 @@ class BatchLogger(Callback):
 
 
 class TrainingPlotter(Callback):
-    def __init__(self, task, init_states, plot_freq=20):
+    def __init__(self, task, plot_freq=20):
         super().__init__()
         self.task = task
-        self.init_states = init_states
         self.plot_freq = plot_freq
         self.loss = []
         self.logs = []
         self.cartesian_loss = []
         self.muscle_loss = []
+        self.activity_loss = []
+        self.weight_loss = []
 
     def on_train_begin(self, logs=None):
         self.loss = []
@@ -51,11 +52,12 @@ class TrainingPlotter(Callback):
         self.weight_loss.append((self.model.losses[1]))
 
         if batch % self.plot_freq == 0 or len(self.loss) == 1:
-            [inputs, targets] = self.task.generate(batch_size=3)
-            results = self.model([inputs, self.init_states], training=False)
+            [inputs, targets, init_states] = self.task.generate(batch_size=3, n_timesteps=self.task.last_n_timesteps)
+            results = self.model([inputs, init_states], training=False)
             j_results = results['joint position']
             c_results = results['cartesian position']
             m_results = results['muscle state']
+            h_results = results['gru_hidden0']
 
             clear_output(wait=True)
             n = np.arange(0, len(self.loss))
@@ -74,27 +76,34 @@ class TrainingPlotter(Callback):
                 plt.figure(figsize=(14, 2.5)).set_tight_layout(True)
 
                 plt.subplot(141)
-                plt.plot(j_results[trial, :, 0].numpy().squeeze(), label='sho')
-                plt.plot(j_results[trial, :, 1].numpy().squeeze(), label='elb')
+                plt.plot(targets[trial, :, 0].numpy().squeeze(), color='#1f77b4', linestyle='dashed')
+                plt.plot(targets[trial, :, 1].numpy().squeeze(), color='#ff7f0e', linestyle='dashed')
+                plt.plot(j_results[trial, :, 0].numpy().squeeze(), color='#1f77b4', label='sho')
+                plt.plot(j_results[trial, :, 1].numpy().squeeze(), color='#ff7f0e', label='elb')
                 plt.legend()
                 plt.xlabel('time (ms)')
                 plt.ylabel('angle (rad)')
 
-                plt.subplot(142)
-                plt.plot(j_results[trial, :, 2].numpy().squeeze(), label='sho')
-                plt.plot(j_results[trial, :, 3].numpy().squeeze(), label='elb')
-                plt.legend()
-                plt.xlabel('time (ms)')
-                plt.ylabel('angle velocity (rad/sec)')
+                #plt.subplot(142)
+                #plt.plot(j_results[trial, :, 2].numpy().squeeze(), label='sho')
+                #plt.plot(j_results[trial, :, 3].numpy().squeeze(), label='elb')
+                #plt.legend()
+                #plt.xlabel('time (ms)')
+                #plt.ylabel('angle velocity (rad/sec)')
 
-                plt.subplot(143)
+                plt.subplot(142)
                 plt.plot(m_results[trial, :, 0, :].numpy().squeeze())
                 plt.xlabel('time (ms)')
                 plt.ylabel('activation (a.u.)')
 
-                plt.subplot(144)
+                plt.subplot(143)
                 plt.plot(m_results[trial, :, 2, :].numpy().squeeze())
                 plt.xlabel('time (ms)')
                 plt.ylabel('muscle velocity (m/sec)')
+
+                plt.subplot(144)
+                plt.plot(h_results[trial, :, :].numpy().squeeze())
+                plt.xlabel('time (ms)')
+                plt.ylabel('hidden unit activity')
 
                 plt.show()
