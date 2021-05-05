@@ -232,8 +232,6 @@ class PlantWrapper(Plant):
 
     def __call__(self, muscle_input, joint_state, muscle_state, geometry_state, **kwargs):
         endpoint_load = kwargs.get('endpoint_load', np.zeros(1))
-        #joint_load = kwargs.get('joint_load', np.zeros(1))
-        #joint_load = tf.constant(joint_load, shape=(1, self.Skeleton.dof), dtype=tf.float32)
         joint_load = kwargs.get('joint_load', tf.constant(0., shape=(1, self.Skeleton.dof), dtype=tf.float32))
 
         muscle_input += tf.random.normal(tf.shape(muscle_input), stddev=self.excitation_noise_sd)
