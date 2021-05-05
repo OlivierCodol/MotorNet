@@ -17,16 +17,21 @@ class Task(ABC):
             initial_joint_state = np.array(initial_joint_state)
             if len(initial_joint_state.shape) == 1:
                 initial_joint_state = initial_joint_state.reshape(1, -1)
+                self.n_initial_joint_states = self.initial_joint_state.shape[0]
+        else:
+            self.n_initial_joint_states = None
         self.initial_joint_state = initial_joint_state
-        self.n_initial_joint_states = self.initial_joint_state.shape[0]
 
     @abstractmethod
     def generate(self, batch_size, n_timesteps, **kwargs):
         return
 
     def get_initial_state(self, batch_size):
-        i = np.random.randint(0, self.n_initial_joint_states, batch_size)
-        inputs = self.initial_joint_state[i, :]
+        if self.initial_joint_state is None:
+            inputs = None
+        else:
+            i = np.random.randint(0, self.n_initial_joint_states, batch_size)
+            inputs = self.initial_joint_state[i, :]
         return self.controller.get_initial_state(batch_size=batch_size, inputs=inputs)
 
     def get_input_dim(self):
