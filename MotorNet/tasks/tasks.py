@@ -5,25 +5,29 @@ import tensorflow as tf
 
 
 class Task(ABC):
-    def __init__(self, plant, controller, task_args=None):
-        if task_args is None:
-            task_args = {}
-        self.plant = plant
+    def __init__(self, controller, initial_joint_state=None):
         self.controller = controller
-        self.initial_joint_state = None
-        self.task_args = task_args
+        self.plant = controller.plant
         self.last_batch_size = None
         self.last_n_timesteps = None
         self.losses = {}
         self.loss_weights = {}
+
+        if initial_joint_state is not None:
+            initial_joint_state = np.array(initial_joint_state)
+            if len(initial_joint_state.shape) == 1:
+                initial_joint_state = initial_joint_state.reshape(1, -1)
+        self.initial_joint_state = initial_joint_state
+        self.n_initial_joint_states = self.initial_joint_state.shape[0]
 
     @abstractmethod
     def generate(self, batch_size, n_timesteps, **kwargs):
         return
 
     def get_initial_state(self, batch_size):
-        return self.controller.get_initial_state(batch_size=batch_size,
-                                                 inputs=np.expand_dims(self.initial_joint_state, axis=0))
+        i = np.random.randint(0, self.n_initial_joint_states, batch_size)
+        inputs = self.initial_joint_state[i, :]
+        return self.controller.get_initial_state(batch_size=batch_size, inputs=inputs)
 
     def get_input_dim(self):
         [inputs, _, _] = self.generate(batch_size=1, n_timesteps=5000)
@@ -35,12 +39,10 @@ class Task(ABC):
 
 
 class TaskStaticTarget(Task):
-    def __init__(self, plant, task_args=None):
-        super().__init__(plant, task_args)
-        # define losses and loss weights for this task
+    def __init__(self, controller, **kwargs):
+        super().__init__(controller, **kwargs)
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
-        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2} #0.2
-        self.initial_joint_state = np.deg2rad([45., 90., 0., 0.])
+        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}  # 0.2
 
     def generate(self, batch_size, n_timesteps, **kwargs):
         self.last_batch_size = batch_size
@@ -52,12 +54,10 @@ class TaskStaticTarget(Task):
 
 
 class TaskStaticTargetWithPerturbations(Task):
-    def __init__(self, plant, task_args=None):
-        super().__init__(plant, task_args)
-        # define losses and loss weights for this task
+    def __init__(self, controller, **kwargs):
+        super().__init__(controller, **kwargs)
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
-        self.initial_joint_state = np.deg2rad([45., 90., 0., 0.])
 
     def generate(self, batch_size, n_timesteps, **kwargs):
         self.last_batch_size = batch_size
@@ -72,29 +72,20 @@ class TaskStaticTargetWithPerturbations(Task):
 
 
 class TaskDelayedReach(Task):
-    def __init__(self, plant, task_args=None):
-        super().__init__(plant, task_args)
-        # define losses and loss weights for this task
+    def __init__(self, controller, **kwargs):
+        super().__init__(controller, **kwargs)
+
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
-        self.initial_joint_state = np.deg2rad([45., 90., 0., 0.])
-        if "bump_length" in self.task_args:
-            self.bump_length = int(self.task_args['bump_length'] / 1000 / plant.dt)
-        else:
-            self.bump_length = int(50 / 1000 / plant.dt)
-        if "bump_height" in self.task_args:
-            self.bump_height = self.task_args['bump_height']
-        else:
-            self.bump_height = 1
-        if "delay_range" in self.task_args:
-            self.delay_range = np.array(self.task_args['delay_range']) / 1000 / plant.dt
-        else:
-            self.delay_range = np.array([100, 900]) / 1000 / plant.dt
+
+        self.bump_length = int(kwargs.get('bump_length', 50) / 1000 / self.plant.dt)
+        self.bump_height = kwargs.get('bump_height', 1)
+        self.delay_range = np.array(kwargs.get('delay_range', [100, 900])) / 1000 / self.plant.dt
 
     def generate(self, batch_size, n_timesteps, **kwargs):
         self.last_batch_size = batch_size
         self.last_n_timesteps = n_timesteps
-        testing_mode = kwargs.get('testing_mode', False) # I'll get back to this soon
+        testing_mode = kwargs.get('testing_mode', False)  # I'll get back to this soon
         init_states = self.get_initial_state(batch_size=batch_size)
         center = self.plant.joint2cartesian(init_states[0][0, :])
         goal_states = self.plant.draw_random_uniform_states(batch_size=batch_size)
@@ -111,37 +102,24 @@ class TaskDelayedReach(Task):
 
         inputs = tf.stack(temp_inputs, axis=0)
         return [inputs, tf.convert_to_tensor(targets), init_states]
-    
+
+
 class TaskDelayedMultiReach(Task):
-    def __init__(self, plant, task_args=None):
-        super().__init__(plant, task_args)
-        # define losses and loss weights for this task
+    def __init__(self, controller, initial_joint_state=None, **kwargs):
+        super().__init__(controller, initial_joint_state=initial_joint_state)
+
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
-        self.initial_joint_state = np.deg2rad([45., 90., 0., 0.])
-        if "bump_length" in self.task_args:
-            self.bump_length = int(self.task_args['bump_length'] / 1000 / plant.dt)
-        else:
-            self.bump_length = int(50 / 1000 / plant.dt)
-        if "bump_height" in self.task_args:
-            self.bump_height = self.task_args['bump_height']
-        else:
-            self.bump_height = 3
-        if "delay_range" in self.task_args:
-            self.delay_range = (np.array(self.task_args['delay_range']) / 1000 / plant.dt).astype('int')
-        else:
-            self.delay_range = (np.array([100, 900]) / 1000 / plant.dt).astype('int')
-            
-        if "num_target" in self.task_args:
-            self.num_target = self.task_args['bump_height']
-        else:
-            self.num_target = 1
-                
+
+        self.bump_length = int(kwargs.get('bump_length', 50) / 1000 / self.plant.dt)
+        self.bump_height = kwargs.get('bump_height', 3)
+        self.delay_range = np.array(kwargs.get('delay_range', [100, 900])) / 1000 / self.plant.dt
+        self.num_target = kwargs.get('num_target', 1)
             
     def generate(self, batch_size, n_timesteps, **kwargs):
         self.last_batch_size = batch_size
         self.last_n_timesteps = n_timesteps
-        testing_mode = kwargs.get('testing_mode', False) # I'll get back to this soon
+        testing_mode = kwargs.get('testing_mode', False)  # I'll get back to this soon
         init_states = self.get_initial_state(batch_size=batch_size)
         center = self.plant.joint2cartesian(init_states[0][0, :])
         
@@ -150,39 +128,48 @@ class TaskDelayedMultiReach(Task):
         
         for tg in range(num_target):
             goal_states = self.plant.draw_random_uniform_states(batch_size=batch_size)
-            target_list[:,:,:,tg]  = self.plant.state2target(state=self.plant.joint2cartesian(goal_states),
-                                          n_timesteps=n_timesteps).numpy()
+            target_list[:, :, :, tg] = self.plant.state2target(
+                state=self.plant.joint2cartesian(goal_states),
+                n_timesteps=n_timesteps).numpy()
             
         temp_inputs = []
         temp_targets = []
-        
-        targets = np.zeros((batch_size, int((num_target+1)*target_list.shape[1] + self.delay_range[1] + self.bump_length) ,4))
 
-        
+        sequence_time = int((num_target + 1) * target_list.shape[1] + self.delay_range[1] + self.bump_length)
+        targets = np.zeros((batch_size, sequence_time, 4))
+
         for i in range(batch_size):
             # Create Inputs
             delay_time = generate_delay_time(self.delay_range[0], self.delay_range[1], 'random')
             bump = np.concatenate([np.zeros(n_timesteps),
                                    np.zeros(delay_time),
-                                   np.ones(self.bump_length)*self.bump_height,
-                                   np.zeros(int(num_target*n_timesteps) + int(self.delay_range[1] -  delay_time))])
+                                   np.ones(self.bump_length) * self.bump_height,
+                                   np.zeros(int(num_target * n_timesteps) + int(self.delay_range[1] - delay_time))])
 
-            input_tensor = np.concatenate([np.squeeze(target_list[i, :, 0:2, tr]) for tr in range(num_target)], axis=1) # Concatenate input positions for the targets
-            input_tensor = tf.repeat(input_tensor, num_target, axis=0) # Repeat the input (num_target) times
+            input_tensor = np.concatenate([np.squeeze(target_list[i, :, 0:2, tr]) for tr in range(num_target)], axis=1)  # Concatenate input positions for the targets
+            input_tensor = tf.repeat(input_tensor, num_target, axis=0)  # Repeat the input (num_target) times
             # Concatenate zeros for delay period
-            input_tensor = np.concatenate([np.zeros((n_timesteps, 2*num_target)),                                  # For Go to Center
-                                           np.zeros(( int(self.delay_range[1] + self.bump_length), 2*num_target)), # For remain in center and see targets
-                                           input_tensor,                                                           # For each to targets
-                                          ], axis=0) 
-            input_tensor[:n_timesteps] =  np.repeat(center[0, :2], num_target) # center      # Assign Center point for inital reach of the trial (before delay)
-            input_tensor[n_timesteps:n_timesteps + self.delay_range[1] + self.bump_length] = input_tensor[n_timesteps + self.delay_range[1] + self.bump_length+1, :]  # Assign first target to input for delay period
-            temp_inputs.append(np.concatenate([input_tensor, np.expand_dims(bump, axis=1)], axis=1)) # appened the current trial to temp list, later stacks to tensor with first dimension = batch size 
+            input_tensor = np.concatenate([
+                np.zeros((n_timesteps, 2 * num_target)),                                  # For Go to Center
+                np.zeros((int(self.delay_range[1] + self.bump_length), 2 * num_target)),  # For remain in center and see targets
+                input_tensor,                                                             # For each to targets
+                ], axis=0)
+            input_tensor[:n_timesteps] = np.repeat(center[0, :2], num_target)  # center      # Assign Center point for inital reach of the trial (before delay)
+            # Assign first target to input for delay period
+            input_tensor[n_timesteps:n_timesteps + self.delay_range[1] + self.bump_length] =\
+                input_tensor[n_timesteps + self.delay_range[1] + self.bump_length+1, :]
+            # append the current trial to temp list, later stacks to tensor with first dimension = batch size
+            temp_inputs.append(np.concatenate([input_tensor, np.expand_dims(bump, axis=1)], axis=1))
+
             # Create targets (outputs)
-            targets[i, :n_timesteps, :] = center   #Reach to Center during delay
-            targets[i, n_timesteps:n_timesteps + delay_time, :] = center  #Reach to Center during delay 
-            targets[i, n_timesteps + delay_time:n_timesteps + delay_time+int(num_target*n_timesteps), :] = np.concatenate([np.squeeze(target_list[i, :, :, tr]) for tr in range(num_target)], axis=0)   # Show True targets after go random bump
-            targets[i, delay_time+(num_target*n_timesteps):, :] = target_list[i, 0, :, -1]  # Fill the remaining time point at the end with last target (That happens due to random length of bump)
-    
+            # ---------------
+            targets[i, :n_timesteps, :] = center  # Reach to Center during delay
+            targets[i, n_timesteps:n_timesteps + delay_time, :] = center  # Reach to Center during delay
+            # Show True targets after go random bump
+            targets[i, n_timesteps + delay_time:n_timesteps + delay_time + int(num_target * n_timesteps), :] =\
+                np.concatenate([np.squeeze(target_list[i, :, :, tr]) for tr in range(num_target)], axis=0)
+            # Fill the remaining time point at the end with last target (That happens due to random length of bump)
+            targets[i, delay_time+(num_target*n_timesteps):, :] = target_list[i, 0, :, -1]
 
         inputs = tf.stack(temp_inputs, axis=0)
         return [inputs, tf.convert_to_tensor(targets), init_states]
