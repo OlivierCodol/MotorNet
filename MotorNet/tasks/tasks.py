@@ -1,5 +1,5 @@
 import numpy as np
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from MotorNet.nets.losses import position_loss, activation_squared_loss
 import tensorflow as tf
 
@@ -13,6 +13,7 @@ class Task(tf.keras.utils.Sequence):
         self.training_iterations = 1000
         self.training_batch_size = 32
         self.training_n_timesteps = 100
+        self.do_recompute_targets = False
         self.losses = {}
         self.loss_weights = {}
 
@@ -103,6 +104,8 @@ class TaskDelayedReach(Task):
         self.bump_height = kwargs.get('bump_height', 1)
         self.delay_range = np.array(kwargs.get('delay_range', [100, 900])) / 1000 / self.plant.dt
 
+        self.do_recompute_targets = True
+
     def generate(self, batch_size, n_timesteps, **kwargs):
         self.last_batch_size = batch_size
         self.last_n_timesteps = n_timesteps
@@ -123,6 +126,20 @@ class TaskDelayedReach(Task):
 
         inputs = tf.stack(temp_inputs, axis=0)
         return [inputs, tf.convert_to_tensor(targets), init_states]
+
+    # this is not a static method because in theory you could use the generate method to save information
+    # that you use here to decide how to modify the targets
+    def recompute_targets(self, inputs, targets, outputs):
+        # grab endpoint position and velocity
+        cartesian_pos = outputs['cartesian position']
+        # calculate the distance to the targets as run by the forward pass
+        dist = tf.tile(tf.expand_dims(tf.sqrt(tf.reduce_sum((cartesian_pos[:, :, 0:2] - targets[:, :, 0:2])**2,
+                                                            axis=2)), axis=2), tf.constant([1, 1, 2], tf.int32))
+        cartesian_pos_no_vel = tf.concat([cartesian_pos[:, :, 0:2], tf.zeros_like(dist)], axis=2)
+        dist = tf.concat([dist, tf.zeros_like(dist)], axis=2)
+        # if the distance is less than a certain amount, replace the target with the result of the forward pass
+        targets = tf.where(tf.less_equal(dist, 0.1), cartesian_pos_no_vel, targets)
+        return targets
 
 
 class TaskDelayedMultiReach(Task):
