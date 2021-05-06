@@ -4,12 +4,15 @@ from MotorNet.nets.losses import position_loss, activation_squared_loss
 import tensorflow as tf
 
 
-class Task(ABC):
+class Task(tf.keras.utils.Sequence):
     def __init__(self, controller, initial_joint_state=None):
         self.controller = controller
         self.plant = controller.plant
         self.last_batch_size = None
         self.last_n_timesteps = None
+        self.training_iterations = 1000
+        self.training_batch_size = 32
+        self.training_n_timesteps = 100
         self.losses = {}
         self.loss_weights = {}
 
@@ -17,7 +20,7 @@ class Task(ABC):
             initial_joint_state = np.array(initial_joint_state)
             if len(initial_joint_state.shape) == 1:
                 initial_joint_state = initial_joint_state.reshape(1, -1)
-                self.n_initial_joint_states = self.initial_joint_state.shape[0]
+                self.n_initial_joint_states = initial_joint_state.shape[0]
         else:
             self.n_initial_joint_states = None
         self.initial_joint_state = initial_joint_state
@@ -41,6 +44,19 @@ class Task(ABC):
 
     def get_losses(self):
         return [self.losses, self.loss_weights]
+
+    def set_training_params(self, batch_size, n_timesteps, iterations):
+        self.training_batch_size = batch_size
+        self.training_n_timesteps = n_timesteps
+        self.training_iterations = iterations
+
+    def __getitem__(self, idx):
+        [inputs, targets, init_states] = self.generate(batch_size=self.training_batch_size,
+                                                       n_timesteps=self.training_n_timesteps)
+        return [inputs, init_states], targets
+
+    def __len__(self):
+        return self.training_iterations
 
 
 class TaskStaticTarget(Task):
