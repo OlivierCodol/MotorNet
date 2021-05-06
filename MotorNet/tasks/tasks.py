@@ -20,7 +20,7 @@ class Task(tf.keras.utils.Sequence):
             initial_joint_state = np.array(initial_joint_state)
             if len(initial_joint_state.shape) == 1:
                 initial_joint_state = initial_joint_state.reshape(1, -1)
-                self.n_initial_joint_states = initial_joint_state.shape[0]
+            self.n_initial_joint_states = initial_joint_state.shape[0]
         else:
             self.n_initial_joint_states = None
         self.initial_joint_state = initial_joint_state
