@@ -55,6 +55,10 @@ class TrainingPlotter(Callback):
         if batch % self.plot_freq == 0 or len(self.loss) == 1:
             [inputs, targets, init_states] = self.task.generate(batch_size=3, n_timesteps=self.task.last_n_timesteps)
             results = self.model([inputs, init_states], training=False)
+
+            if self.task.do_recompute_targets:
+                targets = self.task.recompute_targets((inputs, init_states), targets, results)
+
             j_results = results['joint position']
             c_results = results['cartesian position']
             m_results = results['muscle state']

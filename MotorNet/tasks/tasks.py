@@ -213,6 +213,72 @@ class TaskDelayedMultiReach(Task):
         return [inputs, tf.convert_to_tensor(targets), init_states]
 
 
+class TaskLoadProbability(Task):
+    def __init__(self, controller, **kwargs):
+        super().__init__(controller, **kwargs)
+
+        self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
+        self.loss_weights = {'cartesian position': 1, 'muscle state': 20}
+
+        self.fixation_time = int(np.array(kwargs.get('fixation_time', 100)) / 1000 / self.plant.dt)
+        self.delay_range = np.array(kwargs.get('delay_range', [300, 900])) / 1000 / self.plant.dt
+
+        self.do_recompute_targets = True
+        self.controller.perturbation_dim_start = 2
+
+    def generate(self, batch_size, n_timesteps, **kwargs):
+        self.last_batch_size = batch_size
+        self.last_n_timesteps = n_timesteps
+        init_states = self.get_initial_state(batch_size=batch_size)
+        center = self.plant.joint2cartesian(init_states[0][0, :]).numpy()
+        goal_state = center + np.array([-0.028279, -0.042601, 0, 0])
+        targets = np.tile(goal_state, (batch_size, n_timesteps, 1))
+        prob_array = np.array([0, 0.25, 0.5, 0.75, 1])
+        inputs = np.zeros(shape=(batch_size, n_timesteps, 4))
+        for i in range(batch_size):
+            input_1 = np.zeros(shape=n_timesteps)
+            input_2 = np.zeros(shape=n_timesteps)
+            perturbation = np.tile([0, -1], (n_timesteps, 1))  # background load
+            delay_time = generate_delay_time(self.delay_range[0], self.delay_range[1], 'random')
+            pert_time = delay_time+self.fixation_time
+            prob = prob_array[np.random.randint(0, 5)]
+            if np.greater_equal(np.random.rand(), 0.2):
+                targets[i, 0:pert_time, :] = center
+                if np.greater_equal(np.random.rand(),  prob):
+                    pert = 0
+                else:
+                    pert = -2
+                # The visual delay MUST be built into these inputs, otherwise the network gets immediate visual cues
+                input_1[self.fixation_time + 1:] = prob
+                input_2[self.fixation_time + 1:] = 1 - prob
+                perturbation[pert_time:, 1] = pert
+            else:
+                targets[i, :, :] = center
+                input_1[self.fixation_time + 1:] = prob
+                input_2[self.fixation_time + 1:] = 1 - prob
+
+            inputs[i, :, 0] = input_1
+            inputs[i, :, 1] = input_2
+            inputs[i, :, 2:4] = perturbation
+
+        return [tf.convert_to_tensor(inputs, dtype=tf.float32), tf.convert_to_tensor(targets, dtype=tf.float32),
+                init_states]
+
+    # this is not a static method because in theory you could use the generate method to save information
+    # that you use here to decide how to modify the targets
+    def recompute_targets(self, inputs, targets, outputs):
+        # grab endpoint position and velocity
+        cartesian_pos = outputs['cartesian position']
+        # calculate the distance to the targets as run by the forward pass
+        dist = tf.sqrt(tf.reduce_sum((cartesian_pos[:, :, 0:2] - targets[:, :, 0:2])**2, axis=2))
+        dist = tf.where(tf.equal(inputs[0][:, :, 3], -1.), 1000., dist)
+        dist = tf.tile(tf.expand_dims(dist, axis=2), tf.constant([1, 1, 2], tf.int32))
+        cartesian_pos_no_vel = tf.concat([cartesian_pos[:, :, 0:2], tf.zeros_like(dist)], axis=2)
+        dist = tf.concat([dist, tf.zeros_like(dist)], axis=2)
+        # if the distance is less than a certain amount, replace the target with the result of the forward pass
+        targets = tf.where(tf.less_equal(dist, 0.035), cartesian_pos_no_vel, targets)
+        return targets
+
 def generate_delay_time(delay_min, delay_max, delay_mode):
     if delay_mode == 'random':
         delay_time = np.random.uniform(delay_min, delay_max)
