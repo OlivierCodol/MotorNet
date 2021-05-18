@@ -6,14 +6,15 @@ from tensorflow.keras.layers import Layer, GRUCell, Dense
 class GRUController(Layer):
     def __init__(self, plant, n_units=20, n_hidden_layers=1, activation='tanh', kernel_regularizer=0.,
                  activity_regularizer=0., recurrent_regularizer=0., proprioceptive_noise_sd=0., visual_noise_sd=0.,
-                 n_ministeps=1, **kwargs):
+                 hidden_noise_sd=0., n_ministeps=1, **kwargs):
 
         if type(n_units) == int:
             n_units = list(np.repeat(n_units, n_hidden_layers).astype('int32'))
 
-        # set feedback noise levels
+        # set noise levels
         self.proprioceptive_noise_sd = proprioceptive_noise_sd
         self.visual_noise_sd = visual_noise_sd
+        self.hidden_noise_sd = hidden_noise_sd
 
         # plant states
         self.proprioceptive_delay = plant.proprioceptive_delay
@@ -29,7 +30,7 @@ class GRUController(Layer):
         for n in n_units:
             self.state_size.append(tf.TensorShape([n]))
 
-        self.perturbation_dim_start = None
+        self.perturbation_dims_active = False
         self.n_ministeps = int(np.maximum(n_ministeps, 1))
         self.output_size = self.state_size
         self.plant = plant
@@ -78,9 +79,9 @@ class GRUController(Layer):
 
         # split perturbation signal out of the back of inputs
         # the perturbation signal must be the last 2 dimensions of inputs
-        if self.perturbation_dim_start is not None:
-            inputs, perturbation = tf.split(inputs, [inputs.shape[1]-self.perturbation_dim_start,
-                                                     self.perturbation_dim_start], axis=1)
+        if self.perturbation_dims_active:
+            inputs, perturbation = tf.split(inputs, [inputs.shape[1]-2,
+                                                     2], axis=1)
 
         # take out feedback backlog
         proprio_backlog = tf.slice(old_proprio_feedback, [0, 0, 1], [-1, -1, -1])
@@ -94,8 +95,10 @@ class GRUController(Layer):
         # net forward pass
         for k in range(self.n_hidden_layers):
             x, new_hidden_state = self.layers[k](x, old_hidden_states[k])
-            new_hidden_states_dict['gru_hidden' + str(k)] = new_hidden_state
-            new_hidden_states.append(new_hidden_state)
+            new_hidden_state_noisy = new_hidden_state + tf.random.normal(tf.shape(new_hidden_state),
+                                                                         stddev=self.hidden_noise_sd)
+            new_hidden_states_dict['gru_hidden' + str(k)] = new_hidden_state_noisy
+            new_hidden_states.append(new_hidden_state_noisy)
         u = self.layers[-1](x)
 
         # plant forward pass
@@ -104,7 +107,7 @@ class GRUController(Layer):
         mstate = old_muscle_state
         gstate = old_geometry_state
         for _ in range(self.n_ministeps):
-            if self.perturbation_dim_start is not None:
+            if self.perturbation_dims_active:
                 jstate, cstate, mstate, gstate = self.plant(u, jstate, mstate, gstate, joint_load=perturbation)
             else:
                 jstate, cstate, mstate, gstate = self.plant(u, jstate, mstate, gstate)
