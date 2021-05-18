@@ -32,9 +32,9 @@ class TrainingPlotter(Callback):
         self.logs = []
         self.cartesian_loss = []
         self.muscle_loss = []
+        self.recurrent_weight_loss = []
+        self.kernel_weight_loss = []
         self.activity_loss = []
-        self.weight_loss = []
-        self.something_loss = []
 
     def on_train_begin(self, logs=None):
         self.loss = []
@@ -43,6 +43,7 @@ class TrainingPlotter(Callback):
         self.muscle_loss = []
         self.recurrent_weight_loss = []
         self.kernel_weight_loss = []
+        self.activity_loss = []
 
     def on_batch_end(self, batch, logs=None):
         self.logs.append(logs)
@@ -51,6 +52,7 @@ class TrainingPlotter(Callback):
         self.muscle_loss.append(logs.get('RNN_4_loss') * self.task.loss_weights['muscle state'])
         self.recurrent_weight_loss.append((self.model.losses[1]))
         self.kernel_weight_loss.append((self.model.losses[0]))
+        #self.activity_loss.append((self.model.losses[2]))
 
         if batch % self.plot_freq == 0 or len(self.loss) == 1:
             [inputs, targets, init_states] = self.task.generate(batch_size=3, n_timesteps=self.task.last_n_timesteps)
@@ -73,6 +75,7 @@ class TrainingPlotter(Callback):
             ax1.plot(n, self.muscle_loss, label='muscle activation loss')
             ax1.plot(n, self.recurrent_weight_loss, label='recurrent weight loss')
             ax1.plot(n, self.kernel_weight_loss, label='kernel weight loss')
+        #    ax1.plot(n, self.activity_loss, label='activity loss')
             ax1.set(xlabel='iteration', ylabel='loss')
             ax1.legend()
             plt.show()
