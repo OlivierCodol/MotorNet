@@ -1,9 +1,10 @@
 import copy
-from tensorflow.keras.callbacks import Callback
+from tensorflow.keras.callbacks import Callback, LearningRateScheduler
 import matplotlib.pyplot as plt
 import numpy as np
 from IPython.display import clear_output
-
+from tensorflow.python.framework import ops
+from tensorflow.python.keras import backend
 
 class BatchLogger(Callback):
     """A Logger that logs metrics per batch steps instead of per epoch step."""
@@ -115,3 +116,29 @@ class TrainingPlotter(Callback):
                 plt.ylabel('hidden unit activity')
 
                 plt.show()
+
+
+class CustomLearningRateScheduler(LearningRateScheduler):
+    def __init__(self, scheduler, verbose=0):
+        super().__init__(scheduler, verbose)
+
+    def on_epoch_begin(self, epoch, logs=None):
+        return None
+    
+    def on_batch_end(self, batch, logs=None):
+        if not hasattr(self.model.optimizer, 'lr'):
+            raise ValueError('Optimizer must have a "lr" attribute.')
+        try:  # new API
+            lr = float(backend.get_value(self.model.optimizer.lr))
+            lr = self.schedule(batch, lr)
+        except TypeError:  # Support for old API for backward compatibility
+            lr = self.schedule(batch)
+        if not isinstance(lr, (ops.Tensor, float, np.float32, np.float64)):
+            raise ValueError('The output of the "schedule" function '
+                             'should be float.')
+        if isinstance(lr, ops.Tensor) and not lr.dtype.is_floating:
+            raise ValueError('The dtype of Tensor should be float')
+        backend.set_value(self.model.optimizer.lr, backend.get_value(lr))
+        if self.verbose > 0:
+            print('\nBatch %05d: LearningRateScheduler reducing learning '
+                  'rate to %s.' % (batch + 1, lr))
