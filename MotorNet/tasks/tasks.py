@@ -218,10 +218,12 @@ class TaskLoadProbability(Task):
         super().__init__(controller, **kwargs)
 
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_velocity_squared_loss()}
-        self.loss_weights = {'cartesian position': 1, 'muscle state': 5}  # 20 best
+        self.loss_weights = {'cartesian position': 1, 'muscle state': 5}  # 5 best
 
         self.fixation_time = int(np.array(kwargs.get('fixation_time', 0)) / 1000 / self.plant.dt)
         self.delay_range = np.array(kwargs.get('delay_range', [200, 1000])) / 1000 / self.plant.dt
+
+        self.training_mode = kwargs.get('training_mode', True)
 
         self.do_recompute_targets = True
         self.controller.perturbation_dims_active = True
@@ -231,16 +233,20 @@ class TaskLoadProbability(Task):
         self.last_n_timesteps = n_timesteps
         init_states = self.get_initial_state(batch_size=batch_size)
         center = self.plant.joint2cartesian(init_states[0][0, :]).numpy()
-        goal_state = center + np.array([-0.028279, -0.042601, 0, 0])
+        goal_state1 = center + np.array([-0.028279, -0.042601, 0, 0])
         goal_state2 = center - np.array([-0.028279, -0.042601, 0, 0])
-        targets = np.tile(goal_state, (batch_size, n_timesteps, 1))
+        goal_states = self.plant.joint2cartesian(self.plant.draw_random_uniform_states(batch_size=batch_size))
+        targets = np.tile(np.expand_dims(goal_states, axis=1), (1, n_timesteps, 1))
         prob_array = np.array([0, 0.25, 0.5, 0.75, 1])
-        inputs = np.zeros(shape=(batch_size, n_timesteps, 5))
+        inputs = np.zeros(shape=(batch_size, n_timesteps, 7))
         for i in range(batch_size):
-            input_3 = np.zeros(shape=n_timesteps) + 1
-            if np.greater_equal(np.random.rand(), 0.5):
-                targets[i, :, :] = goal_state2
-                input_3 = np.zeros(shape=n_timesteps) - 1
+            if self.training_mode is False or np.greater_equal(np.random.rand(), 0.5):
+                if np.greater_equal(np.random.rand(), 0.5):
+                    targets[i, :, :] = np.tile(np.expand_dims(goal_state1, axis=1), [1, n_timesteps, 1])
+                else:
+                    targets[i, :, :] = np.tile(np.expand_dims(goal_state2, axis=1), [1, n_timesteps, 1])
+            inputs[i, :, 2:4] = targets[i, :, 0:2]
+            input_5 = np.zeros(shape=n_timesteps)
             input_1 = np.zeros(shape=n_timesteps)
             input_2 = np.zeros(shape=n_timesteps)
             perturbation = np.tile([0, -1], (n_timesteps, 1))  # background load
@@ -254,8 +260,9 @@ class TaskLoadProbability(Task):
                 else:
                     pert = -2
                 # The visual delay MUST be built into these inputs, otherwise the network gets immediate visual cues
-                input_1[self.fixation_time:] = prob  # turn off after 10
-                input_2[self.fixation_time:] = 1 - prob
+                input_1[self.fixation_time:pert_time + 10] = prob  # turn off after 10
+                input_2[self.fixation_time:pert_time + 10] = 1 - prob
+                input_5[pert_time + 4:] = 0.05  # 0.05 best
                 perturbation[pert_time:, 1] = pert
             else:
                 targets[i, :, :] = center
@@ -264,8 +271,8 @@ class TaskLoadProbability(Task):
 
             inputs[i, :, 0] = input_1
             inputs[i, :, 1] = input_2
-            inputs[i, :, 2] = input_3
-            inputs[i, :, 3:5] = perturbation
+            inputs[i, :, 4] = input_5 + np.random.normal(loc=0., scale=self.controller.visual_noise_sd, size=n_timesteps)
+            inputs[i, :, 5:7] = perturbation
 
         return [tf.convert_to_tensor(inputs, dtype=tf.float32), tf.convert_to_tensor(targets, dtype=tf.float32),
                 init_states]
@@ -277,7 +284,7 @@ class TaskLoadProbability(Task):
         cartesian_pos = outputs['cartesian position']
         # calculate the distance to the targets as run by the forward pass
         dist = tf.sqrt(tf.reduce_sum((cartesian_pos[:, :, 0:2] - targets[:, :, 0:2])**2, axis=2))
-        dist = tf.where(tf.equal(inputs[0][:, :, 4], -1.), 1000., dist)
+        dist = tf.where(tf.equal(inputs[0][:, :, -1], -1.), 1000., dist)
         dist = tf.tile(tf.expand_dims(dist, axis=2), tf.constant([1, 1, 2], tf.int32))
         cartesian_pos_no_vel = tf.concat([cartesian_pos[:, :, 0:2], tf.zeros_like(dist)], axis=2)
         dist = tf.concat([dist, tf.zeros_like(dist)], axis=2)
