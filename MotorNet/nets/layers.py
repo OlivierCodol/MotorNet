@@ -57,7 +57,8 @@ class GRUController(Layer):
                              activation='sigmoid',
                              name='output_layer',
                              bias_initializer=tf.initializers.Constant(value=-5),
-                             kernel_initializer=tf.initializers.random_normal(stddev=10 ** -3))
+                             kernel_initializer=tf.initializers.random_normal(stddev=10 ** -3),
+                             kernel_regularizer=self.kernel_regularizer)
         self.layers.append(output_layer)
         self.built = True
 
