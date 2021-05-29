@@ -61,6 +61,8 @@ class ReluMuscle(Muscle):
     # --------------------------
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.__name__ = 'ReluMuscle'
+
         self.state_name = ['excitation',
                            'muscle lenth',
                            'muscle velocity',
@@ -89,8 +91,8 @@ class RigidTendonHillMuscle(Muscle):
     # --------------------------
 
     def __init__(self, min_activation=0.001, **kwargs):
-
         super().__init__(min_activation=min_activation, **kwargs)
+        self.__name__ = 'RigidTendonHillMuscle'
 
         self.state_name = ['activation',
                            'muscle length',
@@ -196,6 +198,7 @@ class RigidTendonHillMuscleThelen(Muscle):
     # --------------------------
     def __init__(self, min_activation=0.001, **kwargs):
         super().__init__(min_activation=min_activation, **kwargs)
+        self.__name__ = 'RigidTendonHillMuscleThelen'
 
         self.state_name = ['activation',
                            'muscle length',
@@ -290,6 +293,8 @@ class CompliantTendonHillMuscle(Muscle):
 
     def __init__(self, min_activation=0.01, **kwargs):
         super().__init__(min_activation=min_activation, **kwargs)
+        self.__name__ = 'CompliantTendonHillMuscle'
+
         self.state_name = ['activation',
                            'muscle length',
                            'muscle velocity',

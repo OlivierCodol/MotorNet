@@ -34,8 +34,9 @@ class GRUController(Layer):
         self.n_ministeps = int(np.maximum(n_ministeps, 1))
         self.output_size = self.state_size
         self.plant = plant
+        self.kernel_regularizer_weight = kernel_regularizer
         self.kernel_regularizer = tf.keras.regularizers.l2(kernel_regularizer)
-        self.activity_regularizer = tf.keras.regularizers.l2(activity_regularizer)
+        self.recurrent_regularizer_weight = recurrent_regularizer
         self.recurrent_regularizer = tf.keras.regularizers.l2(recurrent_regularizer)
         self.n_hidden_layers = n_hidden_layers
         self.activation = activation
@@ -50,7 +51,6 @@ class GRUController(Layer):
                             activation=self.activation,
                             name='hidden_layer_' + str(k),
                             kernel_regularizer=self.kernel_regularizer,
-                            activity_regularizer=self.activity_regularizer,
                             recurrent_regularizer=self.recurrent_regularizer)
             self.layers.append(layer)
         output_layer = Dense(units=self.plant.input_dim,
@@ -62,11 +62,20 @@ class GRUController(Layer):
         self.layers.append(output_layer)
         self.built = True
 
-    def get_config(self):
-        cfg = super().get_config()
+    def get_save_config(self):
+        cfg = {'proprioceptive_noise_sd': self.proprioceptive_noise_sd, 'visual_noise_sd': self.visual_noise_sd,
+                    'hidden_noise_sd': self.hidden_noise_sd, 'proprioceptive_delay': self.proprioceptive_delay,
+                    'visual_delay': self.visual_delay, 'n_muscle': self.n_muscles,
+                    'perturbation_dims_active': self.perturbation_dims_active, 'n_ministeps': self.n_ministeps,
+                    'kernel_regularizer_weight': self.kernel_regularizer_weight,
+                    'recurrent_regularizer_weight': self.recurrent_regularizer_weight, 'n_units': int(self.n_units[0]),
+                    'n_hidden_layers': self.n_hidden_layers, 'activation': self.activation}
         return cfg
 
-    @tf.autograph.experimental.do_not_convert
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
     def call(self, inputs, states=None, **kwargs):
         # unpack states
         old_joint_pos = states[0]
