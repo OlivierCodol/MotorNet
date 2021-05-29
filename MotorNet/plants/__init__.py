@@ -161,8 +161,6 @@ class PlantWrapper(Plant):
         n_total_points = np.array([len(self.muscle)])
         self.row_splits = np.concatenate([np.zeros(1), np.diff(self.muscle).nonzero()[0] + 1, n_total_points - 1])
 
-        # to prevent raising a "Missing keyword argument" error in the loops below
-        kwargs.setdefault('timestep', self.dt)
         # kwargs loop
         for key, val in kwargs.items():
             if key in self.tobuild__muscle:
@@ -176,8 +174,7 @@ class PlantWrapper(Plant):
                 # else, raise error
                 else:
                     raise ValueError('Missing keyword argument ' + key + '.')
-        self.tobuild__muscle['timestep'] = [self.dt]
-        self.Muscle.build(**self.tobuild__muscle)
+        self.Muscle.build(timestep=self.dt, **self.tobuild__muscle)
 
         if name == '':
             name = 'muscle_' + str(self.n_muscles)
