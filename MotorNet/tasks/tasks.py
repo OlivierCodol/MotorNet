@@ -8,12 +8,12 @@ class Task(tf.keras.utils.Sequence):
     def __init__(self, controller, initial_joint_state=None, **kwargs):
         self.controller = controller
         self.plant = controller.plant
-        self.last_batch_size = None
-        self.last_n_timesteps = None
         self.training_iterations = 1000
         self.training_batch_size = 32
         self.training_n_timesteps = 100
         self.do_recompute_targets = False
+        self.kwargs = kwargs
+
         self.losses = {}
         self.loss_weights = {}
 
@@ -22,7 +22,9 @@ class Task(tf.keras.utils.Sequence):
             if len(initial_joint_state.shape) == 1:
                 initial_joint_state = initial_joint_state.reshape(1, -1)
             self.n_initial_joint_states = initial_joint_state.shape[0]
+            self.initial_joint_state_original = initial_joint_state.tolist()
         else:
+            self.initial_joint_state_original = None
             self.n_initial_joint_states = None
         self.initial_joint_state = initial_joint_state
 
@@ -51,6 +53,13 @@ class Task(tf.keras.utils.Sequence):
         self.training_n_timesteps = n_timesteps
         self.training_iterations = iterations
 
+    def get_save_config(self):
+        cfg = {'task_kwargs': self.kwargs, 'training_iterations': self.training_iterations,
+               'training_batch_size': self.training_batch_size, 'training_n_timesteps': self.training_n_timesteps,
+               'do_recompute_targets': self.do_recompute_targets, 'loss_weights': self.loss_weights,
+               'initial_joint_state': self.initial_joint_state_original}
+        return cfg
+
     def __getitem__(self, idx):
         [inputs, targets, init_states] = self.generate(batch_size=self.training_batch_size,
                                                        n_timesteps=self.training_n_timesteps)
@@ -67,8 +76,6 @@ class TaskStaticTarget(Task):
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}  # 0.2
 
     def generate(self, batch_size, n_timesteps, **kwargs):
-        self.last_batch_size = batch_size
-        self.last_n_timesteps = n_timesteps
         init_states = self.get_initial_state(batch_size=batch_size)
         goal_states = self.plant.draw_random_uniform_states(batch_size=batch_size)
         targets = self.plant.state2target(state=self.plant.joint2cartesian(goal_states), n_timesteps=n_timesteps)
@@ -82,8 +89,6 @@ class TaskStaticTargetWithPerturbations(Task):
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
 
     def generate(self, batch_size, n_timesteps, **kwargs):
-        self.last_batch_size = batch_size
-        self.last_n_timesteps = n_timesteps
         init_states = self.get_initial_state(batch_size=batch_size)
         goal_states = self.plant.draw_random_uniform_states(batch_size=batch_size)
         targets = self.plant.state2target(state=self.plant.joint2cartesian(goal_states), n_timesteps=n_timesteps)
@@ -107,9 +112,7 @@ class TaskDelayedReach(Task):
         self.do_recompute_targets = True
 
     def generate(self, batch_size, n_timesteps, **kwargs):
-        self.last_batch_size = batch_size
-        self.last_n_timesteps = n_timesteps
-        testing_mode = kwargs.get('testing_mode', False)  # I'll get back to this soon
+        testing_mode = kwargs.get('testing_mode', False)
         init_states = self.get_initial_state(batch_size=batch_size)
         center = self.plant.joint2cartesian(init_states[0][0, :])
         goal_states = self.plant.draw_random_uniform_states(batch_size=batch_size)
@@ -155,9 +158,7 @@ class TaskDelayedMultiReach(Task):
         self.num_target = kwargs.get('num_target', 1)
             
     def generate(self, batch_size, n_timesteps, **kwargs):
-        self.last_batch_size = batch_size
-        self.last_n_timesteps = n_timesteps
-        testing_mode = kwargs.get('testing_mode', False)  # I'll get back to this soon
+        testing_mode = kwargs.get('testing_mode', False)
         init_states = self.get_initial_state(batch_size=batch_size)
         center = self.plant.joint2cartesian(init_states[0][0, :])
         
@@ -218,7 +219,7 @@ class TaskLoadProbability(Task):
         super().__init__(controller, **kwargs)
 
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_velocity_squared_loss()}
-        self.loss_weights = {'cartesian position': 1, 'muscle state': 5}  # 5 best
+        self.loss_weights = {'cartesian position': 1, 'muscle state': 20}  # 5 best
 
         self.fixation_time = int(np.array(kwargs.get('fixation_time', 0)) / 1000 / self.plant.dt)
         self.delay_range = np.array(kwargs.get('delay_range', [200, 1000])) / 1000 / self.plant.dt
@@ -229,8 +230,6 @@ class TaskLoadProbability(Task):
         self.controller.perturbation_dims_active = True
 
     def generate(self, batch_size, n_timesteps, **kwargs):
-        self.last_batch_size = batch_size
-        self.last_n_timesteps = n_timesteps
         init_states = self.get_initial_state(batch_size=batch_size)
         center = self.plant.joint2cartesian(init_states[0][0, :]).numpy()
         goal_state1 = center + np.array([-0.028279, -0.042601, 0, 0])
@@ -240,11 +239,16 @@ class TaskLoadProbability(Task):
         prob_array = np.array([0, 0.25, 0.5, 0.75, 1])
         inputs = np.zeros(shape=(batch_size, n_timesteps, 7))
         for i in range(batch_size):
-            if self.training_mode is False or np.greater_equal(np.random.rand(), 0.5):
+            if self.training_mode is False:
                 if np.greater_equal(np.random.rand(), 0.5):
                     targets[i, :, :] = np.tile(np.expand_dims(goal_state1, axis=1), [1, n_timesteps, 1])
                 else:
                     targets[i, :, :] = np.tile(np.expand_dims(goal_state2, axis=1), [1, n_timesteps, 1])
+            else:
+                r = 0.1 * np.sqrt(np.random.rand())
+                theta = np.random.rand() * 2 * np.pi
+                new_pos = center[0, 0:2] + np.expand_dims([r * np.cos(theta), r * np.sin(theta)], axis=0)
+                targets[i, :, 0:2] = np.tile(np.expand_dims(new_pos, axis=1), [1, n_timesteps, 1])
             inputs[i, :, 2:4] = targets[i, :, 0:2]
             input_5 = np.zeros(shape=n_timesteps)
             input_1 = np.zeros(shape=n_timesteps)
@@ -253,16 +257,20 @@ class TaskLoadProbability(Task):
             delay_time = generate_delay_time(self.delay_range[0], self.delay_range[1], 'random')
             pert_time = delay_time+self.fixation_time
             prob = prob_array[np.random.randint(0, 5)]
-            if np.greater_equal(np.random.rand(), 0.1):  # 0.1 best
+            if self.training_mode is False:
+                catch_chance = 0
+            else:
+                catch_chance = 0.1
+            if np.greater_equal(np.random.rand(), catch_chance):  # 0.1 best
                 targets[i, 0:pert_time, :] = center
                 if np.greater_equal(np.random.rand(),  prob):
                     pert = 0
                 else:
                     pert = -2
                 # The visual delay MUST be built into these inputs, otherwise the network gets immediate visual cues
-                input_1[self.fixation_time:pert_time + 10] = prob  # turn off after 10
-                input_2[self.fixation_time:pert_time + 10] = 1 - prob
-                input_5[pert_time + 4:] = 0.05  # 0.05 best
+                input_1[self.fixation_time:pert_time + 9] = prob  # turn off after 9 best
+                input_2[self.fixation_time:pert_time + 9] = 1 - prob
+                input_5[pert_time + 4] = 0.2  # +4 best, 0.5 best
                 perturbation[pert_time:, 1] = pert
             else:
                 targets[i, :, :] = center
@@ -271,7 +279,12 @@ class TaskLoadProbability(Task):
 
             inputs[i, :, 0] = input_1
             inputs[i, :, 1] = input_2
-            inputs[i, :, 4] = input_5 + np.random.normal(loc=0., scale=self.controller.visual_noise_sd, size=n_timesteps)
+            inputs[i, :, 4] = input_5 + np.random.normal(loc=0.,
+                                                         scale=self.controller.proprioceptive_noise_sd,
+                                                         size=n_timesteps)
+            inputs[i, :, 0:4] = inputs[i, :, 0:4] + np.random.normal(loc=0.,
+                                                                     scale=self.controller.visual_noise_sd,
+                                                                     size=(n_timesteps, 4))
             inputs[i, :, 5:7] = perturbation
 
         return [tf.convert_to_tensor(inputs, dtype=tf.float32), tf.convert_to_tensor(targets, dtype=tf.float32),
@@ -304,8 +317,6 @@ class TaskYangetal2011(Task):
         self.controller.perturbation_dim_start = 2
 
     def generate(self, batch_size, n_timesteps, **kwargs):
-        self.last_batch_size = batch_size
-        self.last_n_timesteps = n_timesteps
         init_states = self.get_initial_state(batch_size=batch_size)
         center = self.plant.joint2cartesian(init_states[0][0, :]).numpy()
         goal_state1 = center + np.array([-0.15551, -0.13049, 0, 0])
