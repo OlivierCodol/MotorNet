@@ -32,7 +32,7 @@ class Muscle:
         return None
 
     def build(self, timestep, max_isometric_force, **kwargs):
-        self.dt = timestep
+        self.dt = timestep[0]  # only one timestep must be declared
         self.n_muscles = np.array(max_isometric_force).size
         self.max_iso_force = tf.reshape(tf.cast(max_isometric_force, dtype=tf.float32), (1, 1, self.n_muscles))
         self.vmax = tf.ones((1, 1, self.n_muscles), dtype=tf.float32)
@@ -134,7 +134,7 @@ class RigidTendonHillMuscle(Muscle):
         optimal_muscle_length = kwargs.get('optimal_muscle_length')
         normalized_slack_muscle_length = kwargs.get('normalized_slack_muscle_length')
 
-        self.dt = timestep
+        self.dt = timestep[0]  # only one timestep must be declared
         self.n_muscles = np.array(tendon_length).size
         self.l0_ce = tf.reshape(tf.cast(optimal_muscle_length, dtype=tf.float32), (1, 1, self.n_muscles))
         self.l0_pe = self.l0_ce * normalized_slack_muscle_length
@@ -239,7 +239,7 @@ class RigidTendonHillMuscleThelen(Muscle):
         normalized_slack_muscle_length = kwargs.get('normalized_slack_muscle_length')
 
         self.n_muscles = np.array(tendon_length).size
-        self.dt = timestep
+        self.dt = timestep[0]  # only one timestep must be declared
         self.max_iso_force = tf.reshape(tf.cast(max_isometric_force, dtype=tf.float32), (1, 1, self.n_muscles))
         self.l0_ce = tf.reshape(tf.cast(optimal_muscle_length, dtype=tf.float32), (1, 1, self.n_muscles))
         self.l0_pe = self.l0_ce * normalized_slack_muscle_length
@@ -331,7 +331,7 @@ class CompliantTendonHillMuscle(Muscle):
         self.l0_se = tf.reshape(tf.cast(tendon_length, dtype=tf.float32), (1, 1, self.n_muscles))
         self.musculotendon_slack_len = self.l0_pe + self.l0_se
         self.k_pe = 1 / ((1.66 - self.l0_pe / self.l0_ce) ** 2)
-        self.dt = timestep
+        self.dt = timestep[0]  # only one timestep must be declared
         self.max_iso_force = tf.reshape(tf.cast(max_isometric_force, dtype=tf.float32), (1, 1, self.n_muscles))
         self.vmax = 10 * self.l0_ce
 
