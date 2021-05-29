@@ -7,7 +7,7 @@ from MotorNet.plants.muscles import CompliantTendonHillMuscle
 class Plant:
 
     def __init__(self, skeleton, timestep=0.01, **kwargs):
-
+        self.__name__ = 'Plant'
         self.Skeleton = skeleton
         self.dof = self.Skeleton.dof
         self.space_dim = self.Skeleton.space_dim
@@ -110,6 +110,17 @@ class Plant:
         targ = tf.repeat(targ, n_timesteps, axis=-1)
         targ = tf.transpose(targ, [0, 2, 1])
         return targ
+
+    def get_save_config(self):
+        cfg = {'Muscle': str(self.Muscle.__name__),
+               'Skeleton': {'I1': self.Skeleton.I1, 'I2': self.Skeleton.I2, 'L1': self.Skeleton.L1,
+                            'L2': self.Skeleton.L2, 'L1g': self.Skeleton.L1g, 'L2g': self.Skeleton.L2g,
+                            'c_viscosity': self.Skeleton.c_viscosity, 'coriolis_1': self.Skeleton.coriolis_1,
+                            'coriolis_2': self.Skeleton.coriolis_2, 'dof': self.Skeleton.dof, 'dt': self.Skeleton.dt,
+                            'm1': self.Skeleton.m1, 'm2': self.Skeleton.m2},
+               'excitation_noise_sd': self.excitation_noise_sd, 'n_muscles': self.n_muscles,
+               'proprioceptive_delay': self.proprioceptive_delay, 'visual_delay': self.visual_delay}
+        return cfg
 
     def get_geometry(self, joint_state):
         pass

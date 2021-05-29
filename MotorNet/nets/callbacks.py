@@ -56,7 +56,8 @@ class TrainingPlotter(Callback):
         #self.activity_loss.append((self.model.losses[2]))
 
         if batch % self.plot_freq == 0 or len(self.loss) == 1:
-            [inputs, targets, init_states] = self.task.generate(batch_size=3, n_timesteps=self.task.last_n_timesteps)
+            [inputs, targets, init_states] = self.task.generate(batch_size=3,
+                                                                n_timesteps=self.task.training_n_timesteps)
             results = self.model([inputs, init_states], training=False)
 
             if self.task.do_recompute_targets:
@@ -142,3 +143,17 @@ class CustomLearningRateScheduler(LearningRateScheduler):
         if self.verbose > 0:
             print('\nBatch %05d: LearningRateScheduler reducing learning '
                   'rate to %s.' % (batch + 1, lr))
+
+
+# See https://github.com/tensorflow/tensorflow/issues/42872
+class TensorflowFix(Callback):
+    def __init__(self):
+        super(TensorflowFix, self).__init__()
+        self._supports_tf_logs = True
+        self._backup_loss = None
+
+    def on_train_begin(self, logs=None):
+        self._backup_loss = {**self.model.loss}
+
+    def on_train_batch_end(self, batch, logs=None):
+        self.model.loss = self._backup_loss

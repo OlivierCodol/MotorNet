@@ -1,11 +1,14 @@
 import tensorflow as tf
 from tensorflow import keras
+import json
 
 
 class MotorNetModel(keras.Model):
     def __init__(self, inputs, outputs, name='controller', **kwargs):
-        super(MotorNetModel, self).__init__(inputs=inputs, outputs=outputs, name=name)
+        self.inputs = inputs
+        self.outputs = outputs
         self.task = kwargs.get('task', None)
+        super(MotorNetModel, self).__init__(inputs=inputs, outputs=outputs, name=name)
 
     def train_step(self, data):
         # Unpack the data. Its structure depends on your model and
@@ -32,3 +35,20 @@ class MotorNetModel(keras.Model):
         self.compiled_metrics.update_state(y, y_pred)
         # Return a dict mapping metric names to current value
         return {m.name: m.result() for m in self.metrics}
+
+    def save_model(self, path):
+        cfg = {'Task': self.task.get_save_config()}
+        cfg.update({'Controller': self.task.controller.get_save_config()})
+        cfg.update({'Plant': self.task.plant.get_save_config()})
+
+        file = open('/home/jonathan/Desktop/MotorNetModels/' + name + '.json', 'w+')
+        json.dump(cfg, file)
+
+    def get_config(self):
+        cfg = super().get_config()
+        cfg.update({'task': self.task, 'inputs': self.inputs, 'outputs': self.outputs})
+        return cfg
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
