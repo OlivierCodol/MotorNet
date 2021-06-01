@@ -17,8 +17,9 @@ task_run_mode = str(sys.argv[3])
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 # find root directory and add to path
-root_index = os.getcwd().rfind('notebooks')
+root_index = os.getcwd().rfind('utils')
 root_directory = os.path.dirname(os.getcwd()[:root_index])
+root_directory = os.path.dirname(root_directory[:root_index])
 sys.path.append(root_directory)
 
 from MotorNet.plants import RigidTendonArm
