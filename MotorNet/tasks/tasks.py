@@ -6,6 +6,7 @@ import tensorflow as tf
 
 class Task(tf.keras.utils.Sequence):
     def __init__(self, controller, initial_joint_state=None, **kwargs):
+        self.__name__ = 'Generic Task'
         self.controller = controller
         self.plant = controller.plant
         self.training_iterations = 1000
@@ -54,7 +55,7 @@ class Task(tf.keras.utils.Sequence):
         self.training_iterations = iterations
 
     def get_save_config(self):
-        cfg = {'task_kwargs': self.kwargs, 'training_iterations': self.training_iterations,
+        cfg = {'task_kwargs': self.kwargs, 'name': self.__name__, 'training_iterations': self.training_iterations,
                'training_batch_size': self.training_batch_size, 'training_n_timesteps': self.training_n_timesteps,
                'do_recompute_targets': self.do_recompute_targets, 'loss_weights': self.loss_weights,
                'initial_joint_state': self.initial_joint_state_original}
@@ -72,6 +73,7 @@ class Task(tf.keras.utils.Sequence):
 class TaskStaticTarget(Task):
     def __init__(self, controller, **kwargs):
         super().__init__(controller, **kwargs)
+        self.__name__ = 'TaskStaticTarget'
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}  # 0.2
 
@@ -85,6 +87,7 @@ class TaskStaticTarget(Task):
 class TaskStaticTargetWithPerturbations(Task):
     def __init__(self, controller, **kwargs):
         super().__init__(controller, **kwargs)
+        self.__name__ = 'TaskStaticTargetWithPerturbations'
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
 
@@ -101,7 +104,7 @@ class TaskStaticTargetWithPerturbations(Task):
 class TaskDelayedReach(Task):
     def __init__(self, controller, **kwargs):
         super().__init__(controller, **kwargs)
-
+        self.__name__ = 'TaskDelayedReach'
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
 
@@ -112,7 +115,6 @@ class TaskDelayedReach(Task):
         self.do_recompute_targets = True
 
     def generate(self, batch_size, n_timesteps, **kwargs):
-        testing_mode = kwargs.get('testing_mode', False)
         init_states = self.get_initial_state(batch_size=batch_size)
         center = self.plant.joint2cartesian(init_states[0][0, :])
         goal_states = self.plant.draw_random_uniform_states(batch_size=batch_size)
@@ -148,7 +150,7 @@ class TaskDelayedReach(Task):
 class TaskDelayedMultiReach(Task):
     def __init__(self, controller, initial_joint_state=None, **kwargs):
         super().__init__(controller, initial_joint_state=initial_joint_state)
-
+        self.__name__ = 'TaskDelayedMultiReach'
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
 
@@ -158,7 +160,6 @@ class TaskDelayedMultiReach(Task):
         self.num_target = kwargs.get('num_target', 1)
             
     def generate(self, batch_size, n_timesteps, **kwargs):
-        testing_mode = kwargs.get('testing_mode', False)
         init_states = self.get_initial_state(batch_size=batch_size)
         center = self.plant.joint2cartesian(init_states[0][0, :])
         
@@ -217,19 +218,27 @@ class TaskDelayedMultiReach(Task):
 class TaskLoadProbability(Task):
     def __init__(self, controller, **kwargs):
         super().__init__(controller, **kwargs)
-
+        self.__name__ = 'TaskLoadProbability'
+        #self.controller.layers[1].bias = tf.convert_to_tensor([-5.18, -6.47, -3.63, -6.42, -4.40, -6.48])
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_velocity_squared_loss()}
-        self.loss_weights = {'cartesian position': 1, 'muscle state': 20}  # 5 best
+        self.cartesian_loss = kwargs.get('cartesian_loss', 1)
+        self.muscle_loss = kwargs.get('muscle_loss', 0)
+        self.loss_weights = {'cartesian position': self.cartesian_loss, 'muscle state': self.muscle_loss}  # 10-20 best
 
-        self.fixation_time = int(np.array(kwargs.get('fixation_time', 0)) / 1000 / self.plant.dt)
+        self.target_time_range = np.array(kwargs.get('target_time_range', [200, 400])) / 1000 / self.plant.dt
         self.delay_range = np.array(kwargs.get('delay_range', [200, 1000])) / 1000 / self.plant.dt
+        self.condition_independent_magnitude = kwargs.get('condition_independent_magnitude', 0.2)
 
-        self.training_mode = kwargs.get('training_mode', True)
+        self.run_mode = kwargs.get('run_mode', 'train')
 
-        self.do_recompute_targets = True
+        self.do_recompute_targets = kwargs.get('do_recompute_targets', False)
         self.controller.perturbation_dims_active = True
 
     def generate(self, batch_size, n_timesteps, **kwargs):
+        if self.run_mode == 'mesh_target':
+            batch_size = 1000
+            self.delay_range = np.array([800, 800]) / 1000 / self.plant.dt
+            self.target_time_range = np.array([300, 300]) / 1000 / self.plant.dt
         init_states = self.get_initial_state(batch_size=batch_size)
         center = self.plant.joint2cartesian(init_states[0][0, :]).numpy()
         goal_state1 = center + np.array([-0.028279, -0.042601, 0, 0])
@@ -237,14 +246,37 @@ class TaskLoadProbability(Task):
         goal_states = self.plant.joint2cartesian(self.plant.draw_random_uniform_states(batch_size=batch_size))
         targets = np.tile(np.expand_dims(goal_states, axis=1), (1, n_timesteps, 1))
         prob_array = np.array([0, 0.25, 0.5, 0.75, 1])
+        mesh = np.linspace(-0.0707, 0.0707, num=10)
+        mesh_x_counter = 0
+        mesh_y_counter = 0
+        prob_counter = 0
+        visual_delay = self.controller.visual_delay
+        proprioceptive_delay = self.controller.proprioceptive_delay
         inputs = np.zeros(shape=(batch_size, n_timesteps, 7))
         for i in range(batch_size):
-            if self.training_mode is False:
+            prob = prob_array[np.random.randint(0, 5)]
+            if self.run_mode == '2target':
                 if np.greater_equal(np.random.rand(), 0.5):
                     targets[i, :, :] = np.tile(np.expand_dims(goal_state1, axis=1), [1, n_timesteps, 1])
                 else:
                     targets[i, :, :] = np.tile(np.expand_dims(goal_state2, axis=1), [1, n_timesteps, 1])
-            else:
+            elif self.run_mode == 'mesh_target':
+                prob = prob_array[prob_counter]
+                x = mesh[mesh_x_counter]
+                y = mesh[mesh_y_counter]
+                mesh_x_counter += 1
+                new_pos = center[0, 0:2] + np.expand_dims([x, y], axis=0)
+                targets[i, :, 0:2] = np.tile(np.expand_dims(new_pos, axis=1), [1, n_timesteps, 1])
+                if mesh_x_counter >= len(mesh):
+                    mesh_y_counter += 1
+                    mesh_x_counter = 0
+                if mesh_y_counter >= len(mesh):
+                    mesh_x_counter = 0
+                    mesh_y_counter = 0
+                    prob_counter += 1
+                if prob_counter == 5:
+                    prob_counter = 0
+            elif self.run_mode == 'train':
                 r = 0.1 * np.sqrt(np.random.rand())
                 theta = np.random.rand() * 2 * np.pi
                 new_pos = center[0, 0:2] + np.expand_dims([r * np.cos(theta), r * np.sin(theta)], axis=0)
@@ -253,29 +285,42 @@ class TaskLoadProbability(Task):
             input_5 = np.zeros(shape=n_timesteps)
             input_1 = np.zeros(shape=n_timesteps)
             input_2 = np.zeros(shape=n_timesteps)
-            perturbation = np.tile([0, -1], (n_timesteps, 1))  # background load
+            perturbation = np.tile([0, -0], (n_timesteps, 1))  # background load -1
+            target_time = generate_delay_time(self.target_time_range[0], self.target_time_range[1], 'random')
             delay_time = generate_delay_time(self.delay_range[0], self.delay_range[1], 'random')
-            pert_time = delay_time+self.fixation_time
-            prob = prob_array[np.random.randint(0, 5)]
-            if self.training_mode is False:
+            pert_time = delay_time + target_time
+            #input_1[0:pert_time + visual_delay] = 0.5  # turn off after 9 best
+            #input_2[0:pert_time + visual_delay] = 0.5
+            if self.run_mode != 'train':
                 catch_chance = 0
+                no_prob_chance = 0
             else:
-                catch_chance = 0.1
+                catch_chance = 0.2
+                no_prob_chance = 0
             if np.greater_equal(np.random.rand(), catch_chance):  # 0.1 best
                 targets[i, 0:pert_time, :] = center
-                if np.greater_equal(np.random.rand(),  prob):
-                    pert = 0
+                if self.run_mode == 'mesh_target':
+                    if i < 500:
+                        pert = 1
+                    else:
+                        pert = -1
                 else:
-                    pert = -2
-                # The visual delay MUST be built into these inputs, otherwise the network gets immediate visual cues
-                input_1[self.fixation_time:pert_time + 9] = prob  # turn off after 9 best
-                input_2[self.fixation_time:pert_time + 9] = 1 - prob
-                input_5[pert_time + 4] = 0.2  # +4 best, 0.5 best
+                    if np.greater_equal(np.random.rand(),  prob):
+                        pert = 1 #0
+                    else:
+                        pert = -1 #-2
+                if np.greater_equal(np.random.rand(), no_prob_chance):
+                    # The visual delay MUST be built into these inputs, otherwise the network gets immediate visual cues
+                    input_1[target_time + visual_delay:pert_time + visual_delay] = prob  # turn off after 9 best
+                    input_2[target_time + visual_delay:pert_time + visual_delay] = 1 - prob
+                input_5[pert_time + proprioceptive_delay] = self.condition_independent_magnitude  # +4 best, 0.2 best
                 perturbation[pert_time:, 1] = pert
             else:
                 targets[i, :, :] = center
-                input_1[self.fixation_time:] = prob
-                input_2[self.fixation_time:] = 1 - prob
+                if np.greater_equal(np.random.rand(), no_prob_chance):
+                    input_1[target_time + visual_delay:] = prob
+                    input_2[target_time + visual_delay:] = 1 - prob
+
 
             inputs[i, :, 0] = input_1
             inputs[i, :, 1] = input_2
@@ -309,7 +354,7 @@ class TaskLoadProbability(Task):
 class TaskYangetal2011(Task):
     def __init__(self, controller, **kwargs):
         super().__init__(controller, **kwargs)
-
+        self.__name__ = 'TaskYangetal2011'
         self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.5}  # 2-10 best
 

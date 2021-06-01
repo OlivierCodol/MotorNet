@@ -36,12 +36,13 @@ class MotorNetModel(keras.Model):
         # Return a dict mapping metric names to current value
         return {m.name: m.result() for m in self.metrics}
 
-    def save_model(self, path):
+    def save_model(self, path, **kwargs):
         cfg = {'Task': self.task.get_save_config()}
         cfg.update({'Controller': self.task.controller.get_save_config()})
         cfg.update({'Plant': self.task.plant.get_save_config()})
-
-        file = open('/home/jonathan/Desktop/MotorNetModels/' + name + '.json', 'w+')
+        loss_history = kwargs.get('loss_history', None)
+        cfg.update({'Training Log': loss_history})
+        file = open(path + '.json', 'w+')
         json.dump(cfg, file)
 
     def get_config(self):
