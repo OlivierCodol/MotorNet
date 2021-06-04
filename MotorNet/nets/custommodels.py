@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow import keras
 import json
+import os
 
 
 class MotorNetModel(keras.Model):
@@ -42,8 +43,11 @@ class MotorNetModel(keras.Model):
         cfg.update({'Plant': self.task.plant.get_save_config()})
         loss_history = kwargs.get('loss_history', None)
         cfg.update({'Training Log': loss_history})
-        file = open(path + '.json', 'w+')
-        json.dump(cfg, file)
+        if os.path.isfile(path + '.json') and loss_history is None:
+            raise ValueError('Configuration file already exists')
+        else:
+            file = open(path + '.json', 'w+')
+            json.dump(cfg, file)
 
     def get_config(self):
         cfg = super().get_config()
