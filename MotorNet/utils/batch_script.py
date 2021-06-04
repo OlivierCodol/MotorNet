@@ -93,7 +93,7 @@ def f(run_iter):
                              iterations=cfg['Task']['training_iterations'])
 
     ## SPECIAL
-    # cell.layers[1].bias = tf.convert_to_tensor([-5.18, -6.47, -3.63, -6.42, -4.40, -6.48])
+    #cell.layers[1].bias = tf.convert_to_tensor([-5.18, -6.47, -3.63, -6.42, -4.40, -6.48])
 
     if run_mode == 'train':
         # train it up
@@ -104,7 +104,7 @@ def f(run_iter):
         # save weights of the model
         control_rnn.save_weights(file_name)
         # add any info generated during the training process
-        control_rnn.save_model(file_name)
+        control_rnn.save_model(file_name, loss_history=batchlog_callback.history)
     elif run_mode == 'test':
         # load trained weights
         control_rnn.load_weights(file_name).expect_partial()
@@ -124,7 +124,9 @@ def f(run_iter):
                           'neural': results['gru_hidden0'].numpy(),
                           'proprio': results['proprioceptive feedback'].numpy(),
                           'visual': results['visual feedback'].numpy(),
-                          'weights': control_rnn.get_weights()})
+                          'weights': control_rnn.get_weights(),
+                          'training': cfg['Training Log'],
+                          'task_config': cfg['Task']['task_kwargs']})
 
 
 if __name__ == '__main__':
