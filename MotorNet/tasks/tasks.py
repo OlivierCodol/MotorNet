@@ -214,6 +214,74 @@ class TaskDelayedMultiReach(Task):
         inputs = tf.stack(temp_inputs, axis=0)
         return [inputs, tf.convert_to_tensor(targets), init_states]
 
+class SequenceHorizon(Task):
+    def __init__(self, controller, initial_joint_state=None, **kwargs):
+        super().__init__(controller, initial_joint_state=initial_joint_state)
+        self.__name__ = 'TaskDelayedMultiReach'
+        self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
+        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
+
+        self.bump_length = int(kwargs.get('bump_length', 50) / 1000 / self.plant.dt)
+        self.bump_height = kwargs.get('bump_height', 3)
+        self.delay_range = np.array(kwargs.get('delay_range', [100, 900])) / 1000 / self.plant.dt
+        self.num_target = kwargs.get('num_target', 1)
+        self.num_horizon = kwargs.get('num_horizon', 0)
+        
+            
+    def generate(self, batch_size, n_timesteps, **kwargs):
+        init_states = self.get_initial_state(batch_size=batch_size)
+        center = self.plant.joint2cartesian(init_states[0][0, :])
+        
+        target_list = np.zeros((batch_size, n_timesteps, 4, self.num_target))
+
+        for tg in range(self.num_target):
+            goal_states = self.plant.draw_random_uniform_states(batch_size=batch_size)
+            target_list[:, :, :, tg] = self.plant.state2target(
+                state=self.plant.joint2cartesian(goal_states),
+                n_timesteps=n_timesteps).numpy()
+            
+        # Fill in itial part of trials
+        # Go to center
+        center_in = np.zeros((batch_size, n_timesteps, 2*(self.num_horizon+1)+1))
+        center_out = np.zeros((batch_size, n_timesteps, 4)) 
+        # Assign
+        center_in[:, : ,:2] = center[0, :2]
+        center_out[:,:, 0:] = center  
+        
+        # Show the first n_horizon target and stary in center
+        delay_time = generate_delay_time(self.delay_range[0], self.delay_range[1], 'random')
+            
+        center_before_go_in =  np.zeros((batch_size, delay_time, 2*(self.num_horizon+1)+1))
+        center_before_go_out = np.zeros((batch_size, delay_time, 4)) 
+        # Assign
+        center_before_go_in[:, : ,0:2*(self.num_horizon+1)] = target_list[:, 0:delay_time, 0:2, 0:self.num_horizon+1].reshape(batch_size, delay_time,-1)
+        center_before_go_out[:,:, 0:] = center
+        
+        # Get the go-cue bump
+        go_in =  np.zeros((batch_size, self.bump_length, 2*(self.num_horizon+1)+1))
+        go_out = np.zeros((batch_size, self.bump_length, 4))
+        
+        go_in[:, : ,0:2*(self.num_horizon+1)] = target_list[:, 0:self.bump_length, 0:2, 0:self.num_horizon+1].reshape(batch_size, self.bump_length,-1)
+        go_in[:, :, -1] = np.ones((self.bump_length, )) * self.bump_length
+        go_out[:, :, 0:] = center
+        
+                             
+        # Stack void targets for the end of sequence 
+        # What should I put at the end?
+        target_list = np.concatenate((target_list, np.zeros((batch_size, n_timesteps, 4, self.num_horizon))), axis=-1)
+
+        target_input = np.zeros((batch_size,self.num_target*n_timesteps ,2*(self.num_horizon+1)+1 ))
+        target_output = np.zeros((batch_size,self.num_target*n_timesteps ,4))
+        
+        for tg in range(self.num_target):
+            target_input[:, tg*n_timesteps:(tg+1)*n_timesteps, 0:2*(self.num_horizon+1)] = target_list[:, :, 0:2, tg:tg+(self.num_horizon+1)].reshape(batch_size, n_timesteps, -1)
+            target_output[:, tg*n_timesteps:(tg+1)*n_timesteps, :] = target_list[:, :, :, tg]
+        # COncatenate different part of the task
+        IN = np.concatenate((center_in, center_before_go_in, go_in, target_input), axis = 1)
+        OUT = np.concatenate((center_out, center_before_go_out, go_out, target_output), axis = 1)
+        
+        return [tf.convert_to_tensor(IN), tf.convert_to_tensor(OUT), init_states]
+
 
 class TaskLoadProbability(Task):
     def __init__(self, controller, **kwargs):
