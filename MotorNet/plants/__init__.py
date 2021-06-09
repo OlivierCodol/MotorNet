@@ -4,6 +4,7 @@ from MotorNet.plants.skeletons import TwoDofArm
 from MotorNet.plants.muscles import CompliantTendonHillMuscle
 
 
+# TODO merge Plant and PlantWrapper classes into a single Plant class
 class Plant:
 
     def __init__(self, skeleton, timestep=0.01, **kwargs):
@@ -41,6 +42,7 @@ class Plant:
             vel_upper_bound=self.vel_upper_bound,
             vel_lower_bound=self.vel_lower_bound)
 
+        self._get_initial_state_fn = None
         self.built = False
 
     def draw_random_uniform_states(self, batch_size=1):
@@ -235,19 +237,34 @@ class PlantWrapper(Plant):
         geometry_state = tf.transpose(tf.concat([musculotendon_len, musculotendon_vel, moments], axis=1), [2, 1, 0])
         return geometry_state
 
-    def get_initial_state(self, batch_size=1, joint_state=None):
+    def _get_initial_state(self, batch_size, joint_state):
         if joint_state is not None and tf.shape(joint_state)[0] > 1:
             batch_size = tf.shape(joint_state)[0]
+
         joint0 = self.parse_initial_joint_state(joint_state=joint_state, batch_size=batch_size)
         cartesian0 = self.Skeleton.joint2cartesian(joint_state=joint0)
         geometry0 = self.get_geometry(joint_state=joint0)
         muscle0 = self.Muscle.get_initial_muscle_state(batch_size=batch_size, geometry_state=geometry0)
         return [joint0, cartesian0, muscle0, geometry0]
 
-    def __call__(self, muscle_input, joint_state, muscle_state, geometry_state, **kwargs):
-        endpoint_load = kwargs.get('endpoint_load', np.zeros(1))
-        joint_load = kwargs.get('joint_load', tf.constant(0., shape=(1, self.Skeleton.dof), dtype=tf.float32))
+    def get_initial_state(self, batch_size=1, joint_state=None):
+        if self._get_initial_state_fn is None:
+            self._get_initial_state_fn = tf.keras.layers.Lambda(lambda x: self._get_initial_state(*x))
+        return self._get_initial_state(batch_size, joint_state)
 
+    def __call__(self, *args, **kwargs):
+        if self.built is False:
+            self._call_fn = tf.keras.layers.Lambda(lambda x: self.call(*x))
+            self.built = True
+
+        endpoint_load = kwargs.get('endpoint_load', tf.zeros((1, self.Skeleton.space_dim), dtype=tf.float32))
+        joint_load = kwargs.get('joint_load', tf.zeros((1, self.Skeleton.dof), dtype=tf.float32))
+        args = list(args)
+        args.append(endpoint_load)
+        args.append(joint_load)
+        return self._call_fn(args)
+
+    def call(self, muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load):
         muscle_input += tf.random.normal(tf.shape(muscle_input), stddev=self.excitation_noise_sd)
         forces, new_muscle_state = self.Muscle(excitation=muscle_input,
                                                muscle_state=muscle_state,

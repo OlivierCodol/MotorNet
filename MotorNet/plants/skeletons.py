@@ -80,8 +80,10 @@ class TwoDofArm(Skeleton):
         self.coriolis_2 = self.m2 * self.L1 * self.L2g
         self.c_viscosity = 0.0  # put at zero but available if implemented later on
 
-    def __call__(self, inputs, joint_state, endpoint_load=0.):
+    def __call__(self, inputs, joint_state, **kwargs):
         # joint_load is the set of torques applied at the endpoint of the two-link arm (i.e. applied at the 'hand')
+        endpoint_load = kwargs.get('endpoint_load', tf.zeros((1, self.space_dim), dtype=tf.float32))
+
         # first two elements of state are joint position, last two elements are joint angular velocities
         old_vel = tf.cast(joint_state[:, 2:], dtype=tf.float32)
         old_pos = tf.cast(joint_state[:, :2], dtype=tf.float32)
@@ -108,9 +110,9 @@ class TwoDofArm(Skeleton):
         jacobian_22 = s12 * self.L2
 
         # apply external loads
-        loads = tf.constant(endpoint_load, shape=(self.input_dim,), dtype=tf.float32)
-        r_col = (jacobian_11 * loads[0]) + (jacobian_21 * loads[1])  # these are torques
-        l_col = (jacobian_12 * loads[0]) + (jacobian_22 * loads[1])
+        # loads = tf.cast(endpoint_load, dtype=tf.float32)
+        r_col = (jacobian_11 * endpoint_load[:, 0]) + (jacobian_21 * endpoint_load[:, 1])  # these are torques
+        l_col = (jacobian_12 * endpoint_load[:, 0]) + (jacobian_22 * endpoint_load[:, 1])
         torques = inputs + tf.stack([r_col, l_col], axis=1)
 
         rhs = -coriolis[:, :, tf.newaxis] + torques[:, :, tf.newaxis]

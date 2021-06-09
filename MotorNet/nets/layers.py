@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.layers import Layer, GRUCell, Dense
+from tensorflow.keras.layers import Layer, GRUCell, Dense, Lambda
 
 
 class GRUController(Layer):
@@ -41,8 +41,20 @@ class GRUController(Layer):
         self.n_hidden_layers = n_hidden_layers
         self.activation = activation
         self.n_units = n_units
+
         self.layers = []
+        self.unpack_states = None
+        self.unpack_plant_states = None
+        self.unpack_feedback_states = None
+        self.get_feedback_backlog = None
+        self.get_feedback_current = None
+        self.lambda_cat = None
+        self.lambda_cat2 = None
+        self.add_noise = None
+        self.get_new_proprio_feedback = None
+        self.get_new_visual_feedback = None
         self.built = False
+
         super().__init__(**kwargs)
 
     def build(self, input_shapes):
@@ -60,16 +72,39 @@ class GRUController(Layer):
                              kernel_initializer=tf.initializers.random_normal(stddev=10 ** -3),
                              kernel_regularizer=self.kernel_regularizer)
         self.layers.append(output_layer)
+
+        def get_new_proprio_feedback(mstate):
+            # normalise by muscle characteristics
+            muscle_len = tf.slice(mstate, [0, 1, 0], [-1, 1, -1]) / self.plant.Muscle.l0_ce
+            muscle_vel = tf.slice(mstate, [0, 2, 0], [-1, 1, -1]) / self.plant.Muscle.vmax
+            # flatten muscle length and velocity
+            proprio_true = tf.reshape(tf.concat([muscle_len, muscle_vel], axis=1), shape=(-1, self.n_muscles * 2))
+            return proprio_true
+
+        def get_new_visual_feedback(cstate):
+            visual_true, _ = tf.split(cstate, 2, axis=-1)  # position only (discard velocity)
+            return visual_true
+
+        self.unpack_plant_states = Lambda(lambda x: x[:4])
+        self.unpack_feedback_states = Lambda(lambda x: x[4:6])
+        self.get_feedback_backlog = Lambda(lambda x: tf.slice(x, [0, 0, 1], [-1, -1, -1]))
+        self.get_feedback_current = Lambda(lambda x: tf.squeeze(tf.slice(x, [0, 0, 0], [-1, -1, 1]), axis=-1))
+        self.lambda_cat = Lambda(lambda x: tf.concat(x, axis=-1))
+        self.lambda_cat2 = Lambda(lambda x: tf.concat(x, axis=2))
+        self.add_noise = Lambda(lambda x: x[0] + tf.random.normal(tf.shape(x[0]), stddev=x[1]))
+        self.get_new_proprio_feedback = Lambda(lambda x: get_new_proprio_feedback(x))
+        self.get_new_visual_feedback = Lambda(lambda x: get_new_visual_feedback(x))
+
         self.built = True
 
     def get_save_config(self):
         cfg = {'proprioceptive_noise_sd': self.proprioceptive_noise_sd, 'visual_noise_sd': self.visual_noise_sd,
-                    'hidden_noise_sd': self.hidden_noise_sd, 'proprioceptive_delay': self.proprioceptive_delay,
-                    'visual_delay': self.visual_delay, 'n_muscle': self.n_muscles,
-                    'perturbation_dims_active': self.perturbation_dims_active, 'n_ministeps': self.n_ministeps,
-                    'kernel_regularizer_weight': self.kernel_regularizer_weight,
-                    'recurrent_regularizer_weight': self.recurrent_regularizer_weight, 'n_units': int(self.n_units[0]),
-                    'n_hidden_layers': self.n_hidden_layers, 'activation': self.activation}
+               'hidden_noise_sd': self.hidden_noise_sd, 'proprioceptive_delay': self.proprioceptive_delay,
+               'visual_delay': self.visual_delay, 'n_muscle': self.n_muscles,
+               'perturbation_dims_active': self.perturbation_dims_active, 'n_ministeps': self.n_ministeps,
+               'kernel_regularizer_weight': self.kernel_regularizer_weight,
+               'recurrent_regularizer_weight': self.recurrent_regularizer_weight, 'n_units': int(self.n_units[0]),
+               'n_hidden_layers': self.n_hidden_layers, 'activation': self.activation}
         return cfg
 
     @classmethod
@@ -78,60 +113,45 @@ class GRUController(Layer):
 
     def call(self, inputs, states=None, **kwargs):
         # unpack states
-        old_joint_pos = states[0]
-        old_muscle_state = states[2]
-        old_geometry_state = states[3]
-        old_proprio_feedback = states[4]
-        old_visual_feedback = states[5]
-        old_hidden_states = states[6:]
         new_hidden_states_dict = {}
         new_hidden_states = []
 
         # split perturbation signal out of the back of inputs
         # the perturbation signal must be the last 2 dimensions of inputs
         if self.perturbation_dims_active:
-            inputs, perturbation = tf.split(inputs, [inputs.shape[1]-2,
+            inputs, perturbation = tf.split(inputs, [inputs.shape[1] - 2,
                                                      2], axis=1)
 
-        # take out feedback backlog
-        proprio_backlog = tf.slice(old_proprio_feedback, [0, 0, 1], [-1, -1, -1])
-        visual_backlog = tf.slice(old_visual_feedback, [0, 0, 1], [-1, -1, -1])
-
-        # concatenate inputs for this timestep
-        proprio_fb = tf.squeeze(tf.slice(old_proprio_feedback, [0, 0, 0], [-1, -1, 1]), axis=-1)
-        visual_fb = tf.squeeze(tf.slice(old_visual_feedback, [0, 0, 0], [-1, -1, 1]), axis=-1)
-        x = tf.concat((proprio_fb, visual_fb, inputs), axis=-1)
+        # handle feedback
+        old_proprio_feedback, old_visual_feedback = self.unpack_feedback_states(states)
+        proprio_backlog = self.get_feedback_backlog(old_proprio_feedback)
+        visual_backlog = self.get_feedback_backlog(old_visual_feedback)
+        proprio_fb = self.get_feedback_current(old_proprio_feedback)
+        visual_fb = self.get_feedback_current(old_visual_feedback)
+        x = self.lambda_cat((proprio_fb, visual_fb, inputs))
 
         # net forward pass
         for k in range(self.n_hidden_layers):
-            x, new_hidden_state = self.layers[k](x, old_hidden_states[k])
-            new_hidden_state_noisy = new_hidden_state + tf.random.normal(tf.shape(new_hidden_state),
-                                                                         stddev=self.hidden_noise_sd)
+            x, new_hidden_state = self.layers[k](x, states[6+k])
+            new_hidden_state_noisy = self.add_noise((new_hidden_state, self.hidden_noise_sd))
             new_hidden_states_dict['gru_hidden' + str(k)] = new_hidden_state_noisy
             new_hidden_states.append(new_hidden_state_noisy)
         u = self.layers[-1](x)
 
         # plant forward pass
-        jstate = old_joint_pos
-        cstate = states[1]
-        mstate = old_muscle_state
-        gstate = old_geometry_state
+        jstate, cstate, mstate, gstate = self.unpack_plant_states(states)
         for _ in range(self.n_ministeps):
             if self.perturbation_dims_active:
                 jstate, cstate, mstate, gstate = self.plant(u, jstate, mstate, gstate, joint_load=perturbation)
             else:
                 jstate, cstate, mstate, gstate = self.plant(u, jstate, mstate, gstate)
 
-        # add feedback noise & update feedback backlog
-        muscle_len = tf.slice(mstate, [0, 1, 0], [-1, 1, -1]) / self.plant.Muscle.l0_ce
-        muscle_vel = tf.slice(mstate, [0, 2, 0], [-1, 1, -1]) / self.plant.Muscle.vmax
-        # flatten len / vel / n_muscles:
-        proprio_true = tf.reshape(tf.concat([muscle_len, muscle_vel], axis=1), shape=(-1, self.n_muscles * 2))
-        visual_true, _ = tf.split(cstate, 2, axis=-1)  # position only (discard velocity)
-        proprio_noisy = proprio_true + tf.random.normal(tf.shape(proprio_true), stddev=self.proprioceptive_noise_sd)
-        visual_noisy = visual_true + tf.random.normal(tf.shape(visual_true), stddev=self.visual_noise_sd)
-        new_proprio_feedback = tf.concat([proprio_backlog, proprio_noisy[:, :, tf.newaxis]], axis=2)
-        new_visual_feedback = tf.concat([visual_backlog, visual_noisy[:, :, tf.newaxis]], axis=2)
+        proprio_true = self.get_new_proprio_feedback(mstate)
+        visual_true = self.get_new_visual_feedback(cstate)
+        proprio_noisy = self.add_noise((proprio_true, self.proprioceptive_noise_sd))
+        visual_noisy = self.add_noise((visual_true, self.visual_noise_sd))
+        new_proprio_feedback = self.lambda_cat2((proprio_backlog, proprio_noisy[:, :, tf.newaxis]))
+        new_visual_feedback = self.lambda_cat2((visual_backlog, visual_noisy[:, :, tf.newaxis]))
 
         # pack new states
         new_states = [jstate, cstate, mstate, gstate, new_proprio_feedback, new_visual_feedback]
@@ -155,19 +175,12 @@ class GRUController(Layer):
             states = self.plant.get_initial_state(batch_size=batch_size)
         hidden_states = [tf.zeros((batch_size, n_units), dtype=dtype) for n_units in self.n_units]
 
-        muscle_len = tf.slice(states[2], [0, 1, 0], [-1, 1, -1]) / self.plant.Muscle.l0_ce
-        muscle_vel = tf.slice(states[2], [0, 2, 0], [-1, 1, -1]) / self.plant.Muscle.vmax
-        # flatten len / vel / n_muscles:
-        proprio_true = tf.reshape(tf.concat([muscle_len, muscle_vel], axis=1), shape=(-1, self.n_muscles * 2))
-        visual_true, _ = tf.split(states[1], 2, axis=-1)  # position only (discard velocity)
-        proprio_feedback = tf.tile(proprio_true[:, :, tf.newaxis], [1, 1, self.proprioceptive_delay])
-        visual_feedback = tf.tile(visual_true[:, :, tf.newaxis], [1, 1, self.visual_delay])
+        proprio_true = self.get_new_proprio_feedback(states[2])
+        visual_true = self.get_new_visual_feedback(states[1])
+        proprio_noisy = self.add_noise((proprio_true, self.proprioceptive_noise_sd))
+        visual_noisy = self.add_noise((visual_true, self.visual_noise_sd))
 
-        # add feedback noise
-        proprio_feedback += tf.random.normal(tf.shape(proprio_feedback), stddev=self.proprioceptive_noise_sd)
-        visual_feedback += tf.random.normal(tf.shape(visual_feedback), stddev=self.visual_noise_sd)
-
-        states.append(proprio_feedback)
-        states.append(visual_feedback)
+        states.append(proprio_noisy)
+        states.append(visual_noisy)
         states.extend(hidden_states)
         return states
