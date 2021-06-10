@@ -41,37 +41,7 @@ class GRUController(Layer):
         self.n_hidden_layers = n_hidden_layers
         self.activation = activation
         self.n_units = n_units
-
         self.layers = []
-        self.unpack_states = None
-        self.unpack_plant_states = None
-        self.unpack_feedback_states = None
-        self.get_feedback_backlog = None
-        self.get_feedback_current = None
-        self.lambda_cat = None
-        self.lambda_cat2 = None
-        self.add_noise = None
-        self.get_new_proprio_feedback = None
-        self.get_new_visual_feedback = None
-        self.built = False
-
-        super().__init__(**kwargs)
-
-    def build(self, input_shapes):
-        for k in range(self.n_hidden_layers):
-            layer = GRUCell(units=self.n_units[k],
-                            activation=self.activation,
-                            name='hidden_layer_' + str(k),
-                            kernel_regularizer=self.kernel_regularizer,
-                            recurrent_regularizer=self.recurrent_regularizer)
-            self.layers.append(layer)
-        output_layer = Dense(units=self.plant.input_dim,
-                             activation='sigmoid',
-                             name='output_layer',
-                             bias_initializer=tf.initializers.Constant(value=-5),
-                             kernel_initializer=tf.initializers.random_normal(stddev=10 ** -3),
-                             kernel_regularizer=self.kernel_regularizer)
-        self.layers.append(output_layer)
 
         def get_new_proprio_feedback(mstate):
             # normalise by muscle characteristics
@@ -94,7 +64,25 @@ class GRUController(Layer):
         self.add_noise = Lambda(lambda x: x[0] + tf.random.normal(tf.shape(x[0]), stddev=x[1]))
         self.get_new_proprio_feedback = Lambda(lambda x: get_new_proprio_feedback(x))
         self.get_new_visual_feedback = Lambda(lambda x: get_new_visual_feedback(x))
+        self.built = False
 
+        super().__init__(**kwargs)
+
+    def build(self, input_shapes):
+        for k in range(self.n_hidden_layers):
+            layer = GRUCell(units=self.n_units[k],
+                            activation=self.activation,
+                            name='hidden_layer_' + str(k),
+                            kernel_regularizer=self.kernel_regularizer,
+                            recurrent_regularizer=self.recurrent_regularizer)
+            self.layers.append(layer)
+        output_layer = Dense(units=self.plant.input_dim,
+                             activation='sigmoid',
+                             name='output_layer',
+                             bias_initializer=tf.initializers.Constant(value=-5),
+                             kernel_initializer=tf.initializers.random_normal(stddev=10 ** -3),
+                             kernel_regularizer=self.kernel_regularizer)
+        self.layers.append(output_layer)
         self.built = True
 
     def get_save_config(self):

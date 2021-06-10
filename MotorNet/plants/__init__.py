@@ -308,7 +308,6 @@ class RigidTendonArm(PlantWrapper):
             tendon_length=[0.039, 0.066, 0.172, 0.187, 0.204, 0.217],
             optimal_muscle_length=[0.134, 0.140, 0.092, 0.093, 0.137, 0.127],
             normalized_slack_muscle_length=self.tobuild__default['normalized_slack_muscle_length'])
-        self.built = True
 
         a0 = [0.151, 0.2322, 0.2859, 0.2355, 0.3329, 0.2989]
         a1 = [-.03, .03, 0, 0, -.03, .03, 0, 0, -.014, .025, -.016, .03]
