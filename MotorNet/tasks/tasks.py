@@ -287,10 +287,8 @@ class TaskLoadProbability(Task):
     def __init__(self, controller, **kwargs):
         super().__init__(controller, **kwargs)
         self.__name__ = 'TaskLoadProbability'
-
-        self.vel_weight = kwargs.get('vel_weight', 0.)
-        self.losses = {'cartesian position': position_loss(),
-                       'muscle state': activation_velocity_squared_loss(vel_weight=self.vel_weight)}
+        #self.controller.layers[1].bias = tf.convert_to_tensor([-5.18, -6.47, -3.63, -6.42, -4.40, -6.48])
+        self.losses = {'cartesian position': position_loss(), 'muscle state': activation_velocity_squared_loss()}
         self.cartesian_loss = kwargs.get('cartesian_loss', 1)
         self.muscle_loss = kwargs.get('muscle_loss', 0)
         self.loss_weights = {'cartesian position': self.cartesian_loss, 'muscle state': self.muscle_loss}  # 10-20 best
@@ -298,7 +296,6 @@ class TaskLoadProbability(Task):
         self.target_time_range = np.array(kwargs.get('target_time_range', [200, 400])) / 1000 / self.plant.dt
         self.delay_range = np.array(kwargs.get('delay_range', [200, 1000])) / 1000 / self.plant.dt
         self.condition_independent_magnitude = kwargs.get('condition_independent_magnitude', 0.2)
-        self.background_load = kwargs.get('background_load', 0.)
 
         self.run_mode = kwargs.get('run_mode', 'train')
 
@@ -306,9 +303,9 @@ class TaskLoadProbability(Task):
         self.controller.perturbation_dims_active = True
 
     def generate(self, batch_size, n_timesteps, **kwargs):
-        if self.run_mode == 'mesh_target' or self.run_mode == '2target':
+        if self.run_mode == 'mesh_target':
             batch_size = 1000
-            self.delay_range = np.array([1100, 1100]) / 1000 / self.plant.dt
+            self.delay_range = np.array([800, 800]) / 1000 / self.plant.dt
             self.target_time_range = np.array([300, 300]) / 1000 / self.plant.dt
         init_states = self.get_initial_state(batch_size=batch_size)
         center = self.plant.joint2cartesian(init_states[0][0, :]).numpy()
@@ -326,19 +323,18 @@ class TaskLoadProbability(Task):
         inputs = np.zeros(shape=(batch_size, n_timesteps, 7))
         for i in range(batch_size):
             prob = prob_array[np.random.randint(0, 5)]
-            if self.run_mode != 'train':
+            if self.run_mode == '2target':
+                if np.greater_equal(np.random.rand(), 0.5):
+                    targets[i, :, :] = np.tile(np.expand_dims(goal_state1, axis=1), [1, n_timesteps, 1])
+                else:
+                    targets[i, :, :] = np.tile(np.expand_dims(goal_state2, axis=1), [1, n_timesteps, 1])
+            elif self.run_mode == 'mesh_target':
                 prob = prob_array[prob_counter]
                 x = mesh[mesh_x_counter]
                 y = mesh[mesh_y_counter]
                 mesh_x_counter += 1
                 new_pos = center[0, 0:2] + np.expand_dims([x, y], axis=0)
-                if self.run_mode == 'mesh_target':
-                    targets[i, :, 0:2] = np.tile(np.expand_dims(new_pos, axis=1), [1, n_timesteps, 1])
-                elif self.run_mode == '2target':
-                    if np.greater_equal(np.random.rand(), 0.5):
-                        targets[i, :, :] = np.tile(np.expand_dims(goal_state1, axis=1), [1, n_timesteps, 1])
-                    else:
-                        targets[i, :, :] = np.tile(np.expand_dims(goal_state2, axis=1), [1, n_timesteps, 1])
+                targets[i, :, 0:2] = np.tile(np.expand_dims(new_pos, axis=1), [1, n_timesteps, 1])
                 if mesh_x_counter >= len(mesh):
                     mesh_y_counter += 1
                     mesh_x_counter = 0
@@ -349,7 +345,7 @@ class TaskLoadProbability(Task):
                 if prob_counter == 5:
                     prob_counter = 0
             elif self.run_mode == 'train':
-                r = 0.15 * np.sqrt(np.random.rand())
+                r = 0.1 * np.sqrt(np.random.rand())
                 theta = np.random.rand() * 2 * np.pi
                 new_pos = center[0, 0:2] + np.expand_dims([r * np.cos(theta), r * np.sin(theta)], axis=0)
                 targets[i, :, 0:2] = np.tile(np.expand_dims(new_pos, axis=1), [1, n_timesteps, 1])
@@ -357,33 +353,35 @@ class TaskLoadProbability(Task):
             input_5 = np.zeros(shape=n_timesteps)
             input_1 = np.zeros(shape=n_timesteps)
             input_2 = np.zeros(shape=n_timesteps)
-            perturbation = np.tile([0, self.background_load], (n_timesteps, 1))  # background load
+            perturbation = np.tile([0, -0], (n_timesteps, 1))  # background load -1
             target_time = generate_delay_time(self.target_time_range[0], self.target_time_range[1], 'random')
             delay_time = generate_delay_time(self.delay_range[0], self.delay_range[1], 'random')
-            pert_time = delay_time
+            pert_time = delay_time + target_time
+            #input_1[0:pert_time + visual_delay] = 0.5  # turn off after 9 best
+            #input_2[0:pert_time + visual_delay] = 0.5
             if self.run_mode != 'train':
                 catch_chance = 0
                 no_prob_chance = 0
             else:
-                catch_chance = 0.5  # 0.3 best
-                no_prob_chance = 0  # 0 best
-            if np.greater_equal(np.random.rand(), catch_chance):
+                catch_chance = 0.2
+                no_prob_chance = 0
+            if np.greater_equal(np.random.rand(), catch_chance):  # 0.1 best
                 targets[i, 0:pert_time, :] = center
-                if self.run_mode != 'train':
+                if self.run_mode == 'mesh_target':
                     if i < 500:
-                        pert = self.background_load - 1
+                        pert = 1
                     else:
-                        pert = self.background_load + 1
+                        pert = -1
                 else:
                     if np.greater_equal(np.random.rand(),  prob):
-                        pert = self.background_load + 1
+                        pert = 1 #0
                     else:
-                        pert = self.background_load - 1
+                        pert = -1 #-2
                 if np.greater_equal(np.random.rand(), no_prob_chance):
                     # The visual delay MUST be built into these inputs, otherwise the network gets immediate visual cues
-                    input_1[target_time + visual_delay:] = prob  # turn off after 9 best   (pert_time + visual_delay)
-                    input_2[target_time + visual_delay:] = 1 - prob
-                input_5[pert_time + proprioceptive_delay:] = self.condition_independent_magnitude  # +4 best, 0.2 best
+                    input_1[target_time + visual_delay:pert_time + visual_delay] = prob  # turn off after 9 best
+                    input_2[target_time + visual_delay:pert_time + visual_delay] = 1 - prob
+                input_5[pert_time + proprioceptive_delay] = self.condition_independent_magnitude  # +4 best, 0.2 best
                 perturbation[pert_time:, 1] = pert
             else:
                 targets[i, :, :] = center
@@ -394,9 +392,7 @@ class TaskLoadProbability(Task):
 
             inputs[i, :, 0] = input_1
             inputs[i, :, 1] = input_2
-            inputs[i, :, 4] = input_5
-
-            inputs[i, :, 4] = inputs[i, :, 4] + np.random.normal(loc=0.,
+            inputs[i, :, 4] = input_5 + np.random.normal(loc=0.,
                                                          scale=self.controller.proprioceptive_noise_sd,
                                                          size=n_timesteps)
             inputs[i, :, 0:4] = inputs[i, :, 0:4] + np.random.normal(loc=0.,

@@ -1,5 +1,9 @@
+import numpy as np
+import tensorflow as tf
 import os, sys, json
-from joblib import Parallel, delayed
+import scipy.io
+from tensorflow.keras.layers import Input
+from multiprocessing import Pool
 
 # input 1 - directory to use
 active_directory = sys.argv[1]
@@ -10,6 +14,21 @@ if run_mode != 'train' and run_mode != 'test':
 # input 3 - run mode to be passed to task object
 task_run_mode = str(sys.argv[3])
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+# find root directory and add to path
+root_index = os.getcwd().rfind('utils')
+root_directory = os.path.dirname(os.getcwd()[:root_index])
+root_directory = os.path.dirname(root_directory[:root_index])
+sys.path.append(root_directory)
+
+from MotorNet.plants import RigidTendonArm
+from MotorNet.nets.layers import GRUController
+from MotorNet.nets.callbacks import TensorflowFix, BatchLogger
+from MotorNet.nets.custommodels import MotorNetModel
+
+print('tensorflow version: ' + tf.__version__)
+
 run_list = []
 for file in os.listdir(active_directory):
     if file.endswith(".json"):
@@ -17,23 +36,8 @@ for file in os.listdir(active_directory):
 if not run_list:
     raise ValueError('No configuration files found')
 
+
 def f(run_iter):
-    # find root directory and add to path
-    root_index = os.getcwd().rfind('utils')
-    root_directory = os.path.dirname(os.getcwd()[:root_index])
-    root_directory = os.path.dirname(root_directory[:root_index])
-    sys.path.append(root_directory)
-
-    import tensorflow as tf
-    import scipy.io
-    from tensorflow.keras.layers import Input
-    from MotorNet.plants import RigidTendonArm
-    from MotorNet.nets.layers import GRUController
-    from MotorNet.nets.callbacks import TensorflowFix, BatchLogger
-    from MotorNet.nets.custommodels import MotorNetModel
-    print('tensorflow version: ' + tf.__version__)
-    os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-
     file_name = run_list[run_iter][0:-5]
     with open(run_list[run_iter], 'r') as config_file:
         cfg = json.load(config_file)
@@ -89,11 +93,14 @@ def f(run_iter):
                              iterations=cfg['Task']['training_iterations'])
 
     ## SPECIAL
-    cell.layers[1].bias = tf.convert_to_tensor([-5.18, -6.47, -3.63, -6.42, -4.40, -6.48])
+    #cell.layers[1].bias = tf.convert_to_tensor([-5.18, -6.47, -3.63, -6.42, -4.40, -6.48])
 
     if run_mode == 'train':
         # train it up
-        control_rnn.fit(task, verbose=1, callbacks=[tensorflowfix_callback, batchlog_callback], shuffle=False)
+        with tf.device('/cpu:0'):
+            control_rnn.fit(task, verbose=1,
+                            callbacks=[tensorflowfix_callback, batchlog_callback],
+                            shuffle=False)
         # save weights of the model
         control_rnn.save_weights(file_name)
         # add any info generated during the training process
@@ -123,12 +130,10 @@ def f(run_iter):
 
 
 if __name__ == '__main__':
-    iter_list = range(len(run_list))
-    these_iters = iter_list
-    #while len(iter_list) > 0:
-    #    these_iters = iter_list[0:6]
-    #    iter_list = iter_list[6:]
-    result = Parallel(n_jobs=-1)(delayed(f)(iteration) for iteration in these_iters)
+    # create a pool the size of total job
+    p = Pool(len(run_list))
+    # run all procedures simultaneously
+    p.map(f, range(len(run_list)))
 
 
 

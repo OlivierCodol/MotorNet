@@ -22,9 +22,9 @@ def activation_squared_loss():
     return loss
 
 
-def activation_velocity_squared_loss(vel_weight=0.):
+def activation_velocity_squared_loss():
     def loss(y_true, y_pred):
         activations = tf.slice(y_pred, [0, 0, 0, 0], [-1, -1, 1, -1])
         muscle_vel = tf.slice(y_pred, [0, 0, 2, 0], [-1, -1, 1, -1])
-        return tf.reduce_mean(activations ** 2) + vel_weight*tf.reduce_mean(tf.abs(muscle_vel))  # 0.05 for vel best
+        return tf.reduce_mean(activations ** 2) + 0.0*tf.reduce_mean(tf.abs(muscle_vel))  # 0.05 for vel best
     return loss
