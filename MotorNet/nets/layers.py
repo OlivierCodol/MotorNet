@@ -113,7 +113,6 @@ class GRUController(Layer):
 
         # handle feedback
         old_proprio_feedback, old_visual_feedback = self.unpack_feedback_states(states)
-        print(old_proprio_feedback)
         proprio_backlog = self.get_feedback_backlog(old_proprio_feedback)
         visual_backlog = self.get_feedback_backlog(old_visual_feedback)
         proprio_fb = self.get_feedback_current(old_proprio_feedback)

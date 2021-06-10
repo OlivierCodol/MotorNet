@@ -5,10 +5,10 @@ import os
 
 
 class MotorNetModel(keras.Model):
-    def __init__(self, inputs, outputs, name='controller', **kwargs):
+    def __init__(self, inputs, outputs, task, name='controller', **kwargs):
         self.inputs = inputs
         self.outputs = outputs
-        self.task = kwargs.get('task', None)
+        self.task = task
         super(MotorNetModel, self).__init__(inputs=inputs, outputs=outputs, name=name)
 
     def train_step(self, data):
