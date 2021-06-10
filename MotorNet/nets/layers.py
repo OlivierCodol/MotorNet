@@ -62,6 +62,7 @@ class GRUController(Layer):
         self.lambda_cat = Lambda(lambda x: tf.concat(x, axis=-1))
         self.lambda_cat2 = Lambda(lambda x: tf.concat(x, axis=2))
         self.add_noise = Lambda(lambda x: x[0] + tf.random.normal(tf.shape(x[0]), stddev=x[1]))
+        self.tile_feedback = Lambda(lambda x: tf.tile(x[0][:, :, tf.newaxis], [1, 1, x[1]]))
         self.get_new_proprio_feedback = Lambda(lambda x: get_new_proprio_feedback(x))
         self.get_new_visual_feedback = Lambda(lambda x: get_new_visual_feedback(x))
         self.built = False
@@ -112,6 +113,7 @@ class GRUController(Layer):
 
         # handle feedback
         old_proprio_feedback, old_visual_feedback = self.unpack_feedback_states(states)
+        print(old_proprio_feedback)
         proprio_backlog = self.get_feedback_backlog(old_proprio_feedback)
         visual_backlog = self.get_feedback_backlog(old_visual_feedback)
         proprio_fb = self.get_feedback_current(old_proprio_feedback)
@@ -165,8 +167,10 @@ class GRUController(Layer):
 
         proprio_true = self.get_new_proprio_feedback(states[2])
         visual_true = self.get_new_visual_feedback(states[1])
-        proprio_noisy = self.add_noise((proprio_true, self.proprioceptive_noise_sd))
-        visual_noisy = self.add_noise((visual_true, self.visual_noise_sd))
+        proprio_tiled = self.tile_feedback((proprio_true, self.proprioceptive_delay))
+        visual_tiled = self.tile_feedback((visual_true, self.visual_delay))
+        proprio_noisy = self.add_noise((proprio_tiled, self.proprioceptive_noise_sd))
+        visual_noisy = self.add_noise((visual_tiled, self.visual_noise_sd))
 
         states.append(proprio_noisy)
         states.append(visual_noisy)
