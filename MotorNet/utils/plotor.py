@@ -96,7 +96,7 @@ def plot_opensim(results, save_path):
             print(f"Stuff: {variable}", file=text_file)
             
             
-def animate_arm_trajectory(joint_position, plant,  path_name = './Arm_animation.gif'):
+def animate_arm_trajectory(joint_position, plant,  path_name = './Arm_animation.mp4'):
     
     assert joint_position.shape[0] == 1
     joint_position = tf.reshape(joint_position, (-1, plant.state_dim))
@@ -113,6 +113,7 @@ def animate_arm_trajectory(joint_position, plant,  path_name = './Arm_animation.
     #plt.title('Desired Title') 
     # Axis control 
     plt.axis('off') 
+    plt.gca().set_aspect('equal', adjustable='box') # Make axis equal
     plt.style.use('dark_background')
 
     
@@ -179,6 +180,6 @@ def animate_arm_trajectory(joint_position, plant,  path_name = './Arm_animation.
                                 frames=joint_position.shape[0], interval=plant.dt, blit=True) 
 
     # save the animated file, (Used pillow, since it is usually installed by default)
-    Writer = animation.writers['pillow']
+    Writer = animation.writers['ffmpeg']
     writer = Writer(fps=1./plant.dt)
-    anim.save(path_name, writer=writer)
+    anim.save(path_name, writer=writer, dpi=100)
