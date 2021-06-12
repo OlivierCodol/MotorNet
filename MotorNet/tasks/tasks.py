@@ -74,7 +74,8 @@ class TaskStaticTarget(Task):
     def __init__(self, controller, **kwargs):
         super().__init__(controller, **kwargs)
         self.__name__ = 'TaskStaticTarget'
-        self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
+        self.losses = {'cartesian position': position_loss(),
+                       'muscle state':activation_squared_loss(self.plant.Muscle.max_iso_force)}
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}  # 0.2
 
     def generate(self, batch_size, n_timesteps, **kwargs):
@@ -88,7 +89,8 @@ class TaskStaticTargetWithPerturbations(Task):
     def __init__(self, controller, **kwargs):
         super().__init__(controller, **kwargs)
         self.__name__ = 'TaskStaticTargetWithPerturbations'
-        self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
+        self.losses = {'cartesian position': position_loss(),
+                       'muscle state': activation_squared_loss(self.plant.Muscle.max_iso_force)}
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
 
     def generate(self, batch_size, n_timesteps, **kwargs):
@@ -105,14 +107,13 @@ class TaskDelayedReach(Task):
     def __init__(self, controller, **kwargs):
         super().__init__(controller, **kwargs)
         self.__name__ = 'TaskDelayedReach'
-        self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
+        self.losses = {'cartesian position': position_loss(),
+                       'muscle state': activation_squared_loss(self.plant.Muscle.max_iso_force)}
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
 
         self.bump_length = int(kwargs.get('bump_length', 50) / 1000 / self.plant.dt)
         self.bump_height = kwargs.get('bump_height', 1)
         self.delay_range = np.array(kwargs.get('delay_range', [100, 900])) / 1000 / self.plant.dt
-
-        self.do_recompute_targets = True
 
     def generate(self, batch_size, n_timesteps, **kwargs):
         init_states = self.get_initial_state(batch_size=batch_size)
@@ -132,26 +133,13 @@ class TaskDelayedReach(Task):
         inputs = tf.stack(temp_inputs, axis=0)
         return [inputs, tf.convert_to_tensor(targets), init_states]
 
-    # this is not a static method because in theory you could use the generate method to save information
-    # that you use here to decide how to modify the targets
-    def recompute_targets(self, inputs, targets, outputs):
-        # grab endpoint position and velocity
-        cartesian_pos = outputs['cartesian position']
-        # calculate the distance to the targets as run by the forward pass
-        dist = tf.tile(tf.expand_dims(tf.sqrt(tf.reduce_sum((cartesian_pos[:, :, 0:2] - targets[:, :, 0:2])**2,
-                                                            axis=2)), axis=2), tf.constant([1, 1, 2], tf.int32))
-        cartesian_pos_no_vel = tf.concat([cartesian_pos[:, :, 0:2], tf.zeros_like(dist)], axis=2)
-        dist = tf.concat([dist, tf.zeros_like(dist)], axis=2)
-        # if the distance is less than a certain amount, replace the target with the result of the forward pass
-        targets = tf.where(tf.less_equal(dist, 0.1), cartesian_pos_no_vel, targets)
-        return targets
-
 
 class TaskDelayedMultiReach(Task):
     def __init__(self, controller, initial_joint_state=None, **kwargs):
         super().__init__(controller, initial_joint_state=initial_joint_state)
         self.__name__ = 'TaskDelayedMultiReach'
-        self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
+        self.losses = {'cartesian position': position_loss(),
+                       'muscle state': activation_squared_loss(self.plant.Muscle.max_iso_force)}
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
 
         self.bump_length = int(kwargs.get('bump_length', 50) / 1000 / self.plant.dt)
@@ -218,7 +206,8 @@ class SequenceHorizon(Task):
     def __init__(self, controller, initial_joint_state=None, **kwargs):
         super().__init__(controller, initial_joint_state=initial_joint_state)
         self.__name__ = 'TaskDelayedMultiReach'
-        self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
+        self.losses = {'cartesian position': position_loss(),
+                       'muscle state': activation_squared_loss(self.plant.Muscle.max_iso_force)}
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
 
         self.bump_length = int(kwargs.get('bump_length', 50) / 1000 / self.plant.dt)
@@ -290,7 +279,8 @@ class TaskLoadProbability(Task):
 
         self.vel_weight = kwargs.get('vel_weight', 0.)
         self.losses = {'cartesian position': position_loss(),
-                       'muscle state': activation_velocity_squared_loss(vel_weight=self.vel_weight)}
+                       'muscle state': activation_velocity_squared_loss(self.plant.Muscle.max_iso_force,
+                                                                        vel_weight=self.vel_weight)}
         self.cartesian_loss = kwargs.get('cartesian_loss', 1)
         self.muscle_loss = kwargs.get('muscle_loss', 0)
         self.loss_weights = {'cartesian position': self.cartesian_loss, 'muscle state': self.muscle_loss}  # 10-20 best
@@ -308,8 +298,9 @@ class TaskLoadProbability(Task):
     def generate(self, batch_size, n_timesteps, **kwargs):
         if self.run_mode == 'mesh_target' or self.run_mode == '2target':
             batch_size = 1000
-            self.delay_range = np.array([1100, 1100]) / 1000 / self.plant.dt
-            self.target_time_range = np.array([300, 300]) / 1000 / self.plant.dt
+            n_timesteps = 130
+            self.delay_range = np.array([500, 500]) / 1000 / self.plant.dt
+            self.target_time_range = np.array([200, 200]) / 1000 / self.plant.dt
         init_states = self.get_initial_state(batch_size=batch_size)
         center = self.plant.joint2cartesian(init_states[0][0, :]).numpy()
         goal_state1 = center + np.array([-0.028279, -0.042601, 0, 0])
@@ -321,6 +312,7 @@ class TaskLoadProbability(Task):
         mesh_x_counter = 0
         mesh_y_counter = 0
         prob_counter = 0
+        target_counter = 0
         visual_delay = self.controller.visual_delay
         proprioceptive_delay = self.controller.proprioceptive_delay
         inputs = np.zeros(shape=(batch_size, n_timesteps, 7))
@@ -335,7 +327,7 @@ class TaskLoadProbability(Task):
                 if self.run_mode == 'mesh_target':
                     targets[i, :, 0:2] = np.tile(np.expand_dims(new_pos, axis=1), [1, n_timesteps, 1])
                 elif self.run_mode == '2target':
-                    if np.greater_equal(np.random.rand(), 0.5):
+                    if target_counter < 50:
                         targets[i, :, :] = np.tile(np.expand_dims(goal_state1, axis=1), [1, n_timesteps, 1])
                     else:
                         targets[i, :, :] = np.tile(np.expand_dims(goal_state2, axis=1), [1, n_timesteps, 1])
@@ -348,6 +340,9 @@ class TaskLoadProbability(Task):
                     prob_counter += 1
                 if prob_counter == 5:
                     prob_counter = 0
+                target_counter += 1
+                if target_counter >= 100:
+                    target_counter = 0
             elif self.run_mode == 'train':
                 r = 0.15 * np.sqrt(np.random.rand())
                 theta = np.random.rand() * 2 * np.pi
@@ -365,7 +360,7 @@ class TaskLoadProbability(Task):
                 catch_chance = 0
                 no_prob_chance = 0
             else:
-                catch_chance = 0.5  # 0.3 best
+                catch_chance = 0.1  # 0.3 best
                 no_prob_chance = 0  # 0 best
             if np.greater_equal(np.random.rand(), catch_chance):
                 targets[i, 0:pert_time, :] = center
@@ -407,8 +402,6 @@ class TaskLoadProbability(Task):
         return [tf.convert_to_tensor(inputs, dtype=tf.float32), tf.convert_to_tensor(targets, dtype=tf.float32),
                 init_states]
 
-    # this is not a static method because in theory you could use the generate method to save information
-    # that you use here to decide how to modify the targets
     def recompute_targets(self, inputs, targets, outputs):
         # grab endpoint position and velocity
         cartesian_pos = outputs['cartesian position']
@@ -427,7 +420,8 @@ class TaskYangetal2011(Task):
     def __init__(self, controller, **kwargs):
         super().__init__(controller, **kwargs)
         self.__name__ = 'TaskYangetal2011'
-        self.losses = {'cartesian position': position_loss(), 'muscle state': activation_squared_loss()}
+        self.losses = {'cartesian position': position_loss(),
+                       'muscle state': activation_squared_loss(self.plant.Muscle.max_iso_force)}
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.5}  # 2-10 best
 
         self.do_recompute_targets = True
@@ -469,8 +463,6 @@ class TaskYangetal2011(Task):
         return [tf.convert_to_tensor(inputs, dtype=tf.float32), tf.convert_to_tensor(targets, dtype=tf.float32),
                 init_states]
 
-    # this is not a static method because in theory you could use the generate method to save information
-    # that you use here to decide how to modify the targets
     def recompute_targets(self, inputs, targets, outputs):
         # grab endpoint position and velocity
         cartesian_pos = outputs['cartesian position']

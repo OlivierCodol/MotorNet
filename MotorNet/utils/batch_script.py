@@ -89,7 +89,7 @@ def f(run_iter):
                              iterations=cfg['Task']['training_iterations'])
 
     ## SPECIAL
-    cell.layers[1].bias = tf.convert_to_tensor([-5.18, -6.47, -3.63, -6.42, -4.40, -6.48])
+    #cell.layers[1].bias = tf.convert_to_tensor([-5.18, -6.47, -3.63, -6.42, -4.40, -6.48])
 
     if run_mode == 'train':
         # train it up
@@ -125,6 +125,6 @@ def f(run_iter):
 if __name__ == '__main__':
     iter_list = range(len(run_list))
     while len(iter_list) > 0:
-        these_iters = iter_list[0:8]
-        iter_list = iter_list[8:]
+        these_iters = iter_list[0:6]
+        iter_list = iter_list[6:]
         result = Parallel(n_jobs=-1)(delayed(f)(iteration) for iteration in these_iters)

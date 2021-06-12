@@ -15,16 +15,26 @@ def position_loss():
     return loss
 
 
-def activation_squared_loss():
+def activation_squared_loss(max_iso_force):
     def loss(y_true, y_pred):
         activations = tf.slice(y_pred, [0, 0, 0, 0], [-1, -1, 1, -1])
-        return tf.reduce_mean(activations ** 2)
+        # normalize max muscle force
+        max_iso_force_norm = max_iso_force / tf.reduce_mean(max_iso_force)
+        # scale activation penalty by maximum muscle force of each muscle
+        activations_scaled = activations * tf.tile(tf.expand_dims(max_iso_force_norm, axis=2),
+                                                   (tf.shape(activations)[0], tf.shape(activations)[1], 1, 1))
+        return tf.reduce_mean(activations_scaled ** 2)
     return loss
 
 
-def activation_velocity_squared_loss(vel_weight=0.):
+def activation_velocity_squared_loss(max_iso_force, vel_weight=0.):
     def loss(y_true, y_pred):
         activations = tf.slice(y_pred, [0, 0, 0, 0], [-1, -1, 1, -1])
         muscle_vel = tf.slice(y_pred, [0, 0, 2, 0], [-1, -1, 1, -1])
-        return tf.reduce_mean(activations ** 2) + vel_weight*tf.reduce_mean(tf.abs(muscle_vel))  # 0.05 for vel best
+        # normalize max muscle force
+        max_iso_force_norm = max_iso_force / tf.reduce_mean(max_iso_force)
+        # scale activation penalty by maximum muscle force of each muscle
+        activations_scaled = activations * tf.tile(tf.expand_dims(max_iso_force_norm, axis=2),
+                                                   (tf.shape(activations)[0], tf.shape(activations)[1], 1, 1))
+        return tf.reduce_mean(activations_scaled ** 2) + vel_weight*tf.reduce_mean(tf.abs(muscle_vel))
     return loss
