@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras.layers import Lambda
 from MotorNet.plants.skeletons import TwoDofArm
 from MotorNet.plants.muscles import CompliantTendonHillMuscle
 
@@ -42,10 +43,23 @@ class Plant:
             vel_upper_bound=self.vel_upper_bound,
             vel_lower_bound=self.vel_lower_bound)
 
-        self._get_initial_state_fn = None
+        self._draw_random_uniform_states_fn = Lambda(lambda x: self._draw_random_uniform_states(x))
+        self._parse_initial_joint_state_fn = Lambda(lambda x: self._parse_initial_joint_state(*x))
+        self._draw_fixed_states_fn = Lambda(lambda x: self._draw_fixed_states(*x))
+        self._state2target_fn = Lambda(lambda x:
+                                       tf.transpose(tf.repeat(x[0][:, :, tf.newaxis], x[1], axis=-1), [0, 2, 1]))
         self.built = False
 
     def draw_random_uniform_states(self, batch_size=1):
+        return self._draw_random_uniform_states_fn(batch_size)
+
+    def parse_initial_joint_state(self, joint_state, batch_size=1):
+        return self._parse_initial_joint_state_fn((joint_state, batch_size))
+
+    def draw_fixed_states(self, position, velocity=None, batch_size=1):
+        return self._draw_fixed_states_fn((position, velocity, batch_size))
+
+    def _draw_random_uniform_states(self, batch_size):
         # create a batch of new targets in the correct format for the tensorflow compiler
         sz = (batch_size, self.dof)
         lo = self.pos_lower_bound
@@ -54,7 +68,7 @@ class Plant:
         vel = tf.zeros(sz)
         return tf.concat([pos, vel], axis=1)
 
-    def parse_initial_joint_state(self, joint_state, batch_size=1):
+    def _parse_initial_joint_state(self, joint_state, batch_size):
         if joint_state is None:
             joint0 = self.draw_random_uniform_states(batch_size=batch_size)
         else:
@@ -71,7 +85,7 @@ class Plant:
 
         return joint0
 
-    def draw_fixed_states(self, position, velocity=None, batch_size=1):
+    def _draw_fixed_states(self, position, velocity, batch_size):
         if velocity is None:
             velocity = np.zeros_like(position)
         # in case input is a list, a numpy array or a tensorflow array
@@ -105,15 +119,11 @@ class Plant:
     def setattr(self, name: str, value):
         self.__setattr__(name, value)
 
-    @staticmethod
-    def state2target(state, n_timesteps=1):
-        # convert a state array to a target array
-        targ = state[:, :, tf.newaxis]
-        targ = tf.repeat(targ, n_timesteps, axis=-1)
-        targ = tf.transpose(targ, [0, 2, 1])
-        return targ
+    def state2target(self, state, n_timesteps=1):
+        return self._state2target_fn((state, n_timesteps))
 
     def get_save_config(self):
+        # TODO: this will only work for a 2DOF skeleton, not any other skeleton (eg point-mass)
         cfg = {'Muscle': str(self.Muscle.__name__),
                'Skeleton': {'I1': self.Skeleton.I1, 'I2': self.Skeleton.I2, 'L1': self.Skeleton.L1,
                             'L2': self.Skeleton.L2, 'L1g': self.Skeleton.L1g, 'L2g': self.Skeleton.L2g,
@@ -124,7 +134,7 @@ class Plant:
                'proprioceptive_delay': self.proprioceptive_delay, 'visual_delay': self.visual_delay}
         return cfg
 
-    def get_geometry(self, joint_state):
+    def _get_geometry(self, joint_state):
         pass
 
     def joint2cartesian(self, joint_state):
@@ -152,6 +162,10 @@ class PlantWrapper(Plant):
         self.tobuild__default = self.Muscle.to_build_dict_default
         self.muscle_transitions = None
         self.row_splits = None
+        self._get_initial_state_fn = Lambda(lambda x: self._get_initial_state(*x))
+        self._get_geometry_fn = Lambda(lambda x: self._get_geometry(x))
+        self.default_endpoint_load = tf.zeros((1, self.Skeleton.space_dim), dtype=tf.float32)
+        self.default_joint_load = tf.zeros((1, self.Skeleton.dof), dtype=tf.float32)
         self.built = False
 
     def add_muscle(self, path_fixation_body: list, path_coordinates: list, name='', **kwargs):
@@ -194,6 +208,9 @@ class PlantWrapper(Plant):
         self.muscle_name.append(name)
 
     def get_geometry(self, joint_state):
+        return self._get_geometry_fn(joint_state)
+
+    def _get_geometry(self, joint_state):
         xy, dxy_dt, dxy_ddof = self.Skeleton.path2cartesian(self.path_coordinates, self.path_fixation_body, joint_state)
         diff_pos = xy[:, :, 1:] - xy[:, :, :-1]
         diff_vel = dxy_dt[:, :, 1:] - dxy_dt[:, :, :-1]
@@ -243,22 +260,22 @@ class PlantWrapper(Plant):
 
         joint0 = self.parse_initial_joint_state(joint_state=joint_state, batch_size=batch_size)
         cartesian0 = self.Skeleton.joint2cartesian(joint_state=joint0)
-        geometry0 = self.get_geometry(joint_state=joint0)
+        geometry0 = self.get_geometry(joint0)
         muscle0 = self.Muscle.get_initial_muscle_state(batch_size=batch_size, geometry_state=geometry0)
         return [joint0, cartesian0, muscle0, geometry0]
 
     def get_initial_state(self, batch_size=1, joint_state=None):
-        if self._get_initial_state_fn is None:
-            self._get_initial_state_fn = tf.keras.layers.Lambda(lambda x: self._get_initial_state(*x))
         return self._get_initial_state(batch_size, joint_state)
 
     def __call__(self, *args, **kwargs):
+        """This is a wrapper method to prevent memory leaks"""
         if self.built is False:
-            self._call_fn = tf.keras.layers.Lambda(lambda x: self.call(*x))
+            # build the Lambda wrap
+            self._call_fn = Lambda(lambda x: self.call(*x))
             self.built = True
 
-        endpoint_load = kwargs.get('endpoint_load', tf.zeros((1, self.Skeleton.space_dim), dtype=tf.float32))
-        joint_load = kwargs.get('joint_load', tf.zeros((1, self.Skeleton.dof), dtype=tf.float32))
+        endpoint_load = kwargs.get('endpoint_load', self.default_endpoint_load)
+        joint_load = kwargs.get('joint_load', self.default_joint_load)
         args = list(args)
         args.append(endpoint_load)
         args.append(joint_load)
@@ -274,7 +291,7 @@ class PlantWrapper(Plant):
 
         new_joint_state = self.Skeleton(generalized_forces, joint_state, endpoint_load=endpoint_load)
         new_cartesian_state = self.Skeleton.joint2cartesian(joint_state=new_joint_state)
-        new_geometry_state = self.get_geometry(joint_state=new_joint_state)
+        new_geometry_state = self.get_geometry(new_joint_state)
         return new_joint_state, new_cartesian_state, new_muscle_state, new_geometry_state
 
 
@@ -316,7 +333,7 @@ class RigidTendonArm(PlantWrapper):
         self.a1 = tf.constant(a1, shape=(1, 2, 6), dtype=tf.float32)
         self.a2 = tf.constant(a2, shape=(1, 2, 6), dtype=tf.float32)
 
-    def get_geometry(self, joint_state):
+    def _get_geometry(self, joint_state):
         old_pos, old_vel = tf.split(joint_state[:, :, tf.newaxis], 2, axis=1)
         old_pos = old_pos - np.array([np.pi / 2, 0.]).reshape((1, 2, 1))
         old_pos2 = tf.pow(old_pos, 2)

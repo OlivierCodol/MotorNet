@@ -30,6 +30,7 @@ class GRUController(Layer):
         for n in n_units:
             self.state_size.append(tf.TensorShape([n]))
 
+        # create attributes
         self.perturbation_dims_active = False
         self.n_ministeps = int(np.maximum(n_ministeps, 1))
         self.output_size = self.state_size
@@ -43,6 +44,7 @@ class GRUController(Layer):
         self.n_units = n_units
         self.layers = []
 
+        # create Lambda-wrapped functions (to prevent memory leaks)
         def get_new_proprio_feedback(mstate):
             # normalise by muscle characteristics
             muscle_len = tf.slice(mstate, [0, 1, 0], [-1, 1, -1]) / self.plant.Muscle.l0_ce
@@ -65,6 +67,7 @@ class GRUController(Layer):
         self.tile_feedback = Lambda(lambda x: tf.tile(x[0][:, :, tf.newaxis], [1, 1, x[1]]))
         self.get_new_proprio_feedback = Lambda(lambda x: get_new_proprio_feedback(x))
         self.get_new_visual_feedback = Lambda(lambda x: get_new_visual_feedback(x))
+        self.get_new_hidden_state = Lambda(lambda x: [tf.zeros((x[0], n_u), dtype=x[1]) for n_u in self.n_units])
         self.built = False
 
         super().__init__(**kwargs)
@@ -107,9 +110,9 @@ class GRUController(Layer):
 
         # split perturbation signal out of the back of inputs
         # the perturbation signal must be the last 2 dimensions of inputs
+        # TODO: Oli: this may feed the memory leak so it should be Lambda-wrapped at some point
         if self.perturbation_dims_active:
-            inputs, perturbation = tf.split(inputs, [inputs.shape[1] - 2,
-                                                     2], axis=1)
+            inputs, perturbation = tf.split(inputs, [inputs.shape[1] - 2, 2], axis=1)
 
         # handle feedback
         old_proprio_feedback, old_visual_feedback = self.unpack_feedback_states(states)
@@ -162,7 +165,7 @@ class GRUController(Layer):
             states = self.plant.get_initial_state(joint_state=inputs, batch_size=batch_size)
         else:
             states = self.plant.get_initial_state(batch_size=batch_size)
-        hidden_states = [tf.zeros((batch_size, n_units), dtype=dtype) for n_units in self.n_units]
+        hidden_states = self.get_new_hidden_state((batch_size, dtype))
 
         proprio_true = self.get_new_proprio_feedback(states[2])
         visual_true = self.get_new_visual_feedback(states[1])
