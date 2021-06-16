@@ -1,5 +1,7 @@
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras.layers import Lambda
+from abc import abstractmethod
 
 
 class Skeleton:
@@ -12,6 +14,7 @@ class Skeleton:
         self.state_dim = kwargs.get('state_dim', self.dof * 2)  # usually position and velocity so twice the dof
         self.output_dim = kwargs.get('output_dim', self.state_dim)  # usually the new state so same as state_dim
         self.geometry_state_dim = 2 + self.dof  # two geometry variable per muscle: path_length, path_velocity
+        self.default_endpoint_load = tf.zeros((1, self.space_dim), dtype=tf.float32)
         self.dt = None
 
         self.pos_lower_bound = kwargs.get('pos_lower_bound', -1.)
@@ -19,11 +22,12 @@ class Skeleton:
         self.vel_lower_bound = kwargs.get('vel_lower_bound', -np.inf)
         self.vel_upper_bound = kwargs.get('vel_upper_bound', +np.inf)
 
+        self._call_fn = Lambda(lambda x: self.call(*x))
+        self._path2cartesian_fn = Lambda(lambda x: self._path2cartesian(*x))
+        self._joint2cartesian_fn = Lambda(lambda x: self._joint2cartesian(*x))
+        self._clip_velocity_fn = Lambda(lambda x: self._clip_velocity(*x))
         self.init = False
         self.built = False
-
-    def setattr(self, name: str, value):
-        self.__setattr__(name, value)
 
     def build(self, timestep, pos_upper_bound, pos_lower_bound, vel_upper_bound, vel_lower_bound):
         self.pos_upper_bound = pos_upper_bound
@@ -33,15 +37,40 @@ class Skeleton:
         self.dt = timestep
         self.built = True
 
-    @staticmethod
-    def path2cartesian(path_coordinates, path_fixation_body, joint_state):
-        return None, None, None
+    def __call__(self, inputs, joint_state, **kwargs):
+        """This is a wrapper method to prevent memory leaks"""
+        endpoint_load = kwargs.get('endpoint_load', self.default_endpoint_load)
+        self._call_fn((inputs, joint_state, endpoint_load))
+
+    def setattr(self, name: str, value):
+        self.__setattr__(name, value)
+
+    @abstractmethod
+    def call(self, *args, **kwargs):
+        return
+
+    def joint2cartesian(self, joint_state):
+        return self._joint2cartesian_fn(joint_state)
+
+    def path2cartesian(self, path_coordinates, path_fixation_body, joint_state):
+        return self._path2cartesian_fn((path_coordinates, path_fixation_body, joint_state))
 
     def clip_velocity(self, pos, vel):
+        return self._clip_velocity_fn((pos, vel))
+
+    @abstractmethod
+    def _path2cartesian(self, *args, **kwargs):
+        return
+
+    def _clip_velocity(self, pos, vel):
         vel = tf.clip_by_value(vel, self.vel_lower_bound, self.vel_upper_bound)
         vel = tf.where(condition=tf.logical_and(vel < 0, pos <= self.pos_lower_bound), x=tf.zeros_like(vel), y=vel)
         vel = tf.where(condition=tf.logical_and(vel > 0, pos >= self.pos_upper_bound), x=tf.zeros_like(vel), y=vel)
         return vel
+
+    @abstractmethod
+    def _joint2cartesian(self, *args, **kwargs):
+        return
 
 
 class TwoDofArm(Skeleton):
@@ -80,10 +109,7 @@ class TwoDofArm(Skeleton):
         self.coriolis_2 = self.m2 * self.L1 * self.L2g
         self.c_viscosity = 0.0  # put at zero but available if implemented later on
 
-    def __call__(self, inputs, joint_state, **kwargs):
-        # joint_load is the set of torques applied at the endpoint of the two-link arm (i.e. applied at the 'hand')
-        endpoint_load = kwargs.get('endpoint_load', tf.zeros((1, self.space_dim), dtype=tf.float32))
-
+    def call(self, inputs, joint_state, endpoint_load):
         # first two elements of state are joint position, last two elements are joint angular velocities
         old_vel = tf.cast(joint_state[:, 2:], dtype=tf.float32)
         old_pos = tf.cast(joint_state[:, :2], dtype=tf.float32)
@@ -133,7 +159,7 @@ class TwoDofArm(Skeleton):
         new_state = tf.concat([new_pos, new_vel], axis=1)
         return new_state
 
-    def joint2cartesian(self, joint_state):
+    def _joint2cartesian(self, joint_state):
         # compute cartesian state from joint state
         # reshape to have all time steps lined up in 1st dimension
         joint_state = tf.reshape(joint_state, (-1, self.state_dim))
@@ -152,7 +178,7 @@ class TwoDofArm(Skeleton):
         end_pos = tf.stack([end_pos_x, end_pos_y, end_vel_x, end_vel_y], axis=1)
         return end_pos
 
-    def path2cartesian(self, path_coordinates, path_fixation_body, joint_state):
+    def _path2cartesian(self, path_coordinates, path_fixation_body, joint_state):
         n_points = path_fixation_body.size
         joint_angles, joint_vel = tf.split(joint_state, 2, axis=-1)
         sho, elb_wrt_sho = tf.split(joint_angles, 2, axis=-1)
@@ -208,8 +234,7 @@ class PointMass(Skeleton):
         super().__init__(dof=space_dim, space_dim=space_dim, **kwargs)
         self.mass = mass
 
-    def __call__(self, inputs, joint_state, endpoint_load=np.zeros(1)):
-        endpoint_load = tf.constant(endpoint_load, shape=(1, self.dof), dtype=tf.float32)
+    def call(self, inputs, joint_state, endpoint_load):
         new_acc = inputs + endpoint_load  # load will broadcast to match batch_size
 
         old_vel = tf.cast(joint_state[:, self.dof:], dtype=tf.float32)
@@ -222,7 +247,7 @@ class PointMass(Skeleton):
         new_state = tf.concat([new_pos, new_vel], axis=1)
         return new_state
 
-    def path2cartesian(self, path_coordinates, path_fixation_body, joint_state):
+    def _path2cartesian(self, path_coordinates, path_fixation_body, joint_state):
         pos, vel = tf.split(joint_state[:, :, tf.newaxis], 2, axis=1)
         # if fixed on the point mass, then add the point-mass position / velocity to the fixation point coordinate
         pos = tf.where(path_fixation_body == 0, 0., pos) + path_coordinates
@@ -232,5 +257,5 @@ class PointMass(Skeleton):
         return pos, vel, dpos_ddof
 
     @staticmethod
-    def joint2cartesian(joint_state):
+    def _joint2cartesian(joint_state):
         return joint_state
