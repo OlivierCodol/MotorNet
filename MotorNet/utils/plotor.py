@@ -5,6 +5,7 @@ from matplotlib.collections import LineCollection
 import tensorflow as tf
 from matplotlib import animation
 
+
 def compute_limits(data):
     data_range = data.ptp()
     margin = data_range * 0.1
@@ -86,37 +87,34 @@ def plot_arm_over_time(arm, joint_results, **kwargs):
 
 
 def plot_opensim(results, save_path):
-        j = results['joint position'].numpy().transpose(2, 1, 0).reshape((4, -1), order='F').transpose()
-        m = results['muscle state'].numpy().transpose(2, 3, 1, 0).reshape((5, 6, -1), order='F').transpose(2, 1, 0)
-        mdict = {'muscle': m[:, :, 0], 'joint': j[:, 0:2]}
-        scipy.io.savemat(save_path + '.mat', mdict)
+    j = results['joint position'].numpy().transpose(2, 1, 0).reshape((4, -1), order='F').transpose()
+    m = results['muscle state'].numpy().transpose(2, 3, 1, 0).reshape((5, 6, -1), order='F').transpose(2, 1, 0)
+    mdict = {'muscle': m[:, :, 0], 'joint': j[:, 0:2]}
+    scipy.io.savemat(save_path + '.mat', mdict)
 
-        variable = 'asd'
-        with open(save_path + '.sto', "w") as text_file:
-            print(f"Stuff: {variable}", file=text_file)
-            
-            
-def animate_arm_trajectory(joint_position, plant,  path_name = './Arm_animation.mp4'):
-    
+    variable = 'asd'
+    with open(save_path + '.sto', "w") as text_file:
+        print(f"Stuff: {variable}", file=text_file)
+
+
+def animate_arm_trajectory(joint_position, plant, path_name='./Arm_animation.mp4'):
     assert joint_position.shape[0] == 1
     joint_position = tf.reshape(joint_position, (-1, plant.state_dim))
-    
+
     plant = plant.Skeleton
 
+    fig = plt.figure()
+    ax = plt.axes(xlim=(-1, 1), ylim=(-1, 1))
+    line, = ax.plot([], [], lw=2, alpha=0.7, color='red')  # Movement path
+    L1, = ax.plot([], [], lw=4)  # L1
+    L2, = ax.plot([], [], lw=4)  # L1
 
-    fig = plt.figure() 
-    ax = plt.axes(xlim=(-1, 1), ylim=(-1, 1))  
-    line, = ax.plot([], [], lw=2, alpha=0.7, color='red')# Movement path
-    L1, = ax.plot([], [], lw=4)    # L1
-    L2, = ax.plot([], [], lw=4)    # L1
-    
-    #plt.title('Desired Title') 
+    # plt.title('Desired Title')
     # Axis control 
-    plt.axis('off') 
-    plt.gca().set_aspect('equal', adjustable='box') # Make axis equal
+    plt.axis('off')
+    plt.gca().set_aspect('equal', adjustable='box')  # Make axis equal
     plt.style.use('dark_background')
 
-    
     def my_joint2cartesian(plant, joint_pos):
         joint_pos = tf.reshape(joint_pos, (-1, plant.state_dim))
         joint_angle_sum = joint_pos[:, 0] + joint_pos[:, 1]
@@ -133,53 +131,48 @@ def animate_arm_trajectory(joint_position, plant,  path_name = './Arm_animation.
 
         return end_pos_x_l1, end_pos_y_l1, end_pos_x_l2, end_pos_y_l2
 
-
-
-    # Initilization of data lists 
-    def init(): 
+    # Initialization of data lists
+    def init():
         # creating void frame 
-        line.set_data([], []) 
+        line.set_data([], [])
         L1.set_data([], [])
         L2.set_data([], [])
-        ax.scatter([0],[0])
-        return line, 
+        ax.scatter([0], [0])
+        return line,
 
-    # Empty List for trajectories and arm position 
-    xdata, ydata = [], [] 
-    L1_xdata, L1_ydata = [], [] 
-    L2_xdata, L2_ydata = [], [] 
+        # Empty List for trajectories and arm position
 
+    xdata, ydata = [], []
+    L1_xdata, L1_ydata = [], []
+    L2_xdata, L2_ydata = [], []
 
-    # animation 
-    def animate(i): 
-
-        # Get the position of end_point, L1, and L2 
-        end_pos_x_l1, end_pos_y_l1, end_pos_x_l2, end_pos_y_l2 = my_joint2cartesian(plant, joint_position[i:i+1,:])
+    # animation
+    def animate(i):
+        # Get the position of end_point, L1, and L2
+        end_pos_x_l1, end_pos_y_l1, end_pos_x_l2, end_pos_y_l2 = my_joint2cartesian(plant, joint_position[i:i + 1, :])
 
         # Append the endpoint position 
-        xdata.append(end_pos_x_l1 + end_pos_x_l2) 
-        ydata.append(end_pos_y_l1 + end_pos_y_l2) 
+        xdata.append(end_pos_x_l1 + end_pos_x_l2)
+        ydata.append(end_pos_y_l1 + end_pos_y_l2)
         line.set_data(xdata, ydata)
 
-
         # Append the L1 position 
-        L1_xdata = [0 ,end_pos_x_l1] 
-        L1_ydata  = [0 ,end_pos_y_l1] 
+        L1_xdata = [0, end_pos_x_l1]
+        L1_ydata = [0, end_pos_y_l1]
         L1.set_data(L1_xdata, L1_ydata)
 
         # Append the L2 position
-        L2_xdata = [end_pos_x_l1, end_pos_x_l1 + end_pos_x_l2] 
-        L2_ydata  = [end_pos_y_l1, end_pos_y_l1 + end_pos_y_l2 ] 
+        L2_xdata = [end_pos_x_l1, end_pos_x_l1 + end_pos_x_l2]
+        L2_ydata = [end_pos_y_l1, end_pos_y_l1 + end_pos_y_l2]
         L2.set_data(L2_xdata, L2_ydata)
-
 
         return line, L1, L2
 
     # call animation	 
-    anim = animation.FuncAnimation(fig, animate, init_func=init, 
-                                frames=joint_position.shape[0], interval=plant.dt, blit=True) 
+    anim = animation.FuncAnimation(fig, animate, init_func=init,
+                                   frames=joint_position.shape[0], interval=plant.dt, blit=True)
 
     # save the animated file, (Used pillow, since it is usually installed by default)
     Writer = animation.writers['ffmpeg']
-    writer = Writer(fps=1./plant.dt)
+    writer = Writer(fps=1. / plant.dt)
     anim.save(path_name, writer=writer, dpi=100)
