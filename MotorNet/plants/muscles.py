@@ -1,5 +1,7 @@
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras.layers import Lambda
+from abc import abstractmethod
 
 
 class Muscle:
@@ -22,14 +24,11 @@ class Muscle:
         self.l0_se = None
         self.l0_ce = None
         self.l0_pe = None
+        self._call_fn = Lambda(lambda x: self.call(*x))
+        self._get_initial_muscle_state_fn = Lambda(lambda x: self._get_initial_muscle_state(*x))
+        self._activation_ode_fn = Lambda(lambda x: self._activation_ode(*x))
+
         self.built = False
-
-    def setattr(self, name: str, value):
-        self.__setattr__(name, value)
-
-    @staticmethod
-    def get_initial_muscle_state(batch_size, geometry_state):
-        return None
 
     def build(self, timestep, max_isometric_force, **kwargs):
         self.dt = timestep
@@ -41,7 +40,24 @@ class Muscle:
         self.l0_pe = tf.ones((1, 1, self.n_muscles), dtype=tf.float32)
         self.built = True
 
+    def __call__(self, excitation, muscle_state, geometry_state):
+        return self._call_fn((excitation, muscle_state, geometry_state))
+
     def activation_ode(self, excitation, muscle_state):
+        return self._activation_ode_fn((excitation, muscle_state))
+
+    def get_initial_muscle_state(self, batch_size, geometry_state):
+        return self._get_initial_muscle_state_fn((batch_size, geometry_state))
+
+    @abstractmethod
+    def call(self, *args):
+        return
+
+    @abstractmethod
+    def _get_initial_muscle_state(self, batch_size, geometry_state):
+        return
+
+    def _activation_ode(self, excitation, muscle_state):
         activation = tf.slice(muscle_state, [0, 0, 0], [-1, 1, -1])
         excitation = tf.reshape(excitation, (-1, 1, self.n_muscles))
         activation = tf.clip_by_value(activation, self.min_activation, 1.)
@@ -53,6 +69,9 @@ class Muscle:
         new_activation = activation + d_activation * self.dt
         new_activation = tf.clip_by_value(new_activation, self.min_activation, 1.)
         return new_activation
+
+    def setattr(self, name: str, value):
+        self.__setattr__(name, value)
 
 
 class ReluMuscle(Muscle):
@@ -69,7 +88,7 @@ class ReluMuscle(Muscle):
                            'force']
         self.state_dim = len(self.state_name)
 
-    def __call__(self, excitation, muscle_state, geometry_state, **kwargs):
+    def call(self, excitation, muscle_state, geometry_state):
         excitation = excitation[:, tf.newaxis, :]
         forces = tf.nn.relu(excitation) * self.max_iso_force
         muscle_len = tf.slice(geometry_state, [0, 0, 0], [-1, 1, -1])
@@ -77,7 +96,7 @@ class ReluMuscle(Muscle):
         muscle_state = tf.concat([excitation, muscle_len, muscle_vel, forces], axis=1)
         return forces, muscle_state
 
-    def get_initial_muscle_state(self, batch_size, geometry_state):
+    def _get_initial_muscle_state(self, batch_size, geometry_state):
         excitation0 = tf.ones((batch_size, 1, self.n_muscles)) * self.min_activation
         force0 = tf.zeros((batch_size, 1, self.n_muscles))
         len_vel = tf.slice(geometry_state, [0, 0, 0], [-1, 2, -1])
@@ -144,14 +163,14 @@ class RigidTendonHillMuscle(Muscle):
         self.vmax = 10 * self.l0_ce
         self.built = True
 
-    def get_initial_muscle_state(self, batch_size, geometry_state):
+    def _get_initial_muscle_state(self, batch_size, geometry_state):
         musculotendon_len = tf.slice(geometry_state, [0, 0, 0], [-1, 1, -1])
         _, muscle0 = self.__call__(excitation=tf.zeros_like(musculotendon_len),
                                    muscle_state=tf.ones_like(musculotendon_len) * self.min_activation,
                                    geometry_state=geometry_state)
         return muscle0
 
-    def __call__(self, excitation, muscle_state, geometry_state):
+    def call(self, excitation, muscle_state, geometry_state):
         new_activation = self.activation_ode(excitation, muscle_state)
 
         # musculotendon geometry
@@ -255,14 +274,14 @@ class RigidTendonHillMuscleThelen(Muscle):
 
         self.built = True
 
-    def get_initial_muscle_state(self, batch_size, geometry_state):
+    def _get_initial_muscle_state(self, batch_size, geometry_state):
         musculotendon_len = tf.slice(geometry_state, [0, 0, 0], [-1, 1, -1])
         _, muscle0 = self.__call__(excitation=tf.zeros_like(musculotendon_len),
                                    muscle_state=tf.ones_like(musculotendon_len) * self.min_activation,
                                    geometry_state=geometry_state)
         return muscle0
 
-    def __call__(self, excitation, muscle_state, geometry_state):
+    def call(self, excitation, muscle_state, geometry_state):
         new_activation = self.activation_ode(excitation, muscle_state)
 
         # musculotendon geometry
@@ -317,6 +336,8 @@ class CompliantTendonHillMuscle(Muscle):
         self.to_build_dict_default = {'normalized_slack_muscle_length': 1.4}
         self.built = False
 
+        self._muscle_ode_fn = Lambda(lambda x: self._muscle_ode(*x))
+
     def build(self, timestep, max_isometric_force, **kwargs):
         tendon_length = kwargs.get('tendon_length')
         optimal_muscle_length = kwargs.get('optimal_muscle_length')
@@ -332,7 +353,7 @@ class CompliantTendonHillMuscle(Muscle):
         self.max_iso_force = tf.reshape(tf.cast(max_isometric_force, dtype=tf.float32), (1, 1, self.n_muscles))
         self.vmax = 10 * self.l0_ce
 
-    def __call__(self, excitation, muscle_state, geometry_state):
+    def call(self, excitation, muscle_state, geometry_state):
         new_activation = self.activation_ode(excitation, muscle_state)
 
         # musculotendon geometry
@@ -362,6 +383,9 @@ class CompliantTendonHillMuscle(Muscle):
         return force, new_muscle_state
 
     def muscle_ode(self, norm_muscle_len, activation, active_force):
+        return self._muscle_ode_fn((norm_muscle_len, activation, active_force))
+
+    def _muscle_ode(self, norm_muscle_len, activation, active_force):
         f_iso_n = 1 + (- norm_muscle_len ** 2 + 2 * norm_muscle_len - 1) / self.f_iso_n_den
         f_iso_n = tf.maximum(f_iso_n, 0.01)
 
@@ -397,7 +421,7 @@ class CompliantTendonHillMuscle(Muscle):
 
         return new_muscle_vel_nom / new_muscle_vel_den
 
-    def get_initial_muscle_state(self, batch_size, geometry_state):
+    def _get_initial_muscle_state(self, batch_size, geometry_state):
         musculotendon_len = tf.slice(geometry_state, [0, 0, 0], [-1, 1, -1])
         musculotendon_vel = tf.slice(geometry_state, [0, 1, 0], [-1, 1, -1])
         activation = tf.ones_like(musculotendon_len) * self.min_activation
