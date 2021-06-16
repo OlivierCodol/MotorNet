@@ -164,6 +164,7 @@ class PlantWrapper(Plant):
         self.row_splits = None
         self._get_initial_state_fn = Lambda(lambda x: self._get_initial_state(*x))
         self._get_geometry_fn = Lambda(lambda x: self._get_geometry(x))
+        self._call_fn = Lambda(lambda x: self.call(*x))
         self.default_endpoint_load = tf.zeros((1, self.Skeleton.space_dim), dtype=tf.float32)
         self.default_joint_load = tf.zeros((1, self.Skeleton.dof), dtype=tf.float32)
         self.built = False
@@ -267,19 +268,11 @@ class PlantWrapper(Plant):
     def get_initial_state(self, batch_size=1, joint_state=None):
         return self._get_initial_state(batch_size, joint_state)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, muscle_input, joint_state, muscle_state, geometry_state, **kwargs):
         """This is a wrapper method to prevent memory leaks"""
-        if self.built is False:
-            # build the Lambda wrap
-            self._call_fn = Lambda(lambda x: self.call(*x))
-            self.built = True
-
         endpoint_load = kwargs.get('endpoint_load', self.default_endpoint_load)
         joint_load = kwargs.get('joint_load', self.default_joint_load)
-        args = list(args)
-        args.append(endpoint_load)
-        args.append(joint_load)
-        return self._call_fn(args)
+        return self._call_fn((muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load))
 
     def call(self, muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load):
         muscle_input += tf.random.normal(tf.shape(muscle_input), stddev=self.excitation_noise_sd)
