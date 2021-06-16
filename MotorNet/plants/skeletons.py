@@ -24,7 +24,7 @@ class Skeleton:
 
         self._call_fn = Lambda(lambda x: self.call(*x))
         self._path2cartesian_fn = Lambda(lambda x: self._path2cartesian(*x))
-        self._joint2cartesian_fn = Lambda(lambda x: self._joint2cartesian(*x))
+        self._joint2cartesian_fn = Lambda(lambda x: self._joint2cartesian(x))
         self._clip_velocity_fn = Lambda(lambda x: self._clip_velocity(*x))
         self.init = False
         self.built = False
@@ -40,13 +40,13 @@ class Skeleton:
     def __call__(self, inputs, joint_state, **kwargs):
         """This is a wrapper method to prevent memory leaks"""
         endpoint_load = kwargs.get('endpoint_load', self.default_endpoint_load)
-        self._call_fn((inputs, joint_state, endpoint_load))
+        return self._call_fn((inputs, joint_state, endpoint_load))
 
     def setattr(self, name: str, value):
         self.__setattr__(name, value)
 
     @abstractmethod
-    def call(self, *args, **kwargs):
+    def call(self, *args):
         return
 
     def joint2cartesian(self, joint_state):
@@ -147,7 +147,8 @@ class TwoDofArm(Skeleton):
         l_col = tf.stack([inertia[:, 1, 1], -inertia[:, 1, 0]], axis=1)
         r_col = tf.stack([-inertia[:, 0, 1], inertia[:, 0, 0]], axis=1)
         inertia_inv = denom[:, tf.newaxis, tf.newaxis] * tf.stack([l_col, r_col], axis=2)
-        new_acc = tf.squeeze(tf.matmul(inertia_inv, rhs))
+        new_acc_3d = tf.matmul(inertia_inv, rhs)
+        new_acc = new_acc_3d[:, :, 0]  # somehow tf.squeeze doesn't work well in a Lambda wrap...
 
         new_vel = old_vel + new_acc * self.dt  # Euler
         new_pos = old_pos + old_vel * self.dt
