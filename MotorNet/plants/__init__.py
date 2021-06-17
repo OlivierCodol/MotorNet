@@ -5,10 +5,10 @@ from MotorNet.plants.skeletons import TwoDofArm
 from MotorNet.plants.muscles import CompliantTendonHillMuscle
 
 
-# TODO merge Plant and PlantWrapper classes into a single Plant class
-class Plant:
+class PlantWrapper:
 
-    def __init__(self, skeleton, timestep=0.01, **kwargs):
+    def __init__(self, skeleton, muscle_type, timestep=0.01, **kwargs):
+
         self.__name__ = 'Plant'
         self.Skeleton = skeleton
         self.dof = self.Skeleton.dof
@@ -43,21 +43,147 @@ class Plant:
             vel_upper_bound=self.vel_upper_bound,
             vel_lower_bound=self.vel_lower_bound)
 
+        # initialize muscle system
+        self.Muscle = muscle_type
+        self.MusclePaths = []  # a list of all the muscle paths
+        self.n_muscles = 0
+        self.input_dim = 0
+        self.muscle_name = []
+        self.muscle_state_dim = self.Muscle.state_dim
+        self.geometry_state_dim = 2 + self.Skeleton.dof  # musculotendon length & velocity + as many moments as dofs
+        self.path_fixation_body = np.empty((1, 1, 0)).astype('float32')
+        self.path_coordinates = np.empty((1, self.Skeleton.space_dim, 0)).astype('float32')
+        self.muscle = np.empty(0).astype('float32')
+        self.tobuild__muscle = self.Muscle.to_build_dict
+        self.tobuild__default = self.Muscle.to_build_dict_default
+        self.muscle_transitions = None
+        self.row_splits = None
+
+        # Lambda wraps to avoid memory leaks
+        self.default_endpoint_load = tf.zeros((1, self.Skeleton.space_dim), dtype=tf.float32)
+        self.default_joint_load = tf.zeros((1, self.Skeleton.dof), dtype=tf.float32)
+        self._get_initial_state_fn = Lambda(lambda x: self._get_initial_state(*x))
+        self._get_geometry_fn = Lambda(lambda x: self._get_geometry(x))
+        self._call_fn = Lambda(lambda x: self.call(*x))
         self._draw_random_uniform_states_fn = Lambda(lambda x: self._draw_random_uniform_states(x))
         self._parse_initial_joint_state_fn = Lambda(lambda x: self._parse_initial_joint_state(*x))
         self._draw_fixed_states_fn = Lambda(lambda x: self._draw_fixed_states(*x))
-        self._state2target_fn = Lambda(lambda x:
-                                       tf.transpose(tf.repeat(x[0][:, :, tf.newaxis], x[1], axis=-1), [0, 2, 1]))
+        self._state2target_fn = \
+            Lambda(lambda x: tf.transpose(tf.repeat(x[0][:, :, tf.newaxis], x[1], axis=-1), [0, 2, 1]))
+
         self.built = False
 
-    def draw_random_uniform_states(self, batch_size=1):
-        return self._draw_random_uniform_states_fn(batch_size)
+    def add_muscle(self, path_fixation_body: list, path_coordinates: list, name='', **kwargs):
+        path_fixation_body = np.array(path_fixation_body).astype('float32').reshape((1, 1, -1))
+        n_points = path_fixation_body.size
+        path_coordinates = np.array(path_coordinates).astype('float32').T[np.newaxis, :, :]
+        assert path_coordinates.shape[1] == self.Skeleton.space_dim
+        assert path_coordinates.shape[2] == n_points
+        self.n_muscles += 1
+        self.input_dim += self.Muscle.input_dim
 
-    def parse_initial_joint_state(self, joint_state, batch_size=1):
-        return self._parse_initial_joint_state_fn((joint_state, batch_size))
+        # path segments & coordinates should be a (batch_size * n_coordinates  * n_segments * (n_muscles * n_points)
+        self.path_fixation_body = np.concatenate([self.path_fixation_body, path_fixation_body], axis=-1)
+        self.path_coordinates = np.concatenate([self.path_coordinates, path_coordinates], axis=-1)
+        self.muscle = np.hstack([self.muscle, np.tile(np.max(self.n_muscles), [n_points])])
 
-    def draw_fixed_states(self, position, velocity=None, batch_size=1):
-        return self._draw_fixed_states_fn((position, velocity, batch_size))
+        # indexes where the next item is from a different muscle, to indicate when their difference is meaningless
+        self.muscle_transitions = np.diff(self.muscle.reshape((1, 1, -1))) == 1.
+        # to create the ragged tensors when collapsing each muscle's segment values
+        n_total_points = np.array([len(self.muscle)])
+        self.row_splits = np.concatenate([np.zeros(1), np.diff(self.muscle).nonzero()[0] + 1, n_total_points - 1])
+
+        # kwargs loop
+        for key, val in kwargs.items():
+            if key in self.tobuild__muscle:
+                self.tobuild__muscle[key].append(val)
+        for key, val in self.tobuild__muscle.items():
+            # if not added in the kwargs loop
+            if len(val) < self.n_muscles:
+                # if the muscle object contains a default, use it
+                if key in self.tobuild__default:
+                    self.tobuild__muscle[key].append(self.tobuild__default[key])
+                # else, raise error
+                else:
+                    raise ValueError('Missing keyword argument ' + key + '.')
+        self.Muscle.build(timestep=self.dt, **self.tobuild__muscle)
+
+        if name == '':
+            name = 'muscle_' + str(self.n_muscles)
+        self.muscle_name.append(name)
+
+    def __call__(self, muscle_input, joint_state, muscle_state, geometry_state, **kwargs):
+        """This is a wrapper method to prevent memory leaks"""
+        endpoint_load = kwargs.get('endpoint_load', self.default_endpoint_load)
+        joint_load = kwargs.get('joint_load', self.default_joint_load)
+        return self._call_fn((muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load))
+
+    def call(self, muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load):
+        muscle_input += tf.random.normal(tf.shape(muscle_input), stddev=self.excitation_noise_sd)
+        forces, new_muscle_state = self.Muscle(excitation=muscle_input,
+                                               muscle_state=muscle_state,
+                                               geometry_state=geometry_state)
+        moments = tf.slice(geometry_state, [0, 2, 0], [-1, -1, -1])
+        generalized_forces = - tf.reduce_sum(forces * moments, axis=-1) + joint_load
+
+        new_joint_state = self.Skeleton(generalized_forces, joint_state, endpoint_load=endpoint_load)
+        new_cartesian_state = self.Skeleton.joint2cartesian(joint_state=new_joint_state)
+        new_geometry_state = self.get_geometry(new_joint_state)
+        return new_joint_state, new_cartesian_state, new_muscle_state, new_geometry_state
+
+    def _get_geometry(self, joint_state):
+        xy, dxy_dt, dxy_ddof = self.Skeleton.path2cartesian(self.path_coordinates, self.path_fixation_body, joint_state)
+        diff_pos = xy[:, :, 1:] - xy[:, :, :-1]
+        diff_vel = dxy_dt[:, :, 1:] - dxy_dt[:, :, :-1]
+        diff_ddof = dxy_ddof[:, :, :, 1:] - dxy_ddof[:, :, :, :-1]
+
+        # length, velocity and moment of each path segment
+        # -----------------------
+        # segment length is just the euclidian distance between the two points
+        segment_len = tf.sqrt(tf.reduce_sum(diff_pos ** 2, axis=1, keepdims=True))
+        # segment velocity is trickier: we are not after radial velocity but relative velocity.
+        # https://math.stackexchange.com/questions/1481701/time-derivative-of-the-distance-between-2-points-moving-over-time
+        # Formally, if segment_len=0 then segment_vel is not defined. We could substitute with 0 here because a
+        # muscle segment will never flip backward, so the velocity can only be positive afterwards anyway.
+        # segment_vel = tf.where(segment_len == 0, tf.zeros(1), segment_vel)
+        segment_vel = tf.reduce_sum(diff_pos * diff_vel / segment_len, axis=1, keepdims=True)
+        segment_moments = tf.reduce_sum(diff_ddof * diff_pos[:, :, tf.newaxis], axis=1) / segment_len
+
+        # remove differences between points that don't belong to the same muscle
+        segment_len_cleaned = tf.where(self.muscle_transitions, 0., segment_len)
+        segment_vel_cleaned = tf.where(self.muscle_transitions, 0., segment_vel)
+        segment_mom_cleaned = tf.where(self.muscle_transitions, 0., segment_moments)
+
+        # flip all dimensions to allow making ragged tensors below (you need to do it from the rows)
+        segment_len_flipped = tf.transpose(segment_len_cleaned, [2, 1, 0])
+        segment_vel_flipped = tf.transpose(segment_vel_cleaned, [2, 1, 0])
+        segment_mom_flipped = tf.transpose(segment_mom_cleaned, [2, 1, 0])
+
+        # create ragged tensors, which allows to hold each individual muscle's fixation points on the second dimension
+        # in case there is not the same number of fixation point for each muscles
+        segment_len_ragged = tf.RaggedTensor.from_row_splits(segment_len_flipped, row_splits=self.row_splits)
+        segment_vel_ragged = tf.RaggedTensor.from_row_splits(segment_vel_flipped, row_splits=self.row_splits)
+        segment_mom_ragged = tf.RaggedTensor.from_row_splits(segment_mom_flipped, row_splits=self.row_splits)
+
+        # now we can sum all segments' contribution along the ragged dimension, that is along all fixation points for
+        # each muscle
+        musculotendon_len = tf.reduce_sum(segment_len_ragged, axis=1)
+        musculotendon_vel = tf.reduce_sum(segment_vel_ragged, axis=1)
+        moments = tf.reduce_sum(segment_mom_ragged, axis=1)
+
+        # pack all this into one state array and flip the dimensions back (batch_size * n_features * n_muscles)
+        geometry_state = tf.transpose(tf.concat([musculotendon_len, musculotendon_vel, moments], axis=1), [2, 1, 0])
+        return geometry_state
+
+    def _get_initial_state(self, batch_size, joint_state):
+        if joint_state is not None and tf.shape(joint_state)[0] > 1:
+            batch_size = tf.shape(joint_state)[0]
+
+        joint0 = self.parse_initial_joint_state(joint_state=joint_state, batch_size=batch_size)
+        cartesian0 = self.Skeleton.joint2cartesian(joint_state=joint0)
+        geometry0 = self.get_geometry(joint0)
+        muscle0 = self.Muscle.get_initial_muscle_state(batch_size=batch_size, geometry_state=geometry0)
+        return [joint0, cartesian0, muscle0, geometry0]
 
     def _draw_random_uniform_states(self, batch_size):
         # create a batch of new targets in the correct format for the tensorflow compiler
@@ -116,12 +242,6 @@ class Plant:
         bounds = bounds * np.ones((self.dof, 2))  # if one bound pair inputed, broadcast to dof rows
         return bounds
 
-    def setattr(self, name: str, value):
-        self.__setattr__(name, value)
-
-    def state2target(self, state, n_timesteps=1):
-        return self._state2target_fn((state, n_timesteps))
-
     def get_save_config(self):
         # TODO: this will only work for a 2DOF skeleton, not any other skeleton (eg point-mass)
         cfg = {'Muscle': str(self.Muscle.__name__),
@@ -134,158 +254,29 @@ class Plant:
                'proprioceptive_delay': self.proprioceptive_delay, 'visual_delay': self.visual_delay}
         return cfg
 
-    def _get_geometry(self, joint_state):
-        pass
-
-    def joint2cartesian(self, joint_state):
-        return self.Skeleton.joint2cartesian(joint_state=joint_state)
-
-
-class PlantWrapper(Plant):
-
-    def __init__(self, skeleton, muscle_type, timestep=0.01, **kwargs):
-
-        super().__init__(skeleton=skeleton, timestep=timestep, **kwargs)
-
-        # initialize muscle system
-        self.Muscle = muscle_type
-        self.MusclePaths = []  # a list of all the muscle paths
-        self.n_muscles = 0
-        self.input_dim = 0
-        self.muscle_name = []
-        self.muscle_state_dim = self.Muscle.state_dim
-        self.geometry_state_dim = 2 + self.Skeleton.dof  # musculotendon length & velocity + as many moments as dofs
-        self.path_fixation_body = np.empty((1, 1, 0)).astype('float32')
-        self.path_coordinates = np.empty((1, self.Skeleton.space_dim, 0)).astype('float32')
-        self.muscle = np.empty(0).astype('float32')
-        self.tobuild__muscle = self.Muscle.to_build_dict
-        self.tobuild__default = self.Muscle.to_build_dict_default
-        self.muscle_transitions = None
-        self.row_splits = None
-        self._get_initial_state_fn = Lambda(lambda x: self._get_initial_state(*x))
-        self._get_geometry_fn = Lambda(lambda x: self._get_geometry(x))
-        self._call_fn = Lambda(lambda x: self.call(*x))
-        self.default_endpoint_load = tf.zeros((1, self.Skeleton.space_dim), dtype=tf.float32)
-        self.default_joint_load = tf.zeros((1, self.Skeleton.dof), dtype=tf.float32)
-        self.built = False
-
-    def add_muscle(self, path_fixation_body: list, path_coordinates: list, name='', **kwargs):
-        path_fixation_body = np.array(path_fixation_body).astype('float32').reshape((1, 1, -1))
-        n_points = path_fixation_body.size
-        path_coordinates = np.array(path_coordinates).astype('float32').T[np.newaxis, :, :]
-        assert path_coordinates.shape[1] == self.Skeleton.space_dim
-        assert path_coordinates.shape[2] == n_points
-        self.n_muscles += 1
-        self.input_dim += self.Muscle.input_dim
-
-        # path segments & coordinates should be a (batch_size * n_coordinates  * n_segments * (n_muscles * n_points)
-        self.path_fixation_body = np.concatenate([self.path_fixation_body, path_fixation_body], axis=-1)
-        self.path_coordinates = np.concatenate([self.path_coordinates, path_coordinates], axis=-1)
-        self.muscle = np.hstack([self.muscle, np.tile(np.max(self.n_muscles), [n_points])])
-
-        # indexes where the next item is from a different muscle, to indicate when their difference is meaningless
-        self.muscle_transitions = np.diff(self.muscle.reshape((1, 1, -1))) == 1.
-        # to create the ragged tensors when collapsing each muscle's segment values
-        n_total_points = np.array([len(self.muscle)])
-        self.row_splits = np.concatenate([np.zeros(1), np.diff(self.muscle).nonzero()[0] + 1, n_total_points - 1])
-
-        # kwargs loop
-        for key, val in kwargs.items():
-            if key in self.tobuild__muscle:
-                self.tobuild__muscle[key].append(val)
-        for key, val in self.tobuild__muscle.items():
-            # if not added in the kwargs loop
-            if len(val) < self.n_muscles:
-                # if the muscle object contains a default, use it
-                if key in self.tobuild__default:
-                    self.tobuild__muscle[key].append(self.tobuild__default[key])
-                # else, raise error
-                else:
-                    raise ValueError('Missing keyword argument ' + key + '.')
-        self.Muscle.build(timestep=self.dt, **self.tobuild__muscle)
-
-        if name == '':
-            name = 'muscle_' + str(self.n_muscles)
-        self.muscle_name.append(name)
-
     def get_geometry(self, joint_state):
         return self._get_geometry_fn(joint_state)
-
-    def _get_geometry(self, joint_state):
-        xy, dxy_dt, dxy_ddof = self.Skeleton.path2cartesian(self.path_coordinates, self.path_fixation_body, joint_state)
-        diff_pos = xy[:, :, 1:] - xy[:, :, :-1]
-        diff_vel = dxy_dt[:, :, 1:] - dxy_dt[:, :, :-1]
-        diff_ddof = dxy_ddof[:, :, :, 1:] - dxy_ddof[:, :, :, :-1]
-
-        # length, velocity and moment of each path segment
-        # -----------------------
-        # segment length is just the euclidian distance between the two points
-        segment_len = tf.sqrt(tf.reduce_sum(diff_pos ** 2, axis=1, keepdims=True))
-        # segment velocity is trickier: we are not after radial velocity but relative velocity.
-        # https://math.stackexchange.com/questions/1481701/time-derivative-of-the-distance-between-2-points-moving-over-time
-        # Formally, if segment_len=0 then segment_vel is not defined. We could substitute with 0 here because a
-        # muscle segment will never flip backward, so the velocity can only be positive afterwards anyway.
-        # segment_vel = tf.where(segment_len == 0, tf.zeros(1), segment_vel)
-        segment_vel = tf.reduce_sum(diff_pos * diff_vel / segment_len, axis=1, keepdims=True)
-        segment_moments = tf.reduce_sum(diff_ddof * diff_pos[:, :, tf.newaxis], axis=1) / segment_len
-
-        # remove differences between points that don't belong to the same muscle
-        segment_len_cleaned = tf.where(self.muscle_transitions, 0., segment_len)
-        segment_vel_cleaned = tf.where(self.muscle_transitions, 0., segment_vel)
-        segment_mom_cleaned = tf.where(self.muscle_transitions, 0., segment_moments)
-
-        # flip all dimensions to allow making ragged tensors below (you need to do it from the rows)
-        segment_len_flipped = tf.transpose(segment_len_cleaned, [2, 1, 0])
-        segment_vel_flipped = tf.transpose(segment_vel_cleaned, [2, 1, 0])
-        segment_mom_flipped = tf.transpose(segment_mom_cleaned, [2, 1, 0])
-
-        # create ragged tensors, which allows to hold each individual muscle's fixation points on the second dimension
-        # in case there is not the same number of fixation point for each muscles
-        segment_len_ragged = tf.RaggedTensor.from_row_splits(segment_len_flipped, row_splits=self.row_splits)
-        segment_vel_ragged = tf.RaggedTensor.from_row_splits(segment_vel_flipped, row_splits=self.row_splits)
-        segment_mom_ragged = tf.RaggedTensor.from_row_splits(segment_mom_flipped, row_splits=self.row_splits)
-
-        # now we can sum all segments' contribution along the ragged dimension, that is along all fixation points for
-        # each muscle
-        musculotendon_len = tf.reduce_sum(segment_len_ragged, axis=1)
-        musculotendon_vel = tf.reduce_sum(segment_vel_ragged, axis=1)
-        moments = tf.reduce_sum(segment_mom_ragged, axis=1)
-
-        # pack all this into one state array and flip the dimensions back (batch_size * n_features * n_muscles)
-        geometry_state = tf.transpose(tf.concat([musculotendon_len, musculotendon_vel, moments], axis=1), [2, 1, 0])
-        return geometry_state
-
-    def _get_initial_state(self, batch_size, joint_state):
-        if joint_state is not None and tf.shape(joint_state)[0] > 1:
-            batch_size = tf.shape(joint_state)[0]
-
-        joint0 = self.parse_initial_joint_state(joint_state=joint_state, batch_size=batch_size)
-        cartesian0 = self.Skeleton.joint2cartesian(joint_state=joint0)
-        geometry0 = self.get_geometry(joint0)
-        muscle0 = self.Muscle.get_initial_muscle_state(batch_size=batch_size, geometry_state=geometry0)
-        return [joint0, cartesian0, muscle0, geometry0]
 
     def get_initial_state(self, batch_size=1, joint_state=None):
         return self._get_initial_state(batch_size, joint_state)
 
-    def __call__(self, muscle_input, joint_state, muscle_state, geometry_state, **kwargs):
-        """This is a wrapper method to prevent memory leaks"""
-        endpoint_load = kwargs.get('endpoint_load', self.default_endpoint_load)
-        joint_load = kwargs.get('joint_load', self.default_joint_load)
-        return self._call_fn((muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load))
+    def draw_random_uniform_states(self, batch_size=1):
+        return self._draw_random_uniform_states_fn(batch_size)
 
-    def call(self, muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load):
-        muscle_input += tf.random.normal(tf.shape(muscle_input), stddev=self.excitation_noise_sd)
-        forces, new_muscle_state = self.Muscle(excitation=muscle_input,
-                                               muscle_state=muscle_state,
-                                               geometry_state=geometry_state)
-        moments = tf.slice(geometry_state, [0, 2, 0], [-1, -1, -1])
-        generalized_forces = - tf.reduce_sum(forces * moments, axis=-1) + joint_load
+    def parse_initial_joint_state(self, joint_state, batch_size=1):
+        return self._parse_initial_joint_state_fn((joint_state, batch_size))
 
-        new_joint_state = self.Skeleton(generalized_forces, joint_state, endpoint_load=endpoint_load)
-        new_cartesian_state = self.Skeleton.joint2cartesian(joint_state=new_joint_state)
-        new_geometry_state = self.get_geometry(new_joint_state)
-        return new_joint_state, new_cartesian_state, new_muscle_state, new_geometry_state
+    def draw_fixed_states(self, position, velocity=None, batch_size=1):
+        return self._draw_fixed_states_fn((position, velocity, batch_size))
+
+    def state2target(self, state, n_timesteps=1):
+        return self._state2target_fn((state, n_timesteps))
+
+    def joint2cartesian(self, joint_state):
+        return self.Skeleton.joint2cartesian(joint_state=joint_state)
+
+    def setattr(self, name: str, value):
+        self.__setattr__(name, value)
 
 
 class RigidTendonArm(PlantWrapper):
