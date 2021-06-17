@@ -243,13 +243,10 @@ class PlantWrapper:
         return bounds
 
     def get_save_config(self):
-        # TODO: this will only work for a 2DOF skeleton, not any other skeleton (eg point-mass)
-        cfg = {'Muscle': str(self.Muscle.__name__),
-               'Skeleton': {'I1': self.Skeleton.I1, 'I2': self.Skeleton.I2, 'L1': self.Skeleton.L1,
-                            'L2': self.Skeleton.L2, 'L1g': self.Skeleton.L1g, 'L2g': self.Skeleton.L2g,
-                            'c_viscosity': self.Skeleton.c_viscosity, 'coriolis_1': self.Skeleton.coriolis_1,
-                            'coriolis_2': self.Skeleton.coriolis_2, 'dof': self.Skeleton.dof, 'dt': self.Skeleton.dt,
-                            'm1': self.Skeleton.m1, 'm2': self.Skeleton.m2},
+        muscle_cfg = self.Muscle.get_save_config()
+        skeleton_cfg = self.Skeleton.get_save_config()
+        cfg = {'Muscle': muscle_cfg,
+               'Skeleton': skeleton_cfg,
                'excitation_noise_sd': self.excitation_noise_sd, 'n_muscles': self.n_muscles,
                'proprioceptive_delay': self.proprioceptive_delay, 'visual_delay': self.visual_delay}
         return cfg

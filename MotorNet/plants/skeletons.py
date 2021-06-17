@@ -72,6 +72,13 @@ class Skeleton:
     def _joint2cartesian(self, *args, **kwargs):
         return
 
+    def get_base_config(self):
+        cfg = {'dof': self.dof, 'dt': self.dt, 'space_dim': self.space_dim}
+        return cfg
+
+    def get_save_config(self):
+        return self.get_base_config()
+
 
 class TwoDofArm(Skeleton):
 
@@ -228,6 +235,13 @@ class TwoDofArm(Skeleton):
         xy = tf.concat([dy_da, -dx_da], axis=1) + bone_origin
         return xy, dxy_dt, dxy_da
 
+    def get_save_config(self):
+        cfg = self.get_base_config()
+        cfg.update({'I1': self.I1, 'I2': self.I2, 'L1': self.L1, 'L2': self.L2, 'L1g': self.L1g, 'L2g': self.L2g,
+                    'c_viscosity': self.c_viscosity, 'coriolis_1': self.coriolis_1, 'coriolis_2': self.coriolis_2,
+                    'm1': self.m1, 'm2': self.m2})
+        return cfg
+
 
 class PointMass(Skeleton):
 
@@ -260,3 +274,8 @@ class PointMass(Skeleton):
     @staticmethod
     def _joint2cartesian(joint_state):
         return joint_state
+
+    def get_save_config(self):
+        cfg = self.get_base_config()
+        cfg['mass'] = self.mass
+        return cfg

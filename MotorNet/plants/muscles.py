@@ -73,6 +73,10 @@ class Muscle:
     def setattr(self, name: str, value):
         self.__setattr__(name, value)
 
+    def get_save_config(self):
+        cfg = {'name': str(self.__name__)}
+        return cfg
+
 
 class ReluMuscle(Muscle):
     # --------------------------
