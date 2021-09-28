@@ -110,8 +110,8 @@ class GRUController(Layer):
 
         # split perturbation signal out of the back of inputs
         # the perturbation signal must be the last 2 dimensions of inputs
-        # TODO: Oli: this may feed the memory leak so it should be Lambda-wrapped at some point
         if self.perturbation_dims_active:
+            # TODO: Oli: this may feed the memory leak so it should be Lambda-wrapped at some point
             inputs, perturbation = tf.split(inputs, [inputs.shape[1] - 2, 2], axis=1)
 
         # handle feedback

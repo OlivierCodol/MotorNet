@@ -6,6 +6,7 @@ from IPython.display import clear_output
 from tensorflow.python.framework import ops
 from tensorflow.python.keras import backend
 
+
 class BatchLogger(Callback):
     """A Logger that logs metrics per batch steps instead of per epoch step."""
     def __init__(self):
