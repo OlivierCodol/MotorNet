@@ -41,7 +41,7 @@ def f(run_iter):
     muscle_type = cfg['Plant']['Muscle']
     task_type = cfg['Task']['name']
     exec('from MotorNet.plants.muscles import ' + muscle_type)
-    exec('from MotorNet.tasks.tasks import ' + task_type)
+    exec('from MotorNet.tasks import ' + task_type)
 
     arm = RigidTendonArm(muscle_type=eval(muscle_type + '()'), timestep=cfg['Plant']['Skeleton']['dt'],
                          proprioceptive_delay=cfg['Plant']['proprioceptive_delay'] * cfg['Plant']['Skeleton']['dt'],
@@ -89,10 +89,17 @@ def f(run_iter):
                              iterations=cfg['Task']['training_iterations'])
 
     ## SPECIAL
-    #cell.layers[1].bias = tf.convert_to_tensor([-5.18, -6.47, -3.63, -6.42, -4.40, -6.48])
+    cell.layers[1].bias = tf.convert_to_tensor([-5.18, -6.47, -3.63, -6.42, -4.40, -6.48])
 
     if run_mode == 'train':
+        # load trained weights
+        if os.path.isfile(file_name + '.index'):
+            control_rnn.load_weights(file_name).expect_partial()
         # train it up
+        # divide iterations into 200 iter-sized chunks
+        task.set_training_params(batch_size=cfg['Task']['training_batch_size'],
+                                 n_timesteps=cfg['Task']['training_n_timesteps'],
+                                 iterations=400)
         control_rnn.fit(task, verbose=1, callbacks=[tensorflowfix_callback, batchlog_callback], shuffle=False)
         # save weights of the model
         control_rnn.save_weights(file_name)
@@ -125,6 +132,11 @@ def f(run_iter):
 if __name__ == '__main__':
     iter_list = range(len(run_list))
     while len(iter_list) > 0:
-        these_iters = iter_list[0:6]
-        iter_list = iter_list[6:]
-        result = Parallel(n_jobs=-1)(delayed(f)(iteration) for iteration in these_iters)
+        these_iters = iter_list[0:32]
+        iter_list = iter_list[32:]
+        if run_mode == 'train':
+            repeats = 30
+        else:
+            repeats = 1
+        for i in range(repeats):
+            result = Parallel(n_jobs=-1)(delayed(f)(iteration) for iteration in these_iters)

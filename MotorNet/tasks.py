@@ -399,6 +399,8 @@ class TaskLoadProbability(Task):
                                                                      scale=self.controller.visual_noise_sd,
                                                                      size=(n_timesteps, 4))
             inputs[i, :, 5:7] = perturbation
+            inputs[i, pert_time:, 5:7] = [0, self.background_load] + np.random.normal(loc=0., scale=0.5, size=2)
+          #  inputs[i, :, 5:7] = perturbation
 
         return [tf.convert_to_tensor(inputs, dtype=tf.float32), tf.convert_to_tensor(targets, dtype=tf.float32),
                 init_states]
