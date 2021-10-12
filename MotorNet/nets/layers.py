@@ -31,7 +31,6 @@ class GRUController(Layer):
             self.state_size.append(tf.TensorShape([n]))
 
         # create attributes
-        self.perturbation_dims_active = False
         self.n_ministeps = int(np.maximum(n_ministeps, 1))
         self.output_size = self.state_size
         self.plant = plant
@@ -57,17 +56,20 @@ class GRUController(Layer):
             visual_true, _ = tf.split(cstate, 2, axis=-1)  # position only (discard velocity)
             return visual_true
 
-        self.unpack_plant_states = Lambda(lambda x: x[:4])
-        self.unpack_feedback_states = Lambda(lambda x: x[4:6])
-        self.get_feedback_backlog = Lambda(lambda x: tf.slice(x, [0, 0, 1], [-1, -1, -1]))
-        self.get_feedback_current = Lambda(lambda x: tf.squeeze(tf.slice(x, [0, 0, 0], [-1, -1, 1]), axis=-1))
-        self.lambda_cat = Lambda(lambda x: tf.concat(x, axis=-1))
-        self.lambda_cat2 = Lambda(lambda x: tf.concat(x, axis=2))
-        self.add_noise = Lambda(lambda x: x[0] + tf.random.normal(tf.shape(x[0]), stddev=x[1]))
-        self.tile_feedback = Lambda(lambda x: tf.tile(x[0][:, :, tf.newaxis], [1, 1, x[1]]))
-        self.get_new_proprio_feedback = Lambda(lambda x: get_new_proprio_feedback(x))
-        self.get_new_visual_feedback = Lambda(lambda x: get_new_visual_feedback(x))
-        self.get_new_hidden_state = Lambda(lambda x: [tf.zeros((x[0], n_u), dtype=x[1]) for n_u in self.n_units])
+        # TODO: put in the build method
+        self.unpack_plant_states = Lambda(lambda x: x[:4], name="unpack_plant_states")
+        self.unpack_feedback_states = Lambda(lambda x: x[4:6], name="unpack_feedback_states")
+        self.get_feedback_backlog = Lambda(lambda x: tf.slice(x, [0, 0, 1], [-1, -1, -1]), name="get_feedback_backlog")
+        self.get_feedback_current = \
+            Lambda(lambda x: tf.squeeze(tf.slice(x, [0, 0, 0], [-1, -1, 1]), axis=-1), name="get_feedback_current")
+        self.lambda_cat = Lambda(lambda x: tf.concat(x, axis=-1), name="lambda_cat")
+        self.lambda_cat2 = Lambda(lambda x: tf.concat(x, axis=2), name="lambda_cat2")
+        self.add_noise = Lambda(lambda x: x[0] + tf.random.normal(tf.shape(x[0]), stddev=x[1]), name="add_noise")
+        self.tile_feedback = Lambda(lambda x: tf.tile(x[0][:, :, tf.newaxis], [1, 1, x[1]]), name="tile_feedback")
+        self.get_new_proprio_feedback = Lambda(lambda x: get_new_proprio_feedback(x), name="get_new_proprio_feedback")
+        self.get_new_visual_feedback = Lambda(lambda x: get_new_visual_feedback(x), name="get_new_visual_feedback")
+        self.get_new_hidden_state =\
+            Lambda(lambda x: [tf.zeros((x[0], n_u), dtype=x[1]) for n_u in self.n_units], name="get_new_hidden_state")
         self.built = False
 
         super().__init__(**kwargs)
@@ -108,19 +110,14 @@ class GRUController(Layer):
         new_hidden_states_dict = {}
         new_hidden_states = []
 
-        # split perturbation signal out of the back of inputs
-        # the perturbation signal must be the last 2 dimensions of inputs
-        if self.perturbation_dims_active:
-            # TODO: Oli: this may feed the memory leak so it should be Lambda-wrapped at some point
-            inputs, perturbation = tf.split(inputs, [inputs.shape[1] - 2, 2], axis=1)
-
         # handle feedback
         old_proprio_feedback, old_visual_feedback = self.unpack_feedback_states(states)
         proprio_backlog = self.get_feedback_backlog(old_proprio_feedback)
         visual_backlog = self.get_feedback_backlog(old_visual_feedback)
         proprio_fb = self.get_feedback_current(old_proprio_feedback)
         visual_fb = self.get_feedback_current(old_visual_feedback)
-        x = self.lambda_cat((proprio_fb, visual_fb, inputs))
+
+        x = self.lambda_cat((proprio_fb, visual_fb, inputs.pop("inputs")))
 
         # net forward pass
         for k in range(self.n_hidden_layers):
@@ -133,10 +130,7 @@ class GRUController(Layer):
         # plant forward pass
         jstate, cstate, mstate, gstate = self.unpack_plant_states(states)
         for _ in range(self.n_ministeps):
-            if self.perturbation_dims_active:
-                jstate, cstate, mstate, gstate = self.plant(u, jstate, mstate, gstate, joint_load=perturbation)
-            else:
-                jstate, cstate, mstate, gstate = self.plant(u, jstate, mstate, gstate)
+            jstate, cstate, mstate, gstate = self.plant(u, jstate, mstate, gstate, **inputs)
 
         proprio_true = self.get_new_proprio_feedback(mstate)
         visual_true = self.get_new_visual_feedback(cstate)

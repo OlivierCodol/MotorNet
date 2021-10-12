@@ -3,6 +3,7 @@ import tensorflow as tf
 from tensorflow.keras.layers import Lambda
 from MotorNet.plants.skeletons import TwoDofArm
 from MotorNet.plants.muscles import CompliantTendonHillMuscle
+# TODO check all values for input_dim and output_dim attributes
 
 
 class PlantWrapper:

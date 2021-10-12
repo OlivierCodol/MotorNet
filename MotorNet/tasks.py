@@ -1,7 +1,9 @@
+
+import copy
 import numpy as np
+import tensorflow as tf
 from abc import abstractmethod
 from MotorNet.nets.losses import position_loss, activation_squared_loss, activation_velocity_squared_loss
-import tensorflow as tf
 
 
 class Task(tf.keras.utils.Sequence):
@@ -12,6 +14,7 @@ class Task(tf.keras.utils.Sequence):
         self.training_iterations = 1000
         self.training_batch_size = 32
         self.training_n_timesteps = 100
+        self.delay_range = [0, 0]
         self.do_recompute_targets = False
         self.kwargs = kwargs
 
@@ -42,8 +45,19 @@ class Task(tf.keras.utils.Sequence):
         return self.controller.get_initial_state(batch_size=batch_size, inputs=inputs)
 
     def get_input_dim(self):
-        [inputs, _, _] = self.generate(batch_size=1, n_timesteps=5000)
-        shape = inputs.get_shape().as_list()
+        [inputs, _, _] = self.generate(batch_size=1, n_timesteps=self.delay_range[-1]+1)
+
+
+        if type(inputs) is dict:
+            i = inputs["inputs"]
+        else:
+            i = inputs
+
+        if tf.is_tensor(i):
+            shape = i.get_shape().as_list()
+        else:
+            shape = i.shape
+
         return shape[-1]
 
     def get_losses(self):
@@ -82,7 +96,7 @@ class TaskStaticTarget(Task):
         init_states = self.get_initial_state(batch_size=batch_size)
         goal_states = self.plant.draw_random_uniform_states(batch_size=batch_size)
         targets = self.plant.state2target(state=self.plant.joint2cartesian(goal_states), n_timesteps=n_timesteps)
-        return [targets[:, :, 0:self.plant.space_dim], targets, init_states]
+        return [targets[:, :, :self.plant.space_dim], targets, init_states]
 
 
 class TaskStaticTargetWithPerturbations(Task):
@@ -110,29 +124,25 @@ class TaskDelayedReach(Task):
         self.losses = {'cartesian position': position_loss(),
                        'muscle state': activation_squared_loss(self.plant.Muscle.max_iso_force)}
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
-
-        self.bump_length = int(kwargs.get('bump_length', 50) / 1000 / self.plant.dt)
-        self.bump_height = kwargs.get('bump_height', 1)
-        self.delay_range = np.array(kwargs.get('delay_range', [100, 900])) / 1000 / self.plant.dt
+        delay_range = np.array(kwargs.get('delay_range', [100, 900])) / 1000 / self.plant.dt
+        self.delay_range = [int(delay_range[0]), int(delay_range[1])]
+        self.convert_to_tensor = tf.keras.layers.Lambda(lambda x: tf.convert_to_tensor(x))
 
     def generate(self, batch_size, n_timesteps, **kwargs):
         init_states = self.get_initial_state(batch_size=batch_size)
-        center = self.plant.joint2cartesian(init_states[0][0, :])
-        goal_states = self.plant.draw_random_uniform_states(batch_size=batch_size)
-        targets = self.plant.state2target(state=self.plant.joint2cartesian(goal_states),
-                                          n_timesteps=n_timesteps).numpy()
+        center = self.plant.joint2cartesian(init_states[0][:, :])
+        goal_states = self.plant.joint2cartesian(self.plant.draw_random_uniform_states(batch_size=batch_size))
+        targets = self.plant.state2target(state=goal_states, n_timesteps=n_timesteps).numpy()
 
-        temp_inputs = []
+        inputs = copy.deepcopy(targets)
+        gocue = np.zeros([batch_size, n_timesteps, 1])
         for i in range(batch_size):
-            delay_time = generate_delay_time(self.delay_range[0], self.delay_range[1], 'random')
-            bump = np.concatenate([np.zeros(delay_time), np.ones(self.bump_length)*self.bump_height,
-                                   np.zeros(int(n_timesteps - delay_time - self.bump_length))])
-            # temp_inputs.append(np.concatenate([np.squeeze(targets[i, :, 0:2]), np.expand_dims(bump, axis=1)], axis=1))
-            temp_inputs.append(np.squeeze(targets[i, :, :]))
-            targets[i, 0:delay_time, :] = center
+            delay_time = int(np.random.uniform(self.delay_range[0], self.delay_range[1]))
+            targets[i, :delay_time, :] = center[i, np.newaxis, :]
+            gocue[i, delay_time, 0] = 1.
 
-        inputs = tf.stack(temp_inputs, axis=0)
-        return [inputs, tf.convert_to_tensor(targets), init_states]
+        inputs = {"inputs": np.concatenate([inputs, gocue], axis=-1)}
+        return [inputs, self.convert_to_tensor(targets), init_states]
 
 
 class TaskDelayedMultiReach(Task):
@@ -217,8 +227,7 @@ class SequenceHorizon(Task):
         self.delay_range = np.array(kwargs.get('delay_range', [100, 900])) / 1000 / self.plant.dt
         self.num_target = kwargs.get('num_target', 1)
         self.num_horizon = kwargs.get('num_horizon', 0)
-        
-            
+
     def generate(self, batch_size, n_timesteps, **kwargs):
         init_states = self.get_initial_state(batch_size=batch_size)
         center = self.plant.joint2cartesian(init_states[0][0, :])
@@ -245,14 +254,14 @@ class SequenceHorizon(Task):
         center_before_go_in = np.zeros((batch_size, delay_time, 2*(self.num_horizon+1)+1))
         center_before_go_out = np.zeros((batch_size, delay_time, 4)) 
         # Assign
-        center_before_go_in[:, :, 0:2*(self.num_horizon+1)] = target_list[:, 0:delay_time, 0:2, 0:self.num_horizon+1].reshape(batch_size, delay_time,-1)
+        center_before_go_in[:, :, 0:2*(self.num_horizon+1)] = target_list[:, 0:delay_time, 0:2, 0:self.num_horizon+1].reshape(batch_size, delay_time, -1)
         center_before_go_out[:, :, 0:] = center
         
         # Get the go-cue bump
         go_in = np.zeros((batch_size, self.bump_length, 2*(self.num_horizon+1)+1))
         go_out = np.zeros((batch_size, self.bump_length, 4))
         
-        go_in[:, :, 0:2*(self.num_horizon+1)] = target_list[:, 0:self.bump_length, 0:2, 0:self.num_horizon+1].reshape(batch_size, self.bump_length,-1)
+        go_in[:, :, 0:2*(self.num_horizon+1)] = target_list[:, 0:self.bump_length, 0:2, 0:self.num_horizon+1].reshape(batch_size, self.bump_length, -1)
         go_in[:, :, -1] = np.ones((self.bump_length, )) * self.bump_length
         go_out[:, :, 0:] = center
 
@@ -267,10 +276,10 @@ class SequenceHorizon(Task):
             target_input[:, tg*n_timesteps:(tg+1)*n_timesteps, 0:2*(self.num_horizon+1)] = target_list[:, :, 0:2, tg:tg+(self.num_horizon+1)].reshape(batch_size, n_timesteps, -1)
             target_output[:, tg*n_timesteps:(tg+1)*n_timesteps, :] = target_list[:, :, :, tg]
         # COncatenate different part of the task
-        IN = np.concatenate((center_in, center_before_go_in, go_in, target_input), axis=1)
-        OUT = np.concatenate((center_out, center_before_go_out, go_out, target_output), axis=1)
+        inp = np.concatenate((center_in, center_before_go_in, go_in, target_input), axis=1)
+        outp = np.concatenate((center_out, center_before_go_out, go_out, target_output), axis=1)
         
-        return [tf.convert_to_tensor(IN), tf.convert_to_tensor(OUT), init_states]
+        return [tf.convert_to_tensor(inp), tf.convert_to_tensor(outp), init_states]
 
 
 class TaskLoadProbability(Task):
@@ -387,25 +396,25 @@ class TaskLoadProbability(Task):
                     input_1[target_time + visual_delay:] = prob
                     input_2[target_time + visual_delay:] = 1 - prob
 
-
             inputs[i, :, 0] = input_1
             inputs[i, :, 1] = input_2
             inputs[i, :, 4] = input_5
 
             inputs[i, :, 4] = inputs[i, :, 4] + np.random.normal(loc=0.,
-                                                         scale=self.controller.proprioceptive_noise_sd,
-                                                         size=n_timesteps)
+                                                                 scale=self.controller.proprioceptive_noise_sd,
+                                                                 size=n_timesteps)
             inputs[i, :, 0:4] = inputs[i, :, 0:4] + np.random.normal(loc=0.,
                                                                      scale=self.controller.visual_noise_sd,
                                                                      size=(n_timesteps, 4))
             inputs[i, :, 5:7] = perturbation
             inputs[i, pert_time:, 5:7] = [0, self.background_load] + np.random.normal(loc=0., scale=0.5, size=2)
-          #  inputs[i, :, 5:7] = perturbation
+            #  inputs[i, :, 5:7] = perturbation
 
         return [tf.convert_to_tensor(inputs, dtype=tf.float32), tf.convert_to_tensor(targets, dtype=tf.float32),
                 init_states]
 
-    def recompute_targets(self, inputs, targets, outputs):
+    @staticmethod
+    def recompute_targets(inputs, targets, outputs):
         # grab endpoint position and velocity
         cartesian_pos = outputs['cartesian position']
         # calculate the distance to the targets as run by the forward pass
@@ -466,7 +475,8 @@ class TaskYangetal2011(Task):
         return [tf.convert_to_tensor(inputs, dtype=tf.float32), tf.convert_to_tensor(targets, dtype=tf.float32),
                 init_states]
 
-    def recompute_targets(self, inputs, targets, outputs):
+    @staticmethod
+    def recompute_targets(inputs, targets, outputs):
         # grab endpoint position and velocity
         cartesian_pos = outputs['cartesian position']
         # calculate the distance to the targets as run by the forward pass
