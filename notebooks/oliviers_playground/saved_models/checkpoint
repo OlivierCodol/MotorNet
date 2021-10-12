@@ -1,2 +1,0 @@
-model_checkpoint_path: "compliant_tendon50gru_1e-3dt_10ministeps"
-all_model_checkpoint_paths: "compliant_tendon50gru_1e-3dt_10ministeps"
