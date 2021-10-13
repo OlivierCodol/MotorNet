@@ -3,6 +3,8 @@ import copy
 import numpy as np
 import tensorflow as tf
 from abc import abstractmethod
+from scipy.signal import butter, lfilter
+import random
 from MotorNet.nets.losses import position_loss, activation_squared_loss, activation_velocity_squared_loss
 
 
@@ -401,16 +403,141 @@ class TaskLoadProbability(Task):
             inputs[i, :, 4] = input_5
 
             inputs[i, :, 4] = inputs[i, :, 4] + np.random.normal(loc=0.,
-                                                                 scale=self.controller.proprioceptive_noise_sd,
-                                                                 size=n_timesteps)
+                                                         scale=self.controller.proprioceptive_noise_sd,
+                                                         size=n_timesteps)
             inputs[i, :, 0:4] = inputs[i, :, 0:4] + np.random.normal(loc=0.,
                                                                      scale=self.controller.visual_noise_sd,
                                                                      size=(n_timesteps, 4))
             inputs[i, :, 5:7] = perturbation
-            inputs[i, pert_time:, 5:7] = [0, self.background_load] + np.random.normal(loc=0., scale=0.5, size=2)
-            #  inputs[i, :, 5:7] = perturbation
 
         return [tf.convert_to_tensor(inputs, dtype=tf.float32), tf.convert_to_tensor(targets, dtype=tf.float32),
+                init_states]
+
+    def recompute_targets(self, inputs, targets, outputs):
+        # grab endpoint position and velocity
+        cartesian_pos = outputs['cartesian position']
+        # calculate the distance to the targets as run by the forward pass
+        dist = tf.sqrt(tf.reduce_sum((cartesian_pos[:, :, 0:2] - targets[:, :, 0:2])**2, axis=2))
+        dist = tf.where(tf.equal(inputs[0][:, :, -1], -1.), 1000., dist)
+        dist = tf.tile(tf.expand_dims(dist, axis=2), tf.constant([1, 1, 2], tf.int32))
+        cartesian_pos_no_vel = tf.concat([cartesian_pos[:, :, 0:2], tf.zeros_like(dist)], axis=2)
+        dist = tf.concat([dist, tf.zeros_like(dist)], axis=2)
+        # if the distance is less than a certain amount, replace the target with the result of the forward pass
+        targets = tf.where(tf.less_equal(dist, 0.035), cartesian_pos_no_vel, targets)
+        return targets
+
+
+class TaskLoadProbabilityDistributed(Task):
+    def __init__(self, controller, **kwargs):
+        super().__init__(controller, **kwargs)
+        self.__name__ = 'TaskLoadProbabilityDistributed'
+
+        self.vel_weight = kwargs.get('vel_weight', 0.)
+        self.losses = {'cartesian position': position_loss(),
+                       'muscle state': activation_velocity_squared_loss(self.plant.Muscle.max_iso_force,
+                                                                        vel_weight=self.vel_weight)}
+        self.cartesian_loss = kwargs.get('cartesian_loss', 1)
+        self.muscle_loss = kwargs.get('muscle_loss', 0)
+        self.loss_weights = {'cartesian position': self.cartesian_loss, 'muscle state': self.muscle_loss}  # 10-20 best
+
+        self.target_time_range = int(np.array(kwargs.get('target_time_range', [0.1, 0.3])) / self.plant.dt)
+        self.delay_range = int(np.array(kwargs.get('delay_range', [0.2, 1.0])) / self.plant.dt)
+        self.condition_independent_magnitude = kwargs.get('condition_independent_magnitude', 0.1)
+        self.background_load = kwargs.get('background_load', 0.)
+
+        self.run_mode = kwargs.get('run_mode', 'train')
+
+        self.do_recompute_targets = kwargs.get('do_recompute_targets', False)
+
+    def generate(self, batch_size, n_timesteps, **kwargs):
+        if self.run_mode == 'experiment_mode':
+            self.delay_range = np.array([0.5, 0.5]) / self.plant.dt
+            self.target_time_range = np.array([0.2, 0.2]) / self.plant.dt
+        init_states = self.get_initial_state(batch_size=batch_size)
+        center = self.plant.joint2cartesian(init_states[0][0, :]).numpy()
+        # these are our target locations for the experiment version
+        goal_state1 = center + np.array([-0.028279, -0.042601, 0, 0])
+        goal_state2 = center - np.array([-0.028279, -0.042601, 0, 0])
+        goal_states = self.plant.joint2cartesian(self.plant.draw_random_uniform_states(batch_size=batch_size))
+        targets = np.tile(np.expand_dims(goal_states, axis=1), (1, n_timesteps, 1))
+        joint_offset = 64
+        pos_pert_ind = 47
+        neg_pert_ind = 16
+        prob_array = np.array([0, 0.25, 0.5, 0.75, 1])
+        visual_delay = self.controller.visual_delay
+        proprioceptive_delay = self.controller.proprioceptive_delay
+        inputs = np.zeros(shape=(batch_size, n_timesteps, 64*2 + 2 + 1))
+        perturbations = np.zeros(shape=(batch_size, n_timesteps, 2))
+        target_ind = [128, 129]
+        condind_ind = [130]
+        pert_range = np.linspace(-2, 2, 64)
+        for i in range(batch_size):
+            target_time = generate_delay_time(self.target_time_range[0], self.target_time_range[1], 'random')
+            delay_time = generate_delay_time(self.delay_range[0], self.delay_range[1], 'random')
+            if self.run_mode == 'experiment':
+                prob = prob_array[np.random.randint(0, 5)]
+                inputs[i, target_time + visual_delay:, pos_pert_ind + joint_offset] = prob
+                inputs[i, target_time + visual_delay:, neg_pert_ind + joint_offset] = 1 - prob
+                sho_prob = np.zeros(64)
+                elb_prob = inputs[i, target_time + visual_delay, joint_offset:]
+                if np.random.rand() < 0.5:
+                    targets[i, :, :] = np.tile(np.expand_dims(goal_state1, axis=1), [1, n_timesteps, 1])
+                else:
+                    targets[i, :, :] = np.tile(np.expand_dims(goal_state2, axis=1), [1, n_timesteps, 1])
+            elif self.run_mode == 'train':
+                for joint in range(2):
+                    prob_dist = np.abs(np.random.normal(loc=0, scale=1, size=64*3))
+                    prob_dist = butter_lowpass_filter(prob_dist, 3, 64, 2)
+                    prob_dist = prob_dist[64:64*2]
+                    prob_dist = prob_dist / np.sum(prob_dist)
+                    if joint == 0:
+                        inputs[i, target_time + visual_delay:, 0:64] = prob_dist
+                        sho_prob = prob_dist
+                    else:
+                        inputs[i, target_time + visual_delay:, joint_offset : joint_offset+64] = prob_dist
+                        elb_prob = prob_dist
+
+                r = 0.15 * np.sqrt(np.random.rand())
+                theta = np.random.rand() * 2 * np.pi
+                new_pos = center[0, 0:2] + np.expand_dims([r * np.cos(theta), r * np.sin(theta)], axis=0)
+                targets[i, :, 0:2] = np.tile(np.expand_dims(new_pos, axis=1), [1, n_timesteps, 1])
+
+            inputs[i, :, target_ind] = targets[i, :, 0:2]
+            condition_independent = np.zeros(shape=n_timesteps)
+            perturbation = np.tile([0, self.background_load], (n_timesteps, 1))  # background load
+            pert_time = delay_time
+            if self.run_mode == 'experiment':
+                catch_chance = 0
+            else:
+                catch_chance = 0.1  # 0.3 best
+            if np.greater_equal(np.random.rand(), catch_chance):
+                targets[i, 0:pert_time, :] = center
+                for joint in range(2):
+                    if joint == 0:
+                        this_prob = sho_prob
+                    else:
+                        this_prob = elb_prob
+                    big_prob = []
+                    for p in this_prob:
+                        big_prob.append(np.tile(p, np.round(p*1000)))
+                        perturbation[pert_time:, joint] = pert_range[random.choice(big_prob)]
+                    else:
+                        perturbation[pert_time:, joint] = self.background_load + pert_range[random.choice(big_prob)]
+                condition_independent[pert_time + proprioceptive_delay:] = self.condition_independent_magnitude  # +4 best, 0.2 best
+            else:
+                targets[i, :, :] = center
+
+            inputs[i, :, condind_ind] = condition_independent + np.random.normal(loc=0.,
+                                                                 scale=self.controller.proprioceptive_noise_sd,
+                                                                 size=n_timesteps)
+            inputs[i, :, 0:130] = inputs[i, :, 0:130] + np.random.normal(loc=0.,
+                                                                     scale=self.controller.visual_noise_sd,
+                                                                     size=(n_timesteps, 4))
+            perturbations[i, :, :] = perturbation
+
+        return [{'inputs': tf.convert_to_tensor(inputs, dtype=tf.float32),
+                 'joint_load': tf.convert_to_tensor(perturbation, dtype=tf.float32)},
+                tf.convert_to_tensor(targets, dtype=tf.float32),
                 init_states]
 
     @staticmethod
@@ -499,3 +626,16 @@ def generate_delay_time(delay_min, delay_max, delay_mode):
         raise AttributeError
 
     return int(delay_time)
+
+
+def butter_lowpass(cutoff, fs, order=5):
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    return b, a
+
+
+def butter_lowpass_filter(data, cutoff, fs, order=5):
+    b, a = butter_lowpass(cutoff, fs, order=order)
+    y = lfilter(b, a, data)
+    return y
