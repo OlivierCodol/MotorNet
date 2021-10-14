@@ -440,8 +440,10 @@ class TaskLoadProbabilityDistributed(Task):
         self.muscle_loss = kwargs.get('muscle_loss', 0)
         self.loss_weights = {'cartesian position': self.cartesian_loss, 'muscle state': self.muscle_loss}  # 10-20 best
 
-        self.target_time_range = int(np.array(kwargs.get('target_time_range', [0.1, 0.3])) / self.plant.dt)
-        self.delay_range = int(np.array(kwargs.get('delay_range', [0.2, 1.0])) / self.plant.dt)
+        target_time_range = np.array(kwargs.get('target_time_range', [0.1, 0.3])) / self.plant.dt
+        self.target_time_range = [int(target_time_range[0]), int(target_time_range[1])]
+        delay_range = np.array(kwargs.get('delay_range', [0.2, 1.0])) / self.plant.dt
+        self.delay_range = [int(delay_range[0]), int(delay_range[1])]
         self.condition_independent_magnitude = kwargs.get('condition_independent_magnitude', 0.1)
         self.background_load = kwargs.get('background_load', 0.)
 
@@ -458,19 +460,19 @@ class TaskLoadProbabilityDistributed(Task):
         # these are our target locations for the experiment version
         goal_state1 = center + np.array([-0.028279, -0.042601, 0, 0])
         goal_state2 = center - np.array([-0.028279, -0.042601, 0, 0])
-        goal_states = self.plant.joint2cartesian(self.plant.draw_random_uniform_states(batch_size=batch_size))
+        goal_states = self.plant.joint2cartesian(self.plant.draw_random_uniform_states(batch_size=batch_size)).numpy()
         targets = np.tile(np.expand_dims(goal_states, axis=1), (1, n_timesteps, 1))
-        joint_offset = 64
-        pos_pert_ind = 47
+        joint_offset = 65
+        pos_pert_ind = 48
         neg_pert_ind = 16
+        zero_pert_ind = 32
         prob_array = np.array([0, 0.25, 0.5, 0.75, 1])
         visual_delay = self.controller.visual_delay
         proprioceptive_delay = self.controller.proprioceptive_delay
-        inputs = np.zeros(shape=(batch_size, n_timesteps, 64*2 + 2 + 1))
+        inputs = np.zeros(shape=(batch_size, n_timesteps, 65*2 + 2 + 1))
         perturbations = np.zeros(shape=(batch_size, n_timesteps, 2))
-        target_ind = [128, 129]
-        condind_ind = [130]
-        pert_range = np.linspace(-2, 2, 64)
+        condind_ind = 132
+        pert_range = np.linspace(-2, 2, 65)
         for i in range(batch_size):
             target_time = generate_delay_time(self.target_time_range[0], self.target_time_range[1], 'random')
             delay_time = generate_delay_time(self.delay_range[0], self.delay_range[1], 'random')
@@ -478,8 +480,10 @@ class TaskLoadProbabilityDistributed(Task):
                 prob = prob_array[np.random.randint(0, 5)]
                 inputs[i, target_time + visual_delay:, pos_pert_ind + joint_offset] = prob
                 inputs[i, target_time + visual_delay:, neg_pert_ind + joint_offset] = 1 - prob
-                sho_prob = np.zeros(64)
-                elb_prob = inputs[i, target_time + visual_delay, joint_offset:]
+                sho_prob = np.zeros(65)
+                sho_prob[zero_pert_ind] = 1.
+                inputs[i, target_time + visual_delay:, zero_pert_ind] = 1.
+                elb_prob = inputs[i, target_time + visual_delay + 1, joint_offset:joint_offset+65]
                 if np.random.rand() < 0.5:
                     targets[i, :, :] = np.tile(np.expand_dims(goal_state1, axis=1), [1, n_timesteps, 1])
                 else:
@@ -487,29 +491,28 @@ class TaskLoadProbabilityDistributed(Task):
             elif self.run_mode == 'train':
                 for joint in range(2):
                     prob_dist = np.abs(np.random.normal(loc=0, scale=1, size=64*3))
-                    prob_dist = butter_lowpass_filter(prob_dist, 3, 64, 2)
-                    prob_dist = prob_dist[64:64*2]
+                    prob_dist = butter_lowpass_filter(prob_dist, 3, 65, 2)
+                    prob_dist = prob_dist[65:65*2]
                     prob_dist = prob_dist / np.sum(prob_dist)
                     if joint == 0:
-                        inputs[i, target_time + visual_delay:, 0:64] = prob_dist
+                        inputs[i, target_time + visual_delay:, 0:65] = prob_dist
                         sho_prob = prob_dist
                     else:
-                        inputs[i, target_time + visual_delay:, joint_offset : joint_offset+64] = prob_dist
+                        inputs[i, target_time + visual_delay:, joint_offset : joint_offset+65] = prob_dist
                         elb_prob = prob_dist
 
                 r = 0.15 * np.sqrt(np.random.rand())
                 theta = np.random.rand() * 2 * np.pi
                 new_pos = center[0, 0:2] + np.expand_dims([r * np.cos(theta), r * np.sin(theta)], axis=0)
                 targets[i, :, 0:2] = np.tile(np.expand_dims(new_pos, axis=1), [1, n_timesteps, 1])
-
-            inputs[i, :, target_ind] = targets[i, :, 0:2]
+            inputs[i, :, 130:132] = targets[i, :, 0:2]
             condition_independent = np.zeros(shape=n_timesteps)
-            perturbation = np.tile([0, self.background_load], (n_timesteps, 1))  # background load
+            perturbation = np.tile([0., self.background_load], (n_timesteps, 1))  # background load
             pert_time = delay_time
             if self.run_mode == 'experiment':
                 catch_chance = 0
             else:
-                catch_chance = 0.1  # 0.3 best
+                catch_chance = 0.3  # 0.3 best
             if np.greater_equal(np.random.rand(), catch_chance):
                 targets[i, 0:pert_time, :] = center
                 for joint in range(2):
@@ -518,8 +521,10 @@ class TaskLoadProbabilityDistributed(Task):
                     else:
                         this_prob = elb_prob
                     big_prob = []
-                    for p in this_prob:
-                        big_prob.append(np.tile(p, np.round(p*1000)))
+                    for j in range(len(this_prob)):
+                        big_prob.append(np.tile(j, int(np.round(this_prob[j]*10000))))
+                    big_prob = [item for sublist in big_prob for item in sublist]
+                    if joint == 0:
                         perturbation[pert_time:, joint] = pert_range[random.choice(big_prob)]
                     else:
                         perturbation[pert_time:, joint] = self.background_load + pert_range[random.choice(big_prob)]
@@ -530,23 +535,22 @@ class TaskLoadProbabilityDistributed(Task):
             inputs[i, :, condind_ind] = condition_independent + np.random.normal(loc=0.,
                                                                  scale=self.controller.proprioceptive_noise_sd,
                                                                  size=n_timesteps)
-            inputs[i, :, 0:130] = inputs[i, :, 0:130] + np.random.normal(loc=0.,
+            inputs[i, :, 0:132] = inputs[i, :, 0:132] + np.random.normal(loc=0.,
                                                                      scale=self.controller.visual_noise_sd,
-                                                                     size=(n_timesteps, 4))
+                                                                     size=(n_timesteps, 132))
             perturbations[i, :, :] = perturbation
 
-        return [{'inputs': tf.convert_to_tensor(inputs, dtype=tf.float32),
-                 'joint_load': tf.convert_to_tensor(perturbation, dtype=tf.float32)},
-                tf.convert_to_tensor(targets, dtype=tf.float32),
-                init_states]
+        all_inputs = {"inputs": inputs, "joint_load": perturbations}
+        return [all_inputs, tf.convert_to_tensor(targets, dtype=tf.float32), init_states]
 
     @staticmethod
     def recompute_targets(inputs, targets, outputs):
+        joint_load = inputs[0]["joint_load"]
         # grab endpoint position and velocity
         cartesian_pos = outputs['cartesian position']
         # calculate the distance to the targets as run by the forward pass
         dist = tf.sqrt(tf.reduce_sum((cartesian_pos[:, :, 0:2] - targets[:, :, 0:2])**2, axis=2))
-        dist = tf.where(tf.equal(inputs[0][:, :, -1], -1.), 1000., dist)
+        dist = tf.where(tf.equal(joint_load[:, :, -1], -1.), 1000., dist)
         dist = tf.tile(tf.expand_dims(dist, axis=2), tf.constant([1, 1, 2], tf.int32))
         cartesian_pos_no_vel = tf.concat([cartesian_pos[:, :, 0:2], tf.zeros_like(dist)], axis=2)
         dist = tf.concat([dist, tf.zeros_like(dist)], axis=2)
