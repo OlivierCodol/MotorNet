@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.layers import Layer, GRUCell, Dense, Lambda
+from tensorflow.python.keras.layers.core import ActivityRegularization
 
 
 class GRUController(Layer):
@@ -36,6 +37,7 @@ class GRUController(Layer):
         self.plant = plant
         self.kernel_regularizer_weight = kernel_regularizer
         self.kernel_regularizer = tf.keras.regularizers.l2(kernel_regularizer)
+        self.activity_regularizer = tf.keras.regularizers.l2(activity_regularizer)
         self.recurrent_regularizer_weight = recurrent_regularizer
         self.recurrent_regularizer = tf.keras.regularizers.l2(recurrent_regularizer)
         self.n_hidden_layers = n_hidden_layers
@@ -80,14 +82,16 @@ class GRUController(Layer):
                             activation=self.activation,
                             name='hidden_layer_' + str(k),
                             kernel_regularizer=self.kernel_regularizer,
-                            recurrent_regularizer=self.recurrent_regularizer)
+                            recurrent_regularizer=self.recurrent_regularizer,
+                            activity_regularizer=self.activity_regularizer)
             self.layers.append(layer)
         output_layer = Dense(units=self.plant.input_dim,
                              activation='sigmoid',
                              name='output_layer',
                              bias_initializer=tf.initializers.Constant(value=-5),
                              kernel_initializer=tf.initializers.random_normal(stddev=10 ** -3),
-                             kernel_regularizer=self.kernel_regularizer)
+                             kernel_regularizer=self.kernel_regularizer,
+                             activity_regularizer=self.activity_regularizer)
         self.layers.append(output_layer)
         self.built = True
 
