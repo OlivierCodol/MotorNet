@@ -187,7 +187,7 @@ class TwoDofArm(Skeleton):
         return end_pos
 
     def _path2cartesian(self, path_coordinates, path_fixation_body, joint_state):
-        n_points = path_fixation_body.size
+        n_points = tf.size(path_fixation_body).numpy()
         joint_angles, joint_vel = tf.split(joint_state, 2, axis=-1)
         sho, elb_wrt_sho = tf.split(joint_angles, 2, axis=-1)
         elb = elb_wrt_sho + sho
@@ -201,7 +201,8 @@ class TwoDofArm(Skeleton):
         # This line picks no rotation angle if the muscle path point is fixed on the extrinstic workspace
         # (path_fixation_body = 0), the shoulder angle if it is fixed on the upper arm (path_fixation_body = 1) and the
         # eblow angle if it is fixed on the forearm (path_fixation_body = 2).
-        ang = tf.where(path_fixation_body.flatten() == 0., 0., tf.where(path_fixation_body.flatten() == 1., -sho, -elb))
+        flat_path_fixation_body = tf.reshape(path_fixation_body, -1)
+        ang = tf.where(flat_path_fixation_body == 0., 0., tf.where(flat_path_fixation_body == 1., -sho, -elb))
         ca = tf.cos(ang)
         sa = tf.sin(ang)
 
