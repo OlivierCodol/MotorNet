@@ -374,6 +374,7 @@ class CompliantTendonHillMuscle(Muscle):
         active_force = tf.maximum(flse - flpe, 0.)
 
         # RK4 integration
+        # TODO: implement RK4 at plant level to generalize integration across skeleton and muscle
         muscle_vel_k1 = self.muscle_ode(muscle_len_n, new_activation, active_force)
         muscle_vel_k2 = self.muscle_ode(muscle_len_n + self.dt * 0.5 * muscle_vel_k1, new_activation, active_force)
         muscle_vel_k3 = self.muscle_ode(muscle_len_n + self.dt * 0.5 * muscle_vel_k2, new_activation, active_force)
@@ -439,8 +440,8 @@ class CompliantTendonHillMuscle(Muscle):
 
         # if musculotendon length is negative, raise an error.
         # if musculotendon length is less than tendon slack length, assign all (most of) the length to the tendon.
-        # if musculotendon length is more than tendon slack length and less than muscle slack length, assign to the
-        #   tendon up to the tendon slack length, and the rest to the muscle length.
+        # if musculotendon length is more than tendon slack length and less than musculotendon slack length, assign to
+        #   the tendon up to the tendon slack length, and the rest to the muscle length.
         # if musculotendon length is more than tendon slack length and muscle slack length combined, find the muscle
         #   length that satisfies equilibrium between tendon passive forces and muscle passive forces.
         muscle_len = tf.where(
