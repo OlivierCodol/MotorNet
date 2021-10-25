@@ -278,6 +278,11 @@ class PlantWrapper:
 
 
 class RigidTendonArm(PlantWrapper):
+    """
+    This pre-built plant class is an implementation of a "lumped-muscle" model from Kistemaker et al. (2010),
+    J. Neurophysiol. Because lumped-muscle models are functional approximations of biological reality, this class'
+    geometry does not rely on the default geometry methods, but on its own, custom-made geometry.
+    """
 
     def __init__(self, muscle_type, skeleton=None, timestep=0.01, **kwargs):
 
@@ -326,6 +331,9 @@ class RigidTendonArm(PlantWrapper):
 
 
 class CompliantTendonArm(RigidTendonArm):
+    """
+    This is the compliant-tendon version of the "RigidTendonArm" class above
+    """
 
     def __init__(self, timestep=0.0001, **kwargs):
 
