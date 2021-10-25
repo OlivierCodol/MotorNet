@@ -30,7 +30,7 @@ def f(run_iter):
     from MotorNet.plants import RigidTendonArm
     from MotorNet.nets.layers import GRUController
     from MotorNet.nets.callbacks import TensorflowFix, BatchLogger
-    from MotorNet.nets.custommodels import MotorNetModel
+    from MotorNet.nets.models import MotorNetModel
     print('tensorflow version: ' + tf.__version__)
     os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
