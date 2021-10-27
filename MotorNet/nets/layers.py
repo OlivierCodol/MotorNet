@@ -1,7 +1,6 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.layers import Layer, GRUCell, Dense, Lambda
-from tensorflow.python.keras.layers.core import ActivityRegularization
 
 
 class GRUController(Layer):
