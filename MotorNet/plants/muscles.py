@@ -5,9 +5,9 @@ from abc import abstractmethod
 
 
 class Muscle:
-    # --------------------------
-    # base class for muscles
-    # --------------------------
+    """
+    Base class for muscles.
+    """
     def __init__(self, input_dim=1, output_dim=1, min_activation=0., tau_activation=0.015, tau_deactivation=0.05):
         self.input_dim = input_dim
         self.state_name = []

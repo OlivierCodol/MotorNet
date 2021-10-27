@@ -5,7 +5,9 @@ from abc import abstractmethod
 
 
 class Skeleton:
-    # Base class
+    """
+    Base class for skeletons.
+    """
 
     def __init__(self, dof, space_dim, **kwargs):
         self.dof = dof  # degrees of freedom of the skeleton (eg number of joints)
