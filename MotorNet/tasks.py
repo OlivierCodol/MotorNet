@@ -6,9 +6,13 @@ from abc import abstractmethod
 from scipy.signal import butter, lfilter
 import random
 from MotorNet.nets.losses import position_loss, activation_squared_loss, activation_velocity_squared_loss
+# TODO: check that "generate" methods do not feed the memory leak
 
 
 class Task(tf.keras.utils.Sequence):
+    """
+    Base class for tasks.
+    """
     def __init__(self, controller, initial_joint_state=None, **kwargs):
         self.__name__ = 'Generic Task'
         self.controller = controller
@@ -49,18 +53,19 @@ class Task(tf.keras.utils.Sequence):
     def get_input_dim(self):
         [inputs, _, _] = self.generate(batch_size=1, n_timesteps=self.delay_range[-1]+1)
 
+        def sort_shape(i):
+            if tf.is_tensor(i):
+                s = i.get_shape().as_list()
+            else:
+                s = i.shape
+            return s[-1]
 
         if type(inputs) is dict:
-            i = inputs["inputs"]
+            shape = {key: sort_shape(val) for key, val in inputs.items()}
         else:
-            i = inputs
+            shape = inputs
 
-        if tf.is_tensor(i):
-            shape = i.get_shape().as_list()
-        else:
-            shape = i.shape
-
-        return shape[-1]
+        return shape
 
     def get_losses(self):
         return [self.losses, self.loss_weights]
@@ -91,42 +96,50 @@ class TaskStaticTarget(Task):
         super().__init__(controller, **kwargs)
         self.__name__ = 'TaskStaticTarget'
         self.losses = {'cartesian position': position_loss(),
-                       'muscle state':activation_squared_loss(self.plant.Muscle.max_iso_force)}
-        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}  # 0.2
-
-    def generate(self, batch_size, n_timesteps, **kwargs):
-        init_states = self.get_initial_state(batch_size=batch_size)
-        goal_states = self.plant.draw_random_uniform_states(batch_size=batch_size)
-        targets = self.plant.state2target(state=self.plant.joint2cartesian(goal_states), n_timesteps=n_timesteps)
-        return [targets[:, :, :self.plant.space_dim], targets, init_states]
-
-
-class TaskStaticTargetWithPerturbations(Task):
-    def __init__(self, controller, **kwargs):
-        super().__init__(controller, **kwargs)
-        self.__name__ = 'TaskStaticTargetWithPerturbations'
-        self.losses = {'cartesian position': position_loss(),
                        'muscle state': activation_squared_loss(self.plant.Muscle.max_iso_force)}
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
 
     def generate(self, batch_size, n_timesteps, **kwargs):
         init_states = self.get_initial_state(batch_size=batch_size)
-        goal_states = self.plant.draw_random_uniform_states(batch_size=batch_size)
-        targets = self.plant.state2target(state=self.plant.joint2cartesian(goal_states), n_timesteps=n_timesteps)
-        perturbations = tf.constant(5., shape=(batch_size, n_timesteps, 2))
-        self.controller.perturbation_dims_active = True
-        inputs = tf.concat([targets[:, :, 0:self.plant.space_dim], perturbations], axis=2)
+        goal_states = self.plant.joint2cartesian(self.plant.draw_random_uniform_states(batch_size=batch_size))
+        targets = self.plant.state2target(state=goal_states, n_timesteps=n_timesteps).numpy()
+        inputs = {"inputs": targets[:, :, :self.plant.space_dim]}
+        return [inputs, targets, init_states]
+
+
+class TaskStaticTargetWithPerturbations(Task):
+    def __init__(self, controller, endpoint_load: float, **kwargs):
+        super().__init__(controller, **kwargs)
+        self.__name__ = 'TaskStaticTargetWithPerturbations'
+        self.losses = {'cartesian position': position_loss(),
+                       'muscle state': activation_squared_loss(self.plant.Muscle.max_iso_force)}
+        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
+        self.endpoint_load = endpoint_load
+
+    def generate(self, batch_size, n_timesteps, **kwargs):
+        init_states = self.get_initial_state(batch_size=batch_size)
+        goal_states = self.plant.joint2cartesian(self.plant.draw_random_uniform_states(batch_size=batch_size))
+        targets = self.plant.state2target(state=goal_states, n_timesteps=n_timesteps).numpy()
+        endpoint_load = tf.constant(self.endpoint_load, shape=(batch_size, n_timesteps, 2))
+        inputs = {"inputs": targets[:, :, :self.plant.space_dim], "endpoint_load": endpoint_load}
         return [inputs, targets, init_states]
 
 
 class TaskDelayedReach(Task):
+    """
+    A random-delay reach to a random target from a random starting position.
+
+    Args:
+      delay_range: Two-items list or numpy.array that indicate the minimum and maximum value of the delay timer.
+        The delay is randomly drawn from a uniform distribution bounded by these values.
+    """
     def __init__(self, controller, **kwargs):
         super().__init__(controller, **kwargs)
         self.__name__ = 'TaskDelayedReach'
         self.losses = {'cartesian position': position_loss(),
                        'muscle state': activation_squared_loss(self.plant.Muscle.max_iso_force)}
         self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
-        delay_range = np.array(kwargs.get('delay_range', [100, 900])) / 1000 / self.plant.dt
+        delay_range = np.array(kwargs.get('delay_range', [0.3, 0.6])) / self.plant.dt
         self.delay_range = [int(delay_range[0]), int(delay_range[1])]
         self.convert_to_tensor = tf.keras.layers.Lambda(lambda x: tf.convert_to_tensor(x))
 
@@ -159,20 +172,20 @@ class TaskDelayedMultiReach(Task):
         self.bump_height = kwargs.get('bump_height', 3)
         self.delay_range = np.array(kwargs.get('delay_range', [100, 900])) / 1000 / self.plant.dt
         self.num_target = kwargs.get('num_target', 1)
-            
+
     def generate(self, batch_size, n_timesteps, **kwargs):
         init_states = self.get_initial_state(batch_size=batch_size)
         center = self.plant.joint2cartesian(init_states[0][0, :])
-        
+
         num_target = self.num_target
         target_list = np.zeros((batch_size, n_timesteps, 4, num_target))
-        
+
         for tg in range(num_target):
             goal_states = self.plant.draw_random_uniform_states(batch_size=batch_size)
             target_list[:, :, :, tg] = self.plant.state2target(
                 state=self.plant.joint2cartesian(goal_states),
                 n_timesteps=n_timesteps).numpy()
-            
+
         temp_inputs = []
         temp_targets = []
 
@@ -233,7 +246,7 @@ class SequenceHorizon(Task):
     def generate(self, batch_size, n_timesteps, **kwargs):
         init_states = self.get_initial_state(batch_size=batch_size)
         center = self.plant.joint2cartesian(init_states[0][0, :])
-        
+
         target_list = np.zeros((batch_size, n_timesteps, 4, self.num_target))
 
         for tg in range(self.num_target):
@@ -241,46 +254,46 @@ class SequenceHorizon(Task):
             target_list[:, :, :, tg] = self.plant.state2target(
                 state=self.plant.joint2cartesian(goal_states),
                 n_timesteps=n_timesteps).numpy()
-            
+
         # Fill in itial part of trials
         # Go to center
         center_in = np.zeros((batch_size, n_timesteps, 2*(self.num_horizon+1)+1))
-        center_out = np.zeros((batch_size, n_timesteps, 4)) 
+        center_out = np.zeros((batch_size, n_timesteps, 4))
         # Assign
         center_in[:, :, :2] = center[0, :2]
         center_out[:, :, 0:] = center
-        
+
         # Show the first n_horizon target and stary in center
         delay_time = generate_delay_time(self.delay_range[0], self.delay_range[1], 'random')
-            
+
         center_before_go_in = np.zeros((batch_size, delay_time, 2*(self.num_horizon+1)+1))
-        center_before_go_out = np.zeros((batch_size, delay_time, 4)) 
+        center_before_go_out = np.zeros((batch_size, delay_time, 4))
         # Assign
         center_before_go_in[:, :, 0:2*(self.num_horizon+1)] = target_list[:, 0:delay_time, 0:2, 0:self.num_horizon+1].reshape(batch_size, delay_time, -1)
         center_before_go_out[:, :, 0:] = center
-        
+
         # Get the go-cue bump
         go_in = np.zeros((batch_size, self.bump_length, 2*(self.num_horizon+1)+1))
         go_out = np.zeros((batch_size, self.bump_length, 4))
-        
+
         go_in[:, :, 0:2*(self.num_horizon+1)] = target_list[:, 0:self.bump_length, 0:2, 0:self.num_horizon+1].reshape(batch_size, self.bump_length, -1)
         go_in[:, :, -1] = np.ones((self.bump_length, )) * self.bump_length
         go_out[:, :, 0:] = center
 
-        # Stack void targets for the end of sequence 
+        # Stack void targets for the end of sequence
         # What should I put at the end?
         target_list = np.concatenate((target_list, np.zeros((batch_size, n_timesteps, 4, self.num_horizon))), axis=-1)
 
         target_input = np.zeros((batch_size, self.num_target*n_timesteps, 2*(self.num_horizon+1)+1))
         target_output = np.zeros((batch_size, self.num_target*n_timesteps, 4))
-        
+
         for tg in range(self.num_target):
             target_input[:, tg*n_timesteps:(tg+1)*n_timesteps, 0:2*(self.num_horizon+1)] = target_list[:, :, 0:2, tg:tg+(self.num_horizon+1)].reshape(batch_size, n_timesteps, -1)
             target_output[:, tg*n_timesteps:(tg+1)*n_timesteps, :] = target_list[:, :, :, tg]
         # COncatenate different part of the task
         inp = np.concatenate((center_in, center_before_go_in, go_in, target_input), axis=1)
         outp = np.concatenate((center_out, center_before_go_out, go_out, target_output), axis=1)
-        
+
         return [tf.convert_to_tensor(inp), tf.convert_to_tensor(outp), init_states]
 
 
