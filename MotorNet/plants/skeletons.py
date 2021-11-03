@@ -118,6 +118,58 @@ class TwoDofArm(Skeleton):
         self.coriolis_2 = self.m2 * self.L1 * self.L2g
         self.c_viscosity = 0.0  # put at zero but available if implemented later on
 
+    def update_ode(self, inputs, joint_state, endpoint_load):
+        # first two elements of state are joint position, last two elements are joint angular velocities
+        old_vel = tf.cast(joint_state[:, 2:], dtype=tf.float32)
+        old_pos = tf.cast(joint_state[:, :2], dtype=tf.float32)
+        c1 = tf.cos(old_pos[:, 0])
+        c2 = tf.cos(old_pos[:, 1])
+        c12 = tf.cos(old_pos[:, 0] + old_pos[:, 1])
+        s1 = tf.sin(old_pos[:, 0])
+        s2 = tf.sin(old_pos[:, 1])
+        s12 = tf.sin(old_pos[:, 0] + old_pos[:, 1])
+
+        # inertia matrix (batch_size x 2 x 2)
+        inertia = self.inertia_c + c2[:, tf.newaxis, tf.newaxis] * self.inertia_m
+
+        # coriolis torques (batch_size x 2) plus a damping term (scaled by self.c_viscosity)
+        coriolis_1 = self.coriolis_1 * s2 * (2 * old_vel[:, 0] * old_vel[:, 1] + old_vel[:, 1] ** 2) + \
+            self.c_viscosity * old_vel[:, 0]
+        coriolis_2 = self.coriolis_2 * s2 * (old_vel[:, 0] ** 2) + self.c_viscosity * old_vel[:, 1]
+        coriolis = tf.stack([coriolis_1, coriolis_2], axis=1)
+
+        # jacobian to distribute external loads (torques) applied at endpoint to the two rigid links
+        jacobian_11 = c1 * self.L1 + c12 * self.L2
+        jacobian_12 = c12 * self.L2
+        jacobian_21 = s1 * self.L1 + s12 * self.L2
+        jacobian_22 = s12 * self.L2
+
+        # apply external loads
+        # loads = tf.cast(endpoint_load, dtype=tf.float32)
+        r_col = (jacobian_11 * endpoint_load[:, 0]) + (jacobian_21 * endpoint_load[:, 1])  # these are torques
+        l_col = (jacobian_12 * endpoint_load[:, 0]) + (jacobian_22 * endpoint_load[:, 1])
+        torques = inputs + tf.stack([r_col, l_col], axis=1)
+
+        rhs = -coriolis[:, :, tf.newaxis] + torques[:, :, tf.newaxis]
+
+        denom = 1 / (inertia[:, 0, 0] * inertia[:, 1, 1] - inertia[:, 0, 1] * inertia[:, 1, 0])
+        l_col = tf.stack([inertia[:, 1, 1], -inertia[:, 1, 0]], axis=1)
+        r_col = tf.stack([-inertia[:, 0, 1], inertia[:, 0, 0]], axis=1)
+        inertia_inv = denom[:, tf.newaxis, tf.newaxis] * tf.stack([l_col, r_col], axis=2)
+        new_acc_3d = tf.matmul(inertia_inv, rhs)
+        return new_acc_3d[:, :, 0]  # somehow tf.squeeze doesn't work well in a Lambda wrap...
+
+    def integrate(self, dt, acc, joint_state):
+        old_pos, old_vel = tf.split(tf.cast(joint_state, dtype=tf.float32), 2, axis=1)
+        new_vel = old_vel + acc * dt
+        new_pos = old_pos + old_vel * dt
+
+        # Clip to ensure values don't get off-hand.
+        # We clip position after velocity to ensure any off-space position is taken into account when clipping velocity.
+        new_vel = self.clip_velocity(new_pos, new_vel)
+        new_pos = tf.clip_by_value(new_pos, self.pos_lower_bound, self.pos_upper_bound)
+        return tf.concat([new_pos, new_vel], axis=1)
+
     def call(self, inputs, joint_state, endpoint_load):
         # first two elements of state are joint position, last two elements are joint angular velocities
         old_vel = tf.cast(joint_state[:, 2:], dtype=tf.float32)

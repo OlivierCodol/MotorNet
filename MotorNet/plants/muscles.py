@@ -463,3 +463,129 @@ class CompliantTendonHillMuscle(Muscle):
         muscle0_temp = tf.concat((activation, muscle_len, musculotendon_vel), axis=1)
         _, muscle0 = self.__call__(activation, muscle0_temp, geometry_state)
         return muscle0
+
+
+class CompliantTendonHillMuscleRK4(CompliantTendonHillMuscle):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def call(self, excitation, muscle_state, geometry_state):
+        new_activation = self.activation_ode(excitation, muscle_state)
+
+        # musculotendon geometry
+        muscle_len = tf.slice(muscle_state, [0, 1, 0], [-1, 1, -1])
+        muscle_len_n = muscle_len / self.l0_ce
+        musculotendon_len = tf.slice(geometry_state, [0, 0, 0], [-1, 1, -1])
+        tendon_len = musculotendon_len - muscle_len
+        tendon_strain = tf.maximum((tendon_len - self.l0_se) / self.l0_se, 0.)
+        muscle_strain = tf.maximum((muscle_len - self.l0_pe) / self.l0_ce, 0.)
+
+        # forces
+        flse = tf.minimum(self.k_se * (tendon_strain ** 2), 3.)
+        flpe = tf.minimum(self.k_pe * (muscle_strain ** 2), 3.)
+        active_force = tf.maximum(flse - flpe, 0.)
+
+        # RK4 integration
+        # TODO: implement RK4 at plant level to generalize integration across skeleton and muscle
+        muscle_vel_k1 = self.muscle_ode(muscle_len_n, new_activation, active_force)
+        muscle_vel_k2 = self.muscle_ode(muscle_len_n + self.dt * 0.5 * muscle_vel_k1, new_activation, active_force)
+        muscle_vel_k3 = self.muscle_ode(muscle_len_n + self.dt * 0.5 * muscle_vel_k2, new_activation, active_force)
+        muscle_vel_k4 = self.muscle_ode(muscle_len_n + self.dt * muscle_vel_k3, new_activation, active_force)
+        new_muscle_vel_n = (muscle_vel_k1 + 2 * muscle_vel_k2 + 2 * muscle_vel_k3 + muscle_vel_k4) / 6
+        new_muscle_vel = new_muscle_vel_n * self.vmax
+        new_muscle_len = (muscle_len_n + self.dt * new_muscle_vel_n) * self.l0_ce
+
+        force = flse * self.max_iso_force
+        new_muscle_state = tf.concat([new_activation, new_muscle_len, new_muscle_vel, flpe, flse, active_force], axis=1)
+        return force, new_muscle_state
+
+    def update_ode(self, excitation, muscle_state):
+        activation = tf.slice(muscle_state, [0, 0, 0], [-1, 1, -1])
+        d_activation = self.activation_ode(excitation, activation)
+        muscle_len_n = tf.slice(muscle_state, [0, 1, 0], [-1, 1, -1]) / self.l0_ce
+        active_force = tf.slice(muscle_state, [0, 5, 0], [-1, 1, -1])
+        new_muscle_vel_n = self.muscle_ode(muscle_len_n, activation, active_force)
+        return tf.concat([d_activation, new_muscle_vel_n], axis=1)
+
+    def integrate(self, dt, state_derivatives, muscle_state, geometry_state):
+        """Perform the numerical integration given the current states and their derivatives"""
+
+        # Compute musculotendon geometry
+        muscle_len = tf.slice(muscle_state, [0, 1, 0], [-1, 1, -1])
+        muscle_len_n = muscle_len / self.l0_ce
+        musculotendon_len = tf.slice(geometry_state, [0, 0, 0], [-1, 1, -1])
+        tendon_len = musculotendon_len - muscle_len
+        tendon_strain = tf.maximum((tendon_len - self.l0_se) / self.l0_se, 0.)
+        muscle_strain = tf.maximum((muscle_len - self.l0_pe) / self.l0_ce, 0.)
+
+        # Compute forces
+        flse = tf.minimum(self.k_se * (tendon_strain ** 2), 3.)
+        flpe = tf.minimum(self.k_pe * (muscle_strain ** 2), 3.)
+        active_force = tf.maximum(flse - flpe, 0.)
+
+        # Integrate
+        d_activation, muscle_vel_n = tf.split(state_derivatives, 2, axis=1)
+        activation = tf.slice(muscle_state, [0, 0, 0], [-1, 1, -1]) + d_activation * dt
+        activation = tf.clip_by_value(activation, self.min_activation, 1.)
+        new_muscle_len = (muscle_len_n + dt * muscle_vel_n) * self.l0_ce
+
+        muscle_vel = muscle_vel_n * self.vmax
+        force = flse * self.max_iso_force
+        new_muscle_state = tf.concat([activation, new_muscle_len, muscle_vel, flpe, flse, active_force, force], axis=1)
+        return new_muscle_state  # force, new_muscle_state
+
+    def _activation_ode(self, excitation, activation):
+        excitation = tf.clip_by_value(tf.reshape(excitation, (-1, 1, self.n_muscles)), self.min_activation, 1.)
+        activation = tf.clip_by_value(activation, self.min_activation, 1.)
+        tau_scaler = 0.5 + 1.5 * activation
+        tau = tf.where(excitation > activation, self.tau_activation * tau_scaler, self.tau_deactivation / tau_scaler)
+        return (excitation - activation) / tau
+
+    def _get_initial_muscle_state(self, batch_size, geometry_state):
+        musculotendon_len = tf.slice(geometry_state, [0, 0, 0], [-1, 1, -1])
+        musculotendon_vel = tf.slice(geometry_state, [0, 1, 0], [-1, 1, -1])
+        activation = tf.ones_like(musculotendon_len) * self.min_activation
+
+        kpe = self.k_pe
+        kse = self.k_se
+        lpe = self.l0_pe
+        lse = self.l0_se
+        lce = self.l0_ce
+        lmt = musculotendon_len
+
+        # if musculotendon length is negative, raise an error.
+        # if musculotendon length is less than tendon slack length, assign all (most of) the length to the tendon.
+        # if musculotendon length is more than tendon slack length and less than musculotendon slack length, assign to
+        #   the tendon up to the tendon slack length, and the rest to the muscle length.
+        # if musculotendon length is more than tendon slack length and muscle slack length combined, find the muscle
+        #   length that satisfies equilibrium between tendon passive forces and muscle passive forces.
+        muscle_len = tf.where(
+            musculotendon_len < 0,
+            -1,
+            tf.where(
+                musculotendon_len < lse,
+                0.001 * self.l0_ce,
+                tf.where(
+                    musculotendon_len < lse + lpe,
+                    musculotendon_len - lse,
+                    (kpe * lpe * lse ** 2 - kse * lce ** 2 * lmt + kse * lce ** 2 * lse - lce * lse * tf.sqrt(
+                        kpe * kse)
+                     * (-lmt + lpe + lse)) / (kpe * lse ** 2 - kse * lce ** 2)
+                )
+            )
+        )
+        tf.debugging.assert_non_negative(muscle_len, message='initial muscle length was < 0.')
+
+        tendon_len = musculotendon_len - muscle_len
+        tendon_strain = tf.maximum((tendon_len - self.l0_se) / self.l0_se, 0.)
+        muscle_strain = tf.maximum((muscle_len - self.l0_pe) / self.l0_ce, 0.)
+
+        # Compute forces
+        flse = tf.minimum(self.k_se * (tendon_strain ** 2), 3.)
+        flpe = tf.minimum(self.k_pe * (muscle_strain ** 2), 3.)
+        active_force = tf.maximum(flse - flpe, 0.)
+        force = flse * self.max_iso_force
+
+        muscle_vel = self.muscle_ode(muscle_len / self.l0_ce, activation, active_force) * self.vmax
+
+        return tf.concat([activation, muscle_len, muscle_vel, flpe, flse, active_force, force], axis=1)
