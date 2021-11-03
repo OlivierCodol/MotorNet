@@ -1,5 +1,6 @@
 import os, sys, json
 from joblib import Parallel, delayed
+import numpy as np
 
 # input 1 - directory to use
 active_directory = sys.argv[1]
@@ -38,10 +39,16 @@ def f(run_iter):
     with open(run_list[run_iter], 'r') as config_file:
         cfg = json.load(config_file)
 
-    muscle_type = cfg['Plant']['Muscle']
+    muscle_type = cfg['Plant']['Muscle']['name']
     task_type = cfg['Task']['name']
     exec('from MotorNet.plants.muscles import ' + muscle_type)
     exec('from MotorNet.tasks import ' + task_type)
+
+    #cfg['Plant']['excitation_noise_sd'] = 0.
+    #cfg['Controller']['proprioceptive_noise_sd'] = 0.
+    #cfg['Controller']['visual_noise_sd'] = 0.
+    #cfg['Controller']['hidden_noise_sd'] = 0.
+
 
     arm = RigidTendonArm(muscle_type=eval(muscle_type + '()'), timestep=cfg['Plant']['Skeleton']['dt'],
                          proprioceptive_delay=cfg['Plant']['proprioceptive_delay'] * cfg['Plant']['Skeleton']['dt'],
@@ -52,14 +59,16 @@ def f(run_iter):
                          recurrent_regularizer=cfg['Controller']['recurrent_regularizer_weight'],
                          proprioceptive_noise_sd=cfg['Controller']['proprioceptive_noise_sd'],
                          visual_noise_sd=cfg['Controller']['visual_noise_sd'],
-                         hidden_noise_sd=cfg['Controller']['hidden_noise_sd'])
+                         hidden_noise_sd=cfg['Controller']['hidden_noise_sd'],
+                         activation=cfg['Controller']['activation'])
     task_kwargs = cfg['Task']['task_kwargs']
     task_kwargs['run_mode'] = task_run_mode
     task = eval(task_type +
                 "(cell, initial_joint_state=cfg['Task']['initial_joint_state'],**task_kwargs)")
 
     # declare inputs
-    inputs = Input((None, task.get_input_dim()))
+    inputs = {"inputs": Input((None, task.get_input_dim()), name='inputs'),
+              "joint_load": Input((None, 2), name='joint_load')}
     state0 = [Input((arm.state_dim,), name='joint0'),
               Input((arm.state_dim,), name='cartesian0'),
               Input((arm.muscle_state_dim, arm.n_muscles,), name='muscle0'),
@@ -83,11 +92,6 @@ def f(run_iter):
 
     control_rnn.summary()
 
-    # set training parameters
-    task.set_training_params(batch_size=cfg['Task']['training_batch_size'],
-                             n_timesteps=cfg['Task']['training_n_timesteps'],
-                             iterations=cfg['Task']['training_iterations'])
-
     ## SPECIAL
     cell.layers[1].bias = tf.convert_to_tensor([-5.18, -6.47, -3.63, -6.42, -4.40, -6.48])
 
@@ -96,11 +100,15 @@ def f(run_iter):
         if os.path.isfile(file_name + '.index'):
             control_rnn.load_weights(file_name).expect_partial()
         # train it up
-        # divide iterations into 200 iter-sized chunks
+        iters_per_batch = 250
         task.set_training_params(batch_size=cfg['Task']['training_batch_size'],
                                  n_timesteps=cfg['Task']['training_n_timesteps'],
-                                 iterations=400)
-        control_rnn.fit(task, verbose=1, callbacks=[tensorflowfix_callback, batchlog_callback], shuffle=False)
+                                 iterations=iters_per_batch)
+        [inputs, targets, init_states] = task.generate(n_timesteps=cfg['Task']['training_n_timesteps'],
+                                                       batch_size=iters_per_batch * cfg['Task']['training_batch_size'])
+        control_rnn.fit([inputs, init_states], targets, verbose=1, epochs=1,
+                        batch_size=cfg['Task']['training_batch_size'],
+                        callbacks=[tensorflowfix_callback, batchlog_callback], shuffle=False)
         # save weights of the model
         control_rnn.save_weights(file_name)
         # add any info generated during the training process
@@ -119,24 +127,28 @@ def f(run_iter):
                          {'joint': results['joint position'].numpy(),
                           'cartesian': results['cartesian position'].numpy(),
                           'muscle': results['muscle state'].numpy(),
-                          'inputs': inputs.numpy(),
+                          'inputs': inputs["inputs"],
+                          'joint_load': inputs["joint_load"],
                           'targets': targets.numpy(),
                           'neural': results['gru_hidden0'].numpy(),
                           'proprio': results['proprioceptive feedback'].numpy(),
                           'visual': results['visual feedback'].numpy(),
                           'weights': control_rnn.get_weights(),
                           'training': cfg['Training Log'],
-                          'task_config': cfg['Task']['task_kwargs']})
+                          'task_config': cfg['Task']['task_kwargs'],
+                          'controller_config': cfg['Controller']})
 
 
 if __name__ == '__main__':
     iter_list = range(len(run_list))
+    n_jobs = 8
     while len(iter_list) > 0:
-        these_iters = iter_list[0:32]
-        iter_list = iter_list[32:]
+        these_iters = iter_list[0:n_jobs]
+        iter_list = iter_list[n_jobs:]
         if run_mode == 'train':
-            repeats = 30
+            repeats = 60
         else:
             repeats = 1
         for i in range(repeats):
-            result = Parallel(n_jobs=-1)(delayed(f)(iteration) for iteration in these_iters)
+            print('repeat#' + str(i))
+            result = Parallel(n_jobs=n_jobs)(delayed(f)(iteration) for iteration in these_iters)

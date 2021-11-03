@@ -5,7 +5,8 @@ import tensorflow as tf
 from abc import abstractmethod
 from scipy.signal import butter, lfilter
 import random
-from MotorNet.nets.losses import position_loss, activation_squared_loss, activation_velocity_squared_loss
+from MotorNet.nets.losses import position_loss, activation_squared_loss, activation_velocity_squared_loss,\
+                                 activation_diff_squared_loss
 # TODO: check that "generate" methods do not feed the memory leak
 
 
@@ -447,7 +448,7 @@ class TaskLoadProbabilityDistributed(Task):
 
         self.vel_weight = kwargs.get('vel_weight', 0.)
         self.losses = {'cartesian position': position_loss(),
-                       'muscle state': activation_velocity_squared_loss(self.plant.Muscle.max_iso_force,
+                       'muscle state': activation_diff_squared_loss(self.plant.Muscle.max_iso_force,
                                                                         vel_weight=self.vel_weight)}
         self.cartesian_loss = kwargs.get('cartesian_loss', 1)
         self.muscle_loss = kwargs.get('muscle_loss', 0)
@@ -465,9 +466,8 @@ class TaskLoadProbabilityDistributed(Task):
         self.do_recompute_targets = kwargs.get('do_recompute_targets', False)
 
     def generate(self, batch_size, n_timesteps, **kwargs):
-        if self.run_mode == 'experiment_mode':
-            self.delay_range = np.array([0.5, 0.5]) / self.plant.dt
-            self.target_time_range = np.array([0.2, 0.2]) / self.plant.dt
+        if self.run_mode == 'experiment':
+            batch_size = 1200
         init_states = self.get_initial_state(batch_size=batch_size)
         center = self.plant.joint2cartesian(init_states[0][0, :]).numpy()
         # these are our target locations for the experiment version
@@ -475,82 +475,97 @@ class TaskLoadProbabilityDistributed(Task):
         goal_state2 = center - np.array([-0.028279, -0.042601, 0, 0])
         goal_states = self.plant.joint2cartesian(self.plant.draw_random_uniform_states(batch_size=batch_size)).numpy()
         targets = np.tile(np.expand_dims(goal_states, axis=1), (1, n_timesteps, 1))
-        joint_offset = 65
-        pos_pert_ind = 48
-        neg_pert_ind = 16
-        zero_pert_ind = 32
+        pos_pert_ind = 24
+        neg_pert_ind = 5
         prob_array = np.array([0, 0.25, 0.5, 0.75, 1])
-        visual_delay = self.controller.visual_delay
         proprioceptive_delay = self.controller.proprioceptive_delay
-        inputs = np.zeros(shape=(batch_size, n_timesteps, 65*2 + 2 + 1))
+        inputs = np.zeros(shape=(batch_size, n_timesteps, 30 + 2 + 1))
         perturbations = np.zeros(shape=(batch_size, n_timesteps, 2))
-        condind_ind = 132
-        pert_range = np.linspace(-2, 2, 65)
+        pert_range = np.linspace(-1.5263, 1.5263, 30)
+        visual_delay = 1000
+        if self.run_mode == 'experiment':
+            catch_chance = 0.
+        else:
+            catch_chance = 0.2  # 0.2 best
+        if self.run_mode == 'experiment':
+            target_rand = 0.5
+        else:
+            target_rand = 1
         for i in range(batch_size):
             target_time = generate_delay_time(self.target_time_range[0], self.target_time_range[1], 'random')
             delay_time = generate_delay_time(self.delay_range[0], self.delay_range[1], 'random')
-            if self.run_mode == 'experiment':
+            pert_time = delay_time
+            if np.greater_equal(np.random.rand(), catch_chance):
+                is_catch = False
+            else:
+                is_catch = True
+                pert_time = 1000
+            if self.run_mode == 'experiment' or self.run_mode == 'train_experiment':
+                if self.run_mode == 'experiment':
+                    target_time = 30
+                    delay_time = 80
+                    pert_time = delay_time
+                # Inputs
                 prob = prob_array[np.random.randint(0, 5)]
-                inputs[i, target_time + visual_delay:, pos_pert_ind + joint_offset] = prob
-                inputs[i, target_time + visual_delay:, neg_pert_ind + joint_offset] = 1 - prob
-                sho_prob = np.zeros(65)
-                sho_prob[zero_pert_ind] = 1.
-                inputs[i, target_time + visual_delay:, zero_pert_ind] = 1.
-                elb_prob = inputs[i, target_time + visual_delay + 1, joint_offset:joint_offset+65]
-                if np.random.rand() < 0.5:
+                inputs[i, target_time: pert_time + visual_delay, pos_pert_ind] = prob
+                inputs[i, target_time: pert_time + visual_delay, neg_pert_ind] = 1 - prob
+                elb_prob = inputs[i, target_time + 1, 0:30]
+                if inputs[i, target_time + 1, pos_pert_ind] == 0 or inputs[i, target_time + 1, pos_pert_ind] == 1:
+                    if np.random.rand() < 0.5:
+                        elb_prob[pos_pert_ind] = 1 - prob
+                        elb_prob[neg_pert_ind] = prob
+                # Targets
+                if np.random.rand() < target_rand:
                     targets[i, :, :] = np.tile(np.expand_dims(goal_state1, axis=1), [1, n_timesteps, 1])
                 else:
                     targets[i, :, :] = np.tile(np.expand_dims(goal_state2, axis=1), [1, n_timesteps, 1])
             elif self.run_mode == 'train':
-                for joint in range(2):
-                    prob_dist = np.abs(np.random.normal(loc=0, scale=1, size=64*3))
-                    prob_dist = butter_lowpass_filter(prob_dist, 3, 65, 2)
-                    prob_dist = prob_dist[65:65*2]
-                    prob_dist = prob_dist / np.sum(prob_dist)
-                    if joint == 0:
-                        inputs[i, target_time + visual_delay:, 0:65] = prob_dist
-                        sho_prob = prob_dist
-                    else:
-                        inputs[i, target_time + visual_delay:, joint_offset : joint_offset+65] = prob_dist
-                        elb_prob = prob_dist
-
+                # Inputs
+                #for joint in range(2):
+                #    prob_dist = np.abs(np.random.normal(loc=0, scale=1, size=64*3))
+                #    prob_dist = butter_lowpass_filter(prob_dist, 3, 65, 2)
+                #    prob_dist = prob_dist[65:65*2]
+                #    prob_dist = prob_dist / np.sum(prob_dist)
+                #    if joint == 0:
+                #        inputs[i, target_time + visual_delay:, 0:65] = prob_dist
+                #        sho_prob = prob_dist
+                #    else:
+                #        inputs[i, target_time + visual_delay:, joint_offset : joint_offset+65] = prob_dist
+                #        elb_prob = prob_dist
+                prob = prob_array[np.random.randint(0, 5)]
+                pert_ind_1 = 0
+                pert_ind_2 = 0
+                while pert_ind_1 == pert_ind_2:
+                    [pert_ind_1, pert_ind_2] = np.random.randint(0, high=30, size=2)
+                inputs[i, target_time: pert_time + visual_delay, pert_ind_1] = prob
+                inputs[i, target_time: pert_time + visual_delay, pert_ind_2] = 1 - prob
+                elb_prob = inputs[i, target_time + 1, 0:30]
+                # Targets
                 r = 0.15 * np.sqrt(np.random.rand())
                 theta = np.random.rand() * 2 * np.pi
                 new_pos = center[0, 0:2] + np.expand_dims([r * np.cos(theta), r * np.sin(theta)], axis=0)
                 targets[i, :, 0:2] = np.tile(np.expand_dims(new_pos, axis=1), [1, n_timesteps, 1])
-            inputs[i, :, 130:132] = targets[i, :, 0:2]
+
+            inputs[i, :, 30:32] = targets[i, :, 0:2]
             condition_independent = np.zeros(shape=n_timesteps)
             perturbation = np.tile([0., self.background_load], (n_timesteps, 1))  # background load
-            pert_time = delay_time
-            if self.run_mode == 'experiment':
-                catch_chance = 0
-            else:
-                catch_chance = 0.3  # 0.3 best
-            if np.greater_equal(np.random.rand(), catch_chance):
+            if not is_catch:
                 targets[i, 0:pert_time, :] = center
-                for joint in range(2):
-                    if joint == 0:
-                        this_prob = sho_prob
-                    else:
-                        this_prob = elb_prob
-                    big_prob = []
-                    for j in range(len(this_prob)):
-                        big_prob.append(np.tile(j, int(np.round(this_prob[j]*10000))))
-                    big_prob = [item for sublist in big_prob for item in sublist]
-                    if joint == 0:
-                        perturbation[pert_time:, joint] = pert_range[random.choice(big_prob)]
-                    else:
-                        perturbation[pert_time:, joint] = self.background_load + pert_range[random.choice(big_prob)]
+                big_prob = []
+                for j in range(len(elb_prob)):
+                    big_prob.append(np.tile(j, int(np.round(elb_prob[j]*100))))
+                big_prob = [item for sublist in big_prob for item in sublist]
+                perturbation[pert_time:, 1] = self.background_load + pert_range[random.choice(big_prob)]
                 condition_independent[pert_time + proprioceptive_delay:] = self.condition_independent_magnitude  # +4 best, 0.2 best
             else:
                 targets[i, :, :] = center
 
-            inputs[i, :, condind_ind] = condition_independent + np.random.normal(loc=0.,
-                                                                 scale=self.controller.proprioceptive_noise_sd,
-                                                                 size=n_timesteps)
-            inputs[i, :, 0:132] = inputs[i, :, 0:132] + np.random.normal(loc=0.,
+            #inputs[i, :, condind_ind] = condition_independent + np.random.normal(loc=0.,
+            #                                                     scale=self.controller.proprioceptive_noise_sd,
+            #                                                     size=n_timesteps)
+            inputs[i, :, :] = inputs[i, :, :] + np.random.normal(loc=0.,
                                                                      scale=self.controller.visual_noise_sd,
-                                                                     size=(n_timesteps, 132))
+                                                                     size=(n_timesteps, 33))
             perturbations[i, :, :] = perturbation
 
         all_inputs = {"inputs": inputs, "joint_load": perturbations}
