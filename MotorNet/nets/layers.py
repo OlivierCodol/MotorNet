@@ -41,6 +41,10 @@ class GRUController(Layer):
         self.recurrent_regularizer = tf.keras.regularizers.l2(recurrent_regularizer)
         self.n_hidden_layers = n_hidden_layers
         self.activation = activation
+        if self.activation == 'recttanh':
+            self.activation_f = recttanh
+        else:
+            self.activation_f = activation
         self.n_units = n_units
         self.layers = []
 
@@ -78,7 +82,7 @@ class GRUController(Layer):
     def build(self, input_shapes):
         for k in range(self.n_hidden_layers):
             layer = GRUCell(units=self.n_units[k],
-                            activation=self.activation,
+                            activation=self.activation_f,
                             name='hidden_layer_' + str(k),
                             kernel_regularizer=self.kernel_regularizer,
                             recurrent_regularizer=self.recurrent_regularizer,
@@ -98,7 +102,7 @@ class GRUController(Layer):
         cfg = {'proprioceptive_noise_sd': self.proprioceptive_noise_sd, 'visual_noise_sd': self.visual_noise_sd,
                'hidden_noise_sd': self.hidden_noise_sd, 'proprioceptive_delay': self.proprioceptive_delay,
                'visual_delay': self.visual_delay, 'n_muscle': self.n_muscles,
-               'perturbation_dims_active': self.perturbation_dims_active, 'n_ministeps': self.n_ministeps,
+               'n_ministeps': self.n_ministeps,
                'kernel_regularizer_weight': self.kernel_regularizer_weight,
                'recurrent_regularizer_weight': self.recurrent_regularizer_weight, 'n_units': int(self.n_units[0]),
                'n_hidden_layers': self.n_hidden_layers, 'activation': self.activation}
@@ -175,3 +179,11 @@ class GRUController(Layer):
         states.append(visual_noisy)
         states.extend(hidden_states)
         return states
+
+
+# Custom activation function (rectified hyperbolic tangent)
+@tf.function
+def recttanh(x):
+    x = tf.keras.activations.tanh(x)
+    x = tf.where(tf.less_equal(x, tf.constant(0.)), tf.constant(0.), x)
+    return x
