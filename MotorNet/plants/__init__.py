@@ -2,13 +2,15 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.layers import Lambda
 from MotorNet.plants.skeletons import TwoDofArm
-from MotorNet.plants.muscles import CompliantTendonHillMuscle, CompliantTendonHillMuscleRK4
+from MotorNet.plants.muscles import CompliantTendonHillMuscle
+
+
 # TODO check all values for input_dim and output_dim attributes
 
 
 class PlantWrapper:
 
-    def __init__(self, skeleton, muscle_type, timestep=0.01, **kwargs):
+    def __init__(self, skeleton, muscle_type, timestep: float = 0.01, integration_method: str = 'euler', **kwargs):
 
         self.__name__ = 'Plant'
         self.Skeleton = skeleton
@@ -16,8 +18,10 @@ class PlantWrapper:
         self.space_dim = self.Skeleton.space_dim
         self.state_dim = self.Skeleton.state_dim
         self.output_dim = self.Skeleton.output_dim
-        self.dt = timestep
         self.excitation_noise_sd = kwargs.get('excitation_noise_sd', 0.)
+        self.dt = timestep
+        self.half_dt = self.dt / 2  # to reduce online calculations for RK4 integration
+        self.integration_method = integration_method.casefold()  # make string fully in lower case
 
         # default is no delay
         proprioceptive_delay = kwargs.get('proprioceptive_delay', self.dt)
@@ -42,10 +46,12 @@ class PlantWrapper:
             pos_upper_bound=self.pos_upper_bound,
             pos_lower_bound=self.pos_lower_bound,
             vel_upper_bound=self.vel_upper_bound,
-            vel_lower_bound=self.vel_lower_bound)
+            vel_lower_bound=self.vel_lower_bound,
+            integration_method=self.integration_method)
 
         # initialize muscle system
         self.Muscle = muscle_type
+        self.force_index = self.Muscle.state_name.index('force')  # column index of muscle state containing output force
         self.MusclePaths = []  # a list of all the muscle paths
         self.n_muscles = 0
         self.input_dim = 0
@@ -64,6 +70,7 @@ class PlantWrapper:
         self.default_endpoint_load = tf.zeros((1, self.Skeleton.space_dim), dtype=tf.float32)
         self.default_joint_load = tf.zeros((1, self.Skeleton.dof), dtype=tf.float32)
         self.slice_states = Lambda(lambda x: tf.slice(x[0], [0, x[1], 0], [-1, x[2], -1]))
+        self.get_generalized_forces = Lambda(lambda x: - tf.reduce_sum(x[0] * x[1], axis=-1) + x[2])
         self._get_initial_state_fn = Lambda(lambda x: self._get_initial_state(*x))
         self._get_geometry_fn = Lambda(lambda x: self._get_geometry(x))
         self._call_fn = Lambda(lambda x: self.call(*x))
@@ -72,6 +79,10 @@ class PlantWrapper:
         self._draw_fixed_states_fn = Lambda(lambda x: self._draw_fixed_states(*x))
         self._state2target_fn = \
             Lambda(lambda x: tf.transpose(tf.repeat(x[0][:, :, tf.newaxis], x[1], axis=-1), [0, 2, 1]))
+        if self.integration_method == 'euler':
+            self._integrate_fn = Lambda(lambda x: self._euler(*x))
+        elif self.integration_method in ('rk4', 'rungekutta4', 'runge-kutta4', 'runge-kutta-4'):  # tuple faster thn set
+            self._integrate_fn = Lambda(lambda x: self._rungekutta4(*x))
 
         self.built = False
 
@@ -102,13 +113,12 @@ class PlantWrapper:
         for key, val in self.tobuild__muscle.items():
             # if not added in the kwargs loop
             if len(val) < self.n_muscles:
-                # if the muscle object contains a default, use it
+                # if the muscle object contains a default, use it, else raise error
                 if key in self.tobuild__default:
                     self.tobuild__muscle[key].append(self.tobuild__default[key])
-                # else, raise error
                 else:
                     raise ValueError('Missing keyword argument ' + key + '.')
-        self.Muscle.build(timestep=self.dt, **self.tobuild__muscle)
+        self.Muscle.build(timestep=self.dt, integration_method=self.integration_method, **self.tobuild__muscle)
 
         if name == '':
             name = 'muscle_' + str(self.n_muscles)
@@ -116,22 +126,55 @@ class PlantWrapper:
 
     def __call__(self, muscle_input, joint_state, muscle_state, geometry_state, **kwargs):
         """This is a wrapper method to prevent memory leaks"""
-        # TODO normalize by dt
         endpoint_load = kwargs.get('endpoint_load', self.default_endpoint_load)
         joint_load = kwargs.get('joint_load', self.default_joint_load)
         return self._call_fn((muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load))
 
+    def integrate(self, muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load):
+        return self._integrate_fn((muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load))
+
+    def _euler(self, excitation, joint_state, muscle_state, geometry_state, endpoint_load, joint_load):
+        states0 = {"joint": joint_state, "muscle": muscle_state, "geometry": geometry_state}
+        state_derivative = self.update_ode(excitation, states0, endpoint_load, joint_load)
+        states = self.integration_step(self.dt, state_derivative=state_derivative, states=states0)
+        return states["joint"], states["muscle"], states["geometry"]
+
+    def _rungekutta4(self, excitation, joint_state, muscle_state, geometry_state, endpoint_load, joint_load):
+        states0 = {"joint": joint_state, "muscle": muscle_state, "geometry": geometry_state}
+        k1 = self.update_ode(excitation, states=states0, endpoint_load=endpoint_load, joint_load=joint_load)
+        states = self.integration_step(self.half_dt, state_derivative=k1, states=states0)
+        k2 = self.update_ode(excitation, states=states, endpoint_load=endpoint_load, joint_load=joint_load)
+        states = self.integration_step(self.half_dt, state_derivative=k2, states=states)
+        k3 = self.update_ode(excitation, states=states, endpoint_load=endpoint_load, joint_load=joint_load)
+        states = self.integration_step(self.dt, state_derivative=k3, states=states)
+        k4 = self.update_ode(excitation, states=states, endpoint_load=endpoint_load, joint_load=joint_load)
+        k = {key: (k1[key] + 2 * (k2[key] + k3[key]) + k4[key]) / 6 for key in k1.keys()}
+        states = self.integration_step(self.dt, state_derivative=k, states=states0)
+        return states["joint"], states["muscle"], states["geometry"]
+
+    def integration_step(self, dt, state_derivative, states):
+        new_states = {
+            "muscle": self.Muscle.integrate(dt, state_derivative["muscle"], states["muscle"], states["geometry"]),
+            "joint": self.Skeleton.integrate(dt, state_derivative["joint"], states["joint"])}
+        new_states["geometry"] = self.get_geometry(new_states["joint"])
+        return new_states
+
+    def update_ode(self, excitation, states, endpoint_load, joint_load):
+        moments = self.slice_states((states["geometry"], 2, -1))
+        forces = self.slice_states((states["muscle"], self.force_index, 1))
+        generalized_forces = self.get_generalized_forces((forces, moments, joint_load))
+        state_derivative = {
+            "muscle": self.Muscle.update_ode(excitation, states["muscle"]),
+            "joint": self.Skeleton.update_ode(generalized_forces, states["joint"], endpoint_load=endpoint_load)}
+        return state_derivative
+
     def call(self, muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load):
         muscle_input += tf.random.normal(tf.shape(muscle_input), stddev=self.excitation_noise_sd)
-        forces, new_muscle_state = self.Muscle(excitation=muscle_input,
-                                               muscle_state=muscle_state,
-                                               geometry_state=geometry_state)
-        moments = tf.slice(geometry_state, [0, 2, 0], [-1, -1, -1])
-        generalized_forces = - tf.reduce_sum(forces * moments, axis=-1) + joint_load
 
-        new_joint_state = self.Skeleton(generalized_forces, joint_state, endpoint_load=endpoint_load)
+        new_joint_state, new_muscle_state, new_geometry_state = \
+            self.integrate(muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load)
+
         new_cartesian_state = self.Skeleton.joint2cartesian(joint_state=new_joint_state)
-        new_geometry_state = self.get_geometry(new_joint_state)
         return new_joint_state, new_cartesian_state, new_muscle_state, new_geometry_state
 
     def _get_geometry(self, joint_state):
@@ -287,9 +330,10 @@ class RigidTendonArm(PlantWrapper):
     """
 
     def __init__(self, muscle_type, skeleton=None, timestep=0.01, **kwargs):
-
         sho_limit = np.deg2rad([0, 135])  # mechanical constraints - used to be -90 180
         elb_limit = np.deg2rad([0, 155])
+        pos_lower_bound = kwargs.pop('pos_lower_bound', (sho_limit[0], elb_limit[0]))
+        pos_upper_bound = kwargs.pop('pos_upper_bound', (sho_limit[1], elb_limit[1]))
 
         if skeleton is None:
             skeleton = TwoDofArm(m1=1.82, m2=1.43, L1g=.135, L2g=.165, I1=.051, I2=.057, L1=.309, L2=.333)
@@ -298,8 +342,8 @@ class RigidTendonArm(PlantWrapper):
             skeleton=skeleton,
             muscle_type=muscle_type,
             timestep=timestep,
-            pos_lower_bound=(sho_limit[0], elb_limit[0]),
-            pos_upper_bound=(sho_limit[1], elb_limit[1]),
+            pos_lower_bound=pos_lower_bound,
+            pos_upper_bound=pos_upper_bound,
             **kwargs)
 
         # build muscle system
@@ -318,13 +362,15 @@ class RigidTendonArm(PlantWrapper):
         a0 = [0.151, 0.2322, 0.2859, 0.2355, 0.3329, 0.2989]
         a1 = [-.03, .03, 0, 0, -.03, .03, 0, 0, -.014, .025, -.016, .03]
         a2 = [0, 0, 0, 0, 0, 0, 0, 0, -4e-3, -2.2e-3, -5.7e-3, -3.2e-3]
+        a3 = [np.pi / 2, 0.]
         self.a0 = tf.constant(a0, shape=(1, 1, 6), dtype=tf.float32)
         self.a1 = tf.constant(a1, shape=(1, 2, 6), dtype=tf.float32)
         self.a2 = tf.constant(a2, shape=(1, 2, 6), dtype=tf.float32)
+        self.a3 = tf.constant(a3, shape=(1, 2, 1), dtype=tf.float32)
 
     def _get_geometry(self, joint_state):
         old_pos, old_vel = tf.split(joint_state[:, :, tf.newaxis], 2, axis=1)
-        old_pos = old_pos - np.array([np.pi / 2, 0.]).reshape((1, 2, 1))
+        old_pos = old_pos - self.a3
         old_pos2 = tf.pow(old_pos, 2)
         moment_arm = old_pos * self.a2 * 2 + self.a1
         musculotendon_len = tf.reduce_sum(old_pos * self.a1 + old_pos2 * self.a2, axis=1, keepdims=True) + self.a0
@@ -337,32 +383,17 @@ class CompliantTendonArm(RigidTendonArm):
     This is the compliant-tendon version of the "RigidTendonArm" class above
     """
 
-    def __init__(self, timestep=0.0001, **kwargs):
+    def __init__(self, timestep=0.001, skeleton=None, **kwargs):
+
+        integration_method = kwargs.pop('integration_method', 'rk4')
+        if skeleton is None:
+            skeleton = TwoDofArm(m1=2.10, m2=1.65, L1g=.146, L2g=.179, I1=.024, I2=.025, L1=.335, L2=.263)
 
         super().__init__(
             muscle_type=CompliantTendonHillMuscle(),
-            skeleton=TwoDofArm(m1=2.10, m2=1.65, L1g=.146, L2g=.179, I1=.024, I2=.025, L1=.335, L2=.263),
+            skeleton=skeleton,
             timestep=timestep,
-            **kwargs)
-
-        # build muscle system
-        self.Muscle.build(
-            timestep=timestep,
-            max_isometric_force=[838, 1207, 1422, 1549, 414, 603],
-            tendon_length=[0.069, 0.066, 0.172, 0.187, 0.204, 0.217],
-            optimal_muscle_length=[0.134, 0.140, 0.092, 0.093, 0.137, 0.127],
-            normalized_slack_muscle_length=self.tobuild__default['normalized_slack_muscle_length'])
-
-        a0 = [0.181, 0.2322, 0.2859, 0.2355, 0.3329, 0.2989]
-        self.a0 = tf.constant(a0, shape=(1, 1, 6), dtype=tf.float32)
-
-
-class CompliantTendonArmRK4(RigidTendonArm):
-    def __init__(self, timestep=0.0001, integration_method: str = 'euler', **kwargs):
-        super().__init__(
-            muscle_type=CompliantTendonHillMuscleRK4(),
-            skeleton=TwoDofArm(m1=2.10, m2=1.65, L1g=.146, L2g=.179, I1=.024, I2=.025, L1=.335, L2=.263),
-            timestep=timestep,
+            integration_method=integration_method,
             **kwargs)
 
         # build muscle system
@@ -373,70 +404,5 @@ class CompliantTendonArmRK4(RigidTendonArm):
             optimal_muscle_length=[0.134, 0.140, 0.092, 0.093, 0.137, 0.127],
             normalized_slack_muscle_length=self.tobuild__default['normalized_slack_muscle_length'])
 
-        a0 = [0.181, 0.2322, 0.2859, 0.2355, 0.3329, 0.2989]
+        a0 = [0.181, 0.2362, 0.2859, 0.2355, 0.3329, 0.2989]
         self.a0 = tf.constant(a0, shape=(1, 1, 6), dtype=tf.float32)
-
-        self.half_dt = self.dt / 2  # to reduce online calculations for RK4 integration
-        im = integration_method.casefold()  # make string fully in lower case
-        if im == 'euler':
-            self._integrate_fn = Lambda(lambda x: self._euler(*x))
-        elif im == 'rk4' or im == 'rungekutta4' or im == 'runge-kutta4' or im == 'runge-kutta-4':
-            self._integrate_fn = Lambda(lambda x: self._rungekutta4(*x))
-
-    def integrate(self, muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load):
-        return self._integrate_fn((muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load))
-
-    def __call__(self, muscle_input, joint_state, muscle_state, geometry_state, **kwargs):
-        """This is a wrapper method to prevent memory leaks"""
-        endpoint_load = kwargs.get('endpoint_load', self.default_endpoint_load)
-        joint_load = kwargs.get('joint_load', self.default_joint_load)
-        return self._call_fn((muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load))
-
-    def _euler(self, excitation, joint_state, muscle_state, geometry_state, endpoint_load, joint_load):
-        states0 = {"joint": joint_state, "muscle": muscle_state, "geometry": geometry_state}
-        state_derivatives = self.update_ode(excitation, states0, endpoint_load, joint_load)
-        states = self.integration_step(self.dt, state_derivatives=state_derivatives, states=states0)
-        return states["joint"], states["muscle"], states["geometry"]
-
-    def _rungekutta4(self, excitation, joint_state, muscle_state, geometry_state, endpoint_load, joint_load):
-        states0 = {"joint": joint_state, "muscle": muscle_state, "geometry": geometry_state}
-        k1 = self.update_ode(excitation, states=states0, endpoint_load=endpoint_load, joint_load=joint_load)
-        states = self.integration_step(self.half_dt, state_derivatives=k1, states=states0)
-        k2 = self.update_ode(excitation, states=states, endpoint_load=endpoint_load, joint_load=joint_load)
-        states = self.integration_step(self.half_dt, state_derivatives=k2, states=states)
-        k3 = self.update_ode(excitation, states=states, endpoint_load=endpoint_load, joint_load=joint_load)
-        states = self.integration_step(self.dt, state_derivatives=k3, states=states)
-        k4 = self.update_ode(excitation, states=states, endpoint_load=endpoint_load, joint_load=joint_load)
-        k = {key: (k1[key] + 2 * (k2[key] + k3[key]) + k4[key]) / 6 for key in k1.keys()}
-        states = self.integration_step(self.dt, state_derivatives=k, states=states0)
-        return states["joint"], states["muscle"], states["geometry"]
-
-    def integration_step(self, dt, state_derivatives, states):
-        new_states = {
-            "muscle": self.Muscle.integrate(dt, state_derivatives["muscle"], states["muscle"], states["geometry"]),
-            "joint": self.Skeleton.integrate(dt, state_derivatives["joint"], states["joint"])
-        }
-        new_states["geometry"] = self.get_geometry(new_states["joint"])
-        return new_states
-
-    def update_ode(self, excitation, states, endpoint_load, joint_load):
-        # moments = tf.slice(states["geometry"], [0, 2, 0], [-1, -1, -1])
-        # forces = tf.slice(states["muscle"], [0, 6, 0], [-1, 1, -1])
-        moments = self.slice_states((states["geometry"], 2, -1))
-        forces = self.slice_states((states["muscle"], 6, 1))
-
-        generalized_forces = - tf.reduce_sum(forces * moments, axis=-1) + joint_load
-        state_derivatives = {
-            "muscle": self.Muscle.update_ode(excitation, states["muscle"]),
-            "joint": self.Skeleton.update_ode(generalized_forces, states["joint"], endpoint_load=endpoint_load)
-        }
-        return state_derivatives
-
-    def call(self, muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load):
-        muscle_input += tf.random.normal(tf.shape(muscle_input), stddev=self.excitation_noise_sd)
-
-        new_joint_state, new_muscle_state, new_geometry_state =\
-            self.integrate(muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load)
-
-        new_cartesian_state = self.Skeleton.joint2cartesian(joint_state=new_joint_state)
-        return new_joint_state, new_cartesian_state, new_muscle_state, new_geometry_state
