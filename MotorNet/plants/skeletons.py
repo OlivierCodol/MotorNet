@@ -23,9 +23,8 @@ class Skeleton:
 
         self.pos_lower_bound = kwargs.get('pos_lower_bound', -1.)
         self.pos_upper_bound = kwargs.get('pos_upper_bound', +1.)
-        self.vel_lower_bound = kwargs.get('vel_lower_bound', -np.inf)
-        self.vel_upper_bound = kwargs.get('vel_upper_bound', +np.inf)
-
+        self.vel_lower_bound = kwargs.get('vel_lower_bound', -10000.)  # cap as defensive code
+        self.vel_upper_bound = kwargs.get('vel_upper_bound', +10000.)
 
         self._update_ode_fn = Lambda(lambda x: self._update_ode(*x))
         self._integrate_fn = Lambda(lambda x: self._integrate(*x))
@@ -225,7 +224,7 @@ class TwoDofArm(Skeleton):
         return end_pos
 
     def _path2cartesian(self, path_coordinates, path_fixation_body, joint_state):
-        n_points = tf.size(path_fixation_body).numpy()
+        n_points = tf.size(path_fixation_body)
         joint_angles, joint_vel = tf.split(joint_state, 2, axis=-1)
         sho, elb_wrt_sho = tf.split(joint_angles, 2, axis=-1)
         elb = elb_wrt_sho + sho
@@ -239,7 +238,7 @@ class TwoDofArm(Skeleton):
         # This line picks no rotation angle if the muscle path point is fixed on the extrinstic workspace
         # (path_fixation_body = 0), the shoulder angle if it is fixed on the upper arm (path_fixation_body = 1) and the
         # eblow angle if it is fixed on the forearm (path_fixation_body = 2).
-        flat_path_fixation_body = tf.reshape(path_fixation_body, -1)
+        flat_path_fixation_body = tf.squeeze(tf.reshape(path_fixation_body, (-1, 1)))
         ang = tf.where(flat_path_fixation_body == 0., 0., tf.where(flat_path_fixation_body == 1., -sho, -elb))
         ca = tf.cos(ang)
         sa = tf.sin(ang)
