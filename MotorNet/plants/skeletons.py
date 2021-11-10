@@ -23,9 +23,8 @@ class Skeleton:
 
         self.pos_lower_bound = kwargs.get('pos_lower_bound', -1.)
         self.pos_upper_bound = kwargs.get('pos_upper_bound', +1.)
-        self.vel_lower_bound = kwargs.get('vel_lower_bound', -np.inf)
-        self.vel_upper_bound = kwargs.get('vel_upper_bound', +np.inf)
-
+        self.vel_lower_bound = kwargs.get('vel_lower_bound', -10000.)  # cap as defensive code
+        self.vel_upper_bound = kwargs.get('vel_upper_bound', +10000.)
 
         self._update_ode_fn = Lambda(lambda x: self._update_ode(*x))
         self._integrate_fn = Lambda(lambda x: self._integrate(*x))
