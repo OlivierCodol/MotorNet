@@ -6,7 +6,7 @@ from abc import abstractmethod
 from scipy.signal import butter, lfilter
 import random
 from MotorNet.nets.losses import position_loss, activation_squared_loss, activation_velocity_squared_loss,\
-                                 activation_diff_squared_loss
+                                 activation_diff_squared_loss, position_loss_bis
 # TODO: check that "generate" methods do not feed the memory leak
 
 
@@ -106,6 +106,41 @@ class TaskStaticTarget(Task):
         targets = self.plant.state2target(state=goal_states, n_timesteps=n_timesteps).numpy()
         inputs = {"inputs": targets[:, :, :self.plant.space_dim]}
         return [inputs, targets, init_states]
+
+class TaskStaticTargetBis(Task):
+    """
+    The goal of this task is to test the effect of shallower losses functions on the behaviori
+    add on 11th nov 2021 - decomiteA
+    TODO - Replace the position_loss_bis() by position_loss() & add the recompute target function here as well
+    """
+    def __init__(self, controller,**kwargs):
+        super().__init__(controller,**kwargs)
+        self.__name__ = 'TaskStaticTarget'
+        self.losses = {'cartesian position': position_loss(),
+                       'muscle state': activation_squared_loss(self.plant.Muscle.max_iso_force)}
+        self.loos_weights = {'cartesian position':1, 'muscle state': 0.2}
+
+    def generate(self, batch_size, n_timesteps, **kwargs):
+        init_states = self.get_initial_state(batch_size=batch_size)
+        goal_states = self.plant.joint2cartesian(self.plant.draw_random_uniform_states(batch_size=batch_size))
+        targets = self.plant.state2target(state=goal_states, n_timesteps=n_timesteps).numpy()
+        inputs = {"inputs": targets[:,:,:self.plant.space_dim]}
+        return [inputs, targets, init_states]
+
+    def recompute_targets(selfs,inputs,targets,outputs):
+        #grab endpoint position and velocity 
+        cartesian_pos = outputs['cartesian position']
+        #calculate the distance to the targets as run by the forward pass
+        dist = tf.sqrt(tf.reduce_sum((cartesian_pos[:,:,0:2] - targets[:,:,0:2])**2,axis=2))
+        dist = tf.where(tf.equal(inputs[0][:,:,-1],-1.),1000.,dist)
+        dist = tf.tile(tf.expand_dims(dist,axis=2),tf.constant([1,1,2],tf.int32))
+        #keep the position only (drops the rest)
+        cartesian_pos_no_vel = tf.concat([cartesian_pos[:,:,0:2],tf.zeros_like(dist)],axis=2)
+        #preprocess the dist tensor for further computation
+        dist = tf.concat([dist,tf.zeros_like(dist)],axis=2)
+        # if the distance is less than a certain amount, replace the target with the results of the forward pass
+        targets = tf.where(tf.less_equal(dist,0.035),cartesian_pos_no_vel, targets)
+        return targets
 
 
 class TaskStaticTargetWithPerturbations(Task):
