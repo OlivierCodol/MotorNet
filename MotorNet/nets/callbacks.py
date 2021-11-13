@@ -30,33 +30,37 @@ class TrainingPlotter(Callback):
         super().__init__()
         self.task = task
         self.plot_freq = plot_freq
-        self.loss = []
         self.logs = []
-        self.cartesian_loss = []
-        self.muscle_loss = []
-        self.recurrent_weight_loss = []
-        self.kernel_weight_loss = []
-        self.activity_loss = []
+        self.losses = {}
+        self.loss_weights = {task.loss_names[loss] + '_loss': weight for loss, weight in self.task.loss_weights.items()}
 
     def on_train_begin(self, logs=None):
-        self.loss = []
         self.logs = []
-        self.cartesian_loss = []
-        self.muscle_loss = []
-        self.recurrent_weight_loss = []
-        self.kernel_weight_loss = []
-        self.activity_loss = []
+        self.losses = {}
 
     def on_batch_end(self, batch, logs=None):
-        self.logs.append(logs)
-        self.loss.append(logs.get('loss'))
-        self.cartesian_loss.append(logs.get('RNN_loss') * self.task.loss_weights['cartesian position'])
-        self.muscle_loss.append(logs.get('RNN_4_loss') * self.task.loss_weights['muscle state'])
-        self.recurrent_weight_loss.append((self.model.losses[1]))
-        self.kernel_weight_loss.append((self.model.losses[0]))
-        #self.activity_loss.append((self.model.losses[2]))
 
-        if batch % self.plot_freq == 0 or len(self.loss) == 1:
+        if self.losses == {}:  # initialize the losses dictionary if needed
+            self.losses = {name.replace('_', ' '): [] for name in logs.keys() if name.__contains__('loss')}
+            self.losses['kernel weight loss'] = []
+            self.losses['recurrent weight loss'] = []
+            self.losses['output kernel loss'] = []
+
+        for loss, val in logs.items():
+            if loss.__contains__('loss'):
+                if loss.__contains__('_loss'):
+                    weight = self.loss_weights[loss]
+                else:
+                    weight = 1
+                self.losses[loss.replace('_', ' ')].append(np.array(val) * weight)
+
+        self.losses['kernel weight loss'].append(np.array(self.model.losses[0]))
+        self.losses['recurrent weight loss'].append(np.array(self.model.losses[1]))
+        self.losses['output kernel loss'].append(np.array(self.model.losses[2]))
+
+        self.logs.append(logs)
+
+        if batch % self.plot_freq == 0 or batch == 1:
             [inputs, targets, init_states] = self.task.generate(batch_size=3,
                                                                 n_timesteps=self.task.training_n_timesteps)
             results = self.model([inputs, init_states], training=False)
@@ -64,56 +68,44 @@ class TrainingPlotter(Callback):
             if self.task.do_recompute_targets:
                 targets = self.task.recompute_targets((inputs, init_states), targets, results)
 
-            j_results = results['joint position']
             c_results = results['cartesian position']
             m_results = results['muscle state']
             h_results = results['gru_hidden0']
 
             clear_output(wait=True)
-            n = np.arange(0, len(self.loss))
             fig = plt.figure(constrained_layout=True)
             gs = fig.add_gridspec(1, 1)
             ax1 = fig.add_subplot(gs[0, 0])
-            ax1.plot(n, self.cartesian_loss, label='cartesian loss')
-            ax1.plot(n, self.muscle_loss, label='muscle activation loss')
-            ax1.plot(n, self.recurrent_weight_loss, label='recurrent weight loss')
-            ax1.plot(n, self.kernel_weight_loss, label='kernel weight loss')
-        #    ax1.plot(n, self.activity_loss, label='activity loss')
-            ax1.set(xlabel='iteration', ylabel='loss')
+            for loss, val in self.losses.items():
+                ax1.plot(val, label=loss)
+            ax1.set(xlabel='iteration', ylabel='weighted loss value')
             ax1.legend()
             plt.show()
 
-            for trial in range(3):
+            for trial in range(targets.shape[0]):
                 plt.figure(figsize=(14, 2.5)).set_tight_layout(True)
 
                 plt.subplot(141)
-                plt.plot(targets[trial, :, 0].numpy().squeeze(), color='#1f77b4', linestyle='dashed')
-                plt.plot(targets[trial, :, 1].numpy().squeeze(), color='#ff7f0e', linestyle='dashed')
-                plt.plot(c_results[trial, :, 0].numpy().squeeze(), color='#1f77b4', label='x')
-                plt.plot(c_results[trial, :, 1].numpy().squeeze(), color='#ff7f0e', label='y')
+                plt.plot(np.array(targets[trial, :, 0]).squeeze(), color='#1f77b4', linestyle='dashed')
+                plt.plot(np.array(targets[trial, :, 1]).squeeze(), color='#ff7f0e', linestyle='dashed')
+                plt.plot(np.array(c_results[trial, :, 0]).squeeze(), color='#1f77b4', label='x')
+                plt.plot(np.array(c_results[trial, :, 1]).squeeze(), color='#ff7f0e', label='y')
                 plt.legend()
                 plt.xlabel('time (ms)')
                 plt.ylabel('x/y position')
 
-                #plt.subplot(142)
-                #plt.plot(j_results[trial, :, 2].numpy().squeeze(), label='sho')
-                #plt.plot(j_results[trial, :, 3].numpy().squeeze(), label='elb')
-                #plt.legend()
-                #plt.xlabel('time (ms)')
-                #plt.ylabel('angle velocity (rad/sec)')
-
                 plt.subplot(142)
-                plt.plot(m_results[trial, :, 0, :].numpy().squeeze())
+                plt.plot(np.array(m_results[trial, :, 0, :]).squeeze())
                 plt.xlabel('time (ms)')
                 plt.ylabel('activation (a.u.)')
 
                 plt.subplot(143)
-                plt.plot(m_results[trial, :, 2, :].numpy().squeeze())
+                plt.plot(np.array(m_results[trial, :, 2, :]).squeeze())
                 plt.xlabel('time (ms)')
                 plt.ylabel('muscle velocity (m/sec)')
 
                 plt.subplot(144)
-                plt.plot(h_results[trial, :, :].numpy().squeeze())
+                plt.plot(np.array(h_results[trial, :, :]).squeeze())
                 plt.xlabel('time (ms)')
                 plt.ylabel('hidden unit activity')
 
