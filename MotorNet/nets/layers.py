@@ -6,10 +6,15 @@ from tensorflow.keras.layers import Layer, GRUCell, Dense, Lambda
 class GRUController(Layer):
     def __init__(self, plant, n_units=20, n_hidden_layers=1, activation='tanh', kernel_regularizer=0.,
                  activity_regularizer=0., recurrent_regularizer=0., proprioceptive_noise_sd=0., visual_noise_sd=0.,
-                 hidden_noise_sd=0., n_ministeps=1, **kwargs):
+                 hidden_noise_sd=0., n_ministeps=1, output_bias_initializer=tf.initializers.Constant(value=-5),
+                 output_kernel_initializer=tf.initializers.random_normal(stddev=10 ** -3), **kwargs):
 
         if type(n_units) == int:
             n_units = list(np.repeat(n_units, n_hidden_layers).astype('int32'))
+        if len(n_units) > 1 and n_hidden_layers == 1:
+            n_hidden_layers = len(n_units)
+        if len(n_units) != n_hidden_layers:
+            raise ValueError('The number of hidden layers should match the size of the n_unit array.')
 
         # set noise levels
         self.proprioceptive_noise_sd = proprioceptive_noise_sd
@@ -34,17 +39,18 @@ class GRUController(Layer):
         self.n_ministeps = int(np.maximum(n_ministeps, 1))
         self.output_size = self.state_size
         self.plant = plant
-        self.kernel_regularizer_weight = kernel_regularizer
+        self.kernel_regularizer_weight = kernel_regularizer  # to save the values in `get_save_config`
         self.kernel_regularizer = tf.keras.regularizers.l2(kernel_regularizer)
         self.activity_regularizer = tf.keras.regularizers.l2(activity_regularizer)
-        self.recurrent_regularizer_weight = recurrent_regularizer
+        self.recurrent_regularizer_weight = recurrent_regularizer  # to save the values in `get_save_config`
         self.recurrent_regularizer = tf.keras.regularizers.l2(recurrent_regularizer)
+        self.output_bias_initializer = output_bias_initializer
+        self.output_kernel_initializer = output_kernel_initializer
         self.n_hidden_layers = n_hidden_layers
-        self.activation = activation
-        if self.activation == 'recttanh':
-            self.activation_f = recttanh
+        if activation == 'recttanh':
+            self.activation = recttanh
         else:
-            self.activation_f = activation
+            self.activation = activation
         self.n_units = n_units
         self.layers = []
 
@@ -61,7 +67,6 @@ class GRUController(Layer):
             visual_true, _ = tf.split(cstate, 2, axis=-1)  # position only (discard velocity)
             return visual_true
 
-        # TODO: put in the build method
         self.unpack_plant_states = Lambda(lambda x: x[:4], name="unpack_plant_states")
         self.unpack_feedback_states = Lambda(lambda x: x[4:6], name="unpack_feedback_states")
         self.get_feedback_backlog = Lambda(lambda x: tf.slice(x, [0, 0, 1], [-1, -1, -1]), name="get_feedback_backlog")
@@ -77,24 +82,35 @@ class GRUController(Layer):
             Lambda(lambda x: [tf.zeros((x[0], n_u), dtype=x[1]) for n_u in self.n_units], name="get_new_hidden_state")
         self.built = False
 
+        output_names = [
+            'joint position',
+            'cartesian position',
+            'muscle state',
+            'geometry state',
+            'proprioceptive feedback',
+            'visual feedback']
+        output_names.extend(['gru_hidden' + str(k) for k in range(self.n_hidden_layers)])
+        self.output_names = output_names
         super().__init__(**kwargs)
 
     def build(self, input_shapes):
         for k in range(self.n_hidden_layers):
             layer = GRUCell(units=self.n_units[k],
-                            activation=self.activation_f,
+                            activation=self.activation,
                             name='hidden_layer_' + str(k),
                             kernel_regularizer=self.kernel_regularizer,
                             recurrent_regularizer=self.recurrent_regularizer,
-                            activity_regularizer=self.activity_regularizer)
+                            # activity_regularizer=self.activity_regularizer  # this doesn't work yet for some reason
+                            )
             self.layers.append(layer)
         output_layer = Dense(units=self.plant.input_dim,
                              activation='sigmoid',
                              name='output_layer',
-                             bias_initializer=tf.initializers.Constant(value=-5),
-                             kernel_initializer=tf.initializers.random_normal(stddev=10 ** -3),
+                             bias_initializer=self.output_bias_initializer,
+                             kernel_initializer=self.output_kernel_initializer,
                              kernel_regularizer=self.kernel_regularizer,
-                             activity_regularizer=self.activity_regularizer)
+                             # activity_regularizer=self.activity_regularizer  # this doesn't work yet for some reason
+                             )
         self.layers.append(output_layer)
         self.built = True
 
