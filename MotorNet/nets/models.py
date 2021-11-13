@@ -1,15 +1,35 @@
+from abc import ABC
 import tensorflow as tf
-from tensorflow import keras
+import keras
 import json
 import os
 
 
-class MotorNetModel(keras.Model):
-    def __init__(self, inputs, outputs, task, name='controller', **kwargs):
+class MotorNetModel(keras.Model, ABC):
+    def __init__(self, inputs, outputs, task, name='controller'):
         self.inputs = inputs
         self.outputs = outputs
         self.task = task
-        super(MotorNetModel, self).__init__(inputs=inputs, outputs=outputs, name=name)
+        super().__init__(inputs=inputs, outputs=outputs, name=name)
+
+        # ensure each loss is tagged with the correct loss name, since the loss order is reshuffled in parent class
+        flat_losses = tf.nest.flatten(task.losses)
+        names = list(task.losses.keys())
+        losses = list(task.losses.values())
+
+        # all non-defined losses (=None) will share the output_name of the first model output with a non-defined loss
+        output_names = [names[losses.index(loss)] for loss in flat_losses]
+        self.output_names = output_names
+
+        # if a defined loss object has been attributed a name, then use that name instead of the default output_name
+        for k, name in enumerate(output_names):
+            if hasattr(task.losses[name], 'name'):
+                self.output_names[k] = task.losses[name].name
+
+        # now we remove the names for the non-defined losses (loss=None cases)
+        for k, loss in enumerate(flat_losses):
+            if loss is None:
+                self.output_names[k] = None
 
     def train_step(self, data):
         # Unpack the data. Its structure depends on your model and
@@ -23,8 +43,7 @@ class MotorNetModel(keras.Model):
             if self.task.do_recompute_targets:
                 y = self.task.recompute_targets(x, y, y_pred)
 
-            # Compute the loss value
-            # (the loss function is configured in `compile()`)
+            # Compute the loss value (the compiled_loss method is configured in `self.compile()`)
             loss = self.compiled_loss(y, y_pred, regularization_losses=self.losses)
 
         # Compute gradients
@@ -55,5 +74,5 @@ class MotorNetModel(keras.Model):
         return cfg
 
     @classmethod
-    def from_config(cls, config):
+    def from_config(cls, config, custom_objects=None):
         return cls(**config)
