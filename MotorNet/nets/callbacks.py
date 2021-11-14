@@ -26,17 +26,25 @@ class BatchLogger(Callback):
 
 
 class TrainingPlotter(Callback):
-    def __init__(self, task, plot_freq=20):
+    def __init__(self, task, plot_freq=20, plot_n_t=100, plot_loss=True, plot_trials=3):
         super().__init__()
         self.task = task
         self.plot_freq = plot_freq
+        self.plot_n_t = plot_n_t
+        self.plot_loss = plot_loss
+        self.plot_trials = plot_trials
         self.logs = []
         self.losses = {}
         self.loss_weights = {task.loss_names[loss] + '_loss': weight for loss, weight in self.task.loss_weights.items()}
+        self.last_visited_batch = None
+        self.training_stop_history = []
 
     def on_train_begin(self, logs=None):
-        self.logs = []
-        self.losses = {}
+        # not in `on_training_end` to allow logging even after user interruption of training
+        if self.last_visited_batch is not None:
+            if len(self.training_stop_history) > 0:
+                self.last_visited_batch += self.training_stop_history[-1]
+            self.training_stop_history.append(self.last_visited_batch)
 
     def on_batch_end(self, batch, logs=None):
 
@@ -59,53 +67,54 @@ class TrainingPlotter(Callback):
         self.losses['output kernel loss'].append(np.array(self.model.losses[2]))
 
         self.logs.append(logs)
+        self.last_visited_batch = batch
 
-        if batch % self.plot_freq == 0 or batch == 1:
-            [inputs, targets, init_states] = self.task.generate(batch_size=3,
-                                                                n_timesteps=self.task.training_n_timesteps)
-            results = self.model([inputs, init_states], training=False)
-
-            if self.task.do_recompute_targets:
-                targets = self.task.recompute_targets((inputs, init_states), targets, results)
-
-            c_results = results['cartesian position']
-            m_results = results['muscle state']
-            h_results = results['gru_hidden0']
-
+        plot_time = batch % self.plot_freq == 0 or batch == 0
+        if plot_time and (self.plot_loss or self.plot_trials > 0):
             clear_output(wait=True)
+
+        if plot_time and self.plot_loss:
             fig = plt.figure(constrained_layout=True)
             gs = fig.add_gridspec(1, 1)
             ax1 = fig.add_subplot(gs[0, 0])
             for loss, val in self.losses.items():
                 ax1.plot(val, label=loss)
+            for x in self.training_stop_history:
+                plt.axvline(x=x, linewidth=0.8, linestyle='--', c=(0.2, 0.2, 0.2))
             ax1.set(xlabel='iteration', ylabel='weighted loss value')
             ax1.legend()
             plt.show()
 
-            for trial in range(targets.shape[0]):
+        if plot_time and self.plot_trials > 0:
+            [inputs, targets, init_states] = self.task.generate(atch_size=self.plot_trials, n_timesteps=self.plot_n_t)
+            results = self.model([inputs, init_states], training=False)
+            if self.task.do_recompute_targets:
+                targets = self.task.recompute_targets((inputs, init_states), targets, results)
+
+            for trial in range(self.plot_trials):
                 plt.figure(figsize=(14, 2.5)).set_tight_layout(True)
 
                 plt.subplot(141)
                 plt.plot(np.array(targets[trial, :, 0]).squeeze(), color='#1f77b4', linestyle='dashed')
                 plt.plot(np.array(targets[trial, :, 1]).squeeze(), color='#ff7f0e', linestyle='dashed')
-                plt.plot(np.array(c_results[trial, :, 0]).squeeze(), color='#1f77b4', label='x')
-                plt.plot(np.array(c_results[trial, :, 1]).squeeze(), color='#ff7f0e', label='y')
+                plt.plot(np.array(results['cartesian position'][trial, :, 0]).squeeze(), color='#1f77b4', label='x')
+                plt.plot(np.array(results['cartesian position'][trial, :, 1]).squeeze(), color='#ff7f0e', label='y')
                 plt.legend()
                 plt.xlabel('time (ms)')
                 plt.ylabel('x/y position')
 
                 plt.subplot(142)
-                plt.plot(np.array(m_results[trial, :, 0, :]).squeeze())
+                plt.plot(np.array(results['muscle state'][trial, :, 0, :]).squeeze())
                 plt.xlabel('time (ms)')
                 plt.ylabel('activation (a.u.)')
 
                 plt.subplot(143)
-                plt.plot(np.array(m_results[trial, :, 2, :]).squeeze())
+                plt.plot(np.array(results['muscle state'][trial, :, 2, :]).squeeze())
                 plt.xlabel('time (ms)')
                 plt.ylabel('muscle velocity (m/sec)')
 
                 plt.subplot(144)
-                plt.plot(np.array(h_results[trial, :, :]).squeeze())
+                plt.plot(np.array(results['gru_hidden0'][trial, :, :]).squeeze())
                 plt.xlabel('time (ms)')
                 plt.ylabel('hidden unit activity')
 
