@@ -86,7 +86,7 @@ class TrainingPlotter(Callback):
             plt.show()
 
         if plot_time and self.plot_trials > 0:
-            [inputs, targets, init_states] = self.task.generate(atch_size=self.plot_trials, n_timesteps=self.plot_n_t)
+            [inputs, targets, init_states] = self.task.generate(batch_size=self.plot_trials, n_timesteps=self.plot_n_t)
             results = self.model([inputs, init_states], training=False)
             if self.task.do_recompute_targets:
                 targets = self.task.recompute_targets((inputs, init_states), targets, results)
