@@ -145,7 +145,7 @@ class TaskStaticTargetBis(Task):
         dist_y = tf.concat([dist_y,tf.zeros_like(dist_y)],axis=2)
         # if the distance is less than a certain amount, replace the target with the results of the forward pass
         # Think about the stuff I can put here for the where condition --> playing with target redundancy
-        targets = tf.where(tf.math.logical_or(tf.less_equal(dist_x,0.035), tf.less_equal(dist_y,0.2)),cartesian_pos_no_vel,targets)
+        targets = tf.where(tf.math.logical_and(tf.less_equal(dist_x,0.035), tf.less_equal(dist_y,1)),cartesian_pos_no_vel,targets)
         return targets
 
 
