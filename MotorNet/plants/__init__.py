@@ -69,22 +69,25 @@ class PlantWrapper:
         # Lambda wraps to avoid memory leaks
         self.default_endpoint_load = tf.zeros((1, self.Skeleton.space_dim), dtype=tf.float32)
         self.default_joint_load = tf.zeros((1, self.Skeleton.dof), dtype=tf.float32)
-        self.slice_states = Lambda(lambda x: tf.slice(x[0], [0, x[1], 0], [-1, x[2], -1]))
-        self.get_generalized_forces = Lambda(lambda x: - tf.reduce_sum(x[0] * x[1], axis=-1) + x[2])
-        self._get_initial_state_fn = Lambda(lambda x: self._get_initial_state(*x))
-        self._get_geometry_fn = Lambda(lambda x: self._get_geometry(x))
-        self._call_fn = Lambda(lambda x: self.call(*x))
-        self._draw_random_uniform_states_fn = Lambda(lambda x: self._draw_random_uniform_states(x))
-        self._parse_initial_joint_state_fn = Lambda(lambda x: self._parse_initial_joint_state(*x))
-        self._draw_fixed_states_fn = Lambda(lambda x: self._draw_fixed_states(*x))
+        self.slice_states = Lambda(lambda x: tf.slice(x[0], [0, x[1], 0], [-1, x[2], -1]), name='plant_slice_states')
+        self.get_generalized_forces = Lambda(lambda x: - tf.reduce_sum(x[0] * x[1], axis=-1) + x[2], name='get_generalized_forces')
+        self.concat = Lambda(lambda x: tf.concat(x[0], axis=x[1]), name='plant_concat')
+        self.split_states = Lambda(lambda x: tf.split(x, 2, axis=1), name='plant_split_states')
+        self.multiply = Lambda(lambda x: x[0] * x[1], name='plant_mul')
+        self._get_initial_state_fn = Lambda(lambda x: self._get_initial_state(*x), name='get_initial_state')
+        self._get_geometry_fn = Lambda(lambda x: self._get_geometry(x), name='get_geometry')
+        self._call_fn = Lambda(lambda x: self.call(*x), name='call')
+        self._draw_random_uniform_states_fn = Lambda(lambda x: self._draw_random_uniform_states(x), name='draw_random_uniform_states')
+        self._parse_initial_joint_state_fn = Lambda(lambda x: self._parse_initial_joint_state(*x), name='parse_initial_joint_state')
+        self._draw_fixed_states_fn = Lambda(lambda x: self._draw_fixed_states(*x), name='draw_fixed_states')
         self._state2target_fn = \
-            Lambda(lambda x: tf.transpose(tf.repeat(x[0][:, :, tf.newaxis], x[1], axis=-1), [0, 2, 1]))
+            Lambda(lambda x: tf.transpose(tf.repeat(x[0][:, :, tf.newaxis], x[1], axis=-1), [0, 2, 1]), name='state2target')
         if self.integration_method == 'euler':
-            self._integrate_fn = Lambda(lambda x: self._euler(*x))
+            self._integrate_fn = Lambda(lambda x: self._euler(*x), name='plant_euler_integration')
         elif self.integration_method in ('rk4', 'rungekutta4', 'runge-kutta4', 'runge-kutta-4'):  # tuple faster thn set
-            self._integrate_fn = Lambda(lambda x: self._rungekutta4(*x))
+            self._integrate_fn = Lambda(lambda x: self._rungekutta4(*x), name='plant_rk4_integration')
 
-        self.built = False
+        # self.built = False
 
     def add_muscle(self, path_fixation_body: list, path_coordinates: list, name='', **kwargs):
         path_fixation_body = np.array(path_fixation_body).astype('float32').reshape((1, 1, -1))
@@ -148,7 +151,8 @@ class PlantWrapper:
         k3 = self.update_ode(excitation, states=states, endpoint_load=endpoint_load, joint_load=joint_load)
         states = self.integration_step(self.dt, state_derivative=k3, states=states)
         k4 = self.update_ode(excitation, states=states, endpoint_load=endpoint_load, joint_load=joint_load)
-        k = {key: (k1[key] + 2 * (k2[key] + k3[key]) + k4[key]) / 6 for key in k1.keys()}
+        # computationally less efficient but numerically more stable
+        k = {key: (k1[key] / 6) + (k2[key] / 3) + (k3[key] / 3) + (k4[key] / 6) for key in k1.keys()}
         states = self.integration_step(self.dt, state_derivative=k, states=states0)
         return states["joint"], states["muscle"], states["geometry"]
 
@@ -221,7 +225,7 @@ class PlantWrapper:
         geometry_state = tf.transpose(tf.concat([musculotendon_len, musculotendon_vel, moments], axis=1), [2, 1, 0])
         return geometry_state
 
-    def _get_initial_state(self, batch_size, joint_state):
+    def _get_initial_state(self, batch_size, joint_state=None):
         if joint_state is not None and tf.shape(joint_state)[0] > 1:
             batch_size = tf.shape(joint_state)[0]
 
@@ -248,7 +252,7 @@ class PlantWrapper:
                 batch_size = 1
             n_state = joint_state.shape[1]
             if n_state == self.state_dim:
-                position, velocity = tf.split(joint_state, 2, axis=-1)
+                position, velocity = self.split_states(joint_state)
                 joint0 = self.draw_fixed_states(position=position, velocity=velocity, batch_size=batch_size)
             elif n_state == int(self.state_dim / 2):
                 joint0 = self.draw_fixed_states(position=joint_state, batch_size=batch_size)
@@ -267,6 +271,7 @@ class PlantWrapper:
             pos = pos.reshape((1, -1))
         if len(vel.shape) == 1:
             vel = vel.reshape((1, -1))
+
         assert pos.shape == vel.shape
         assert pos.shape[1] == self.dof
         assert len(pos.shape) == 2
@@ -368,14 +373,22 @@ class RigidTendonArm(PlantWrapper):
         self.a2 = tf.constant(a2, shape=(1, 2, 6), dtype=tf.float32)
         self.a3 = tf.constant(a3, shape=(1, 2, 1), dtype=tf.float32)
 
+        self.get_musculotendon_len1 = Lambda(lambda pos: (self.a1 + pos * self.a2), name='get_musculotendon_len1')
+        self.geometry_reduce_sum_l = Lambda(lambda x: tf.reduce_sum(x, axis=1, keepdims=True), name='geometry_reduce_sum_l')
+        self.geometry_reduce_sum_v = Lambda(lambda x: tf.reduce_sum(x, axis=1, keepdims=True), name='geometry_reduce_sum_v')
+        self.get_moment_arm = Lambda(lambda pos: pos * self.a2 * 2 + self.a1, name='get_moment_arm')
+
     def _get_geometry(self, joint_state):
-        old_pos, old_vel = tf.split(joint_state[:, :, tf.newaxis], 2, axis=1)
+        old_pos, old_vel = self.split_states(joint_state[:, :, tf.newaxis])
         old_pos = old_pos - self.a3
-        old_pos2 = tf.pow(old_pos, 2)
-        moment_arm = old_pos * self.a2 * 2 + self.a1
-        musculotendon_len = tf.reduce_sum(old_pos * self.a1 + old_pos2 * self.a2, axis=1, keepdims=True) + self.a0
-        musculotendon_vel = tf.reduce_sum(old_vel * moment_arm, axis=1, keepdims=True)
-        return tf.concat([musculotendon_len, musculotendon_vel, moment_arm], axis=1)
+        # old_pos2 = tf.pow(old_pos, 2)
+        moment_arm = self.get_moment_arm(old_pos)
+        musculotendon_len1 = self.get_musculotendon_len1(old_pos)
+        musculotendon_len2 = self.multiply((musculotendon_len1, old_pos))
+        musculotendon_vel1 = self.multiply((old_vel, moment_arm))
+        musculotendon_len = self.geometry_reduce_sum_l(musculotendon_len2) + self.a0
+        musculotendon_vel = self.geometry_reduce_sum_v(musculotendon_vel1)
+        return self.concat(([musculotendon_len, musculotendon_vel, moment_arm], 1))
 
 
 class CompliantTendonArm(RigidTendonArm):
@@ -383,7 +396,7 @@ class CompliantTendonArm(RigidTendonArm):
     This is the compliant-tendon version of the "RigidTendonArm" class above
     """
 
-    def __init__(self, timestep=0.001, skeleton=None, **kwargs):
+    def __init__(self, timestep=0.0002, skeleton=None, **kwargs):
 
         integration_method = kwargs.pop('integration_method', 'rk4')
         if skeleton is None:
@@ -400,9 +413,9 @@ class CompliantTendonArm(RigidTendonArm):
         self.Muscle.build(
             timestep=timestep,
             max_isometric_force=[838, 1207, 1422, 1549, 414, 603],
-            tendon_length=[0.069, 0.070, 0.172, 0.187, 0.204, 0.217],
+            tendon_length=[0.070, 0.070, 0.172, 0.187, 0.204, 0.217],
             optimal_muscle_length=[0.134, 0.140, 0.092, 0.093, 0.137, 0.127],
             normalized_slack_muscle_length=self.tobuild__default['normalized_slack_muscle_length'])
 
-        a0 = [0.181, 0.2362, 0.2859, 0.2355, 0.3329, 0.2989]
+        a0 = [0.182, 0.2362, 0.2859, 0.2355, 0.3329, 0.2989]
         self.a0 = tf.constant(a0, shape=(1, 1, 6), dtype=tf.float32)

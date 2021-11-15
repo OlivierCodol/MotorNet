@@ -23,31 +23,40 @@ class Skeleton:
 
         self.pos_lower_bound = kwargs.get('pos_lower_bound', -1.)
         self.pos_upper_bound = kwargs.get('pos_upper_bound', +1.)
-        self.vel_lower_bound = kwargs.get('vel_lower_bound', -10000.)  # cap as defensive code
-        self.vel_upper_bound = kwargs.get('vel_upper_bound', +10000.)
+        self.vel_lower_bound = kwargs.get('vel_lower_bound', -1000.)  # cap as defensive code
+        self.vel_upper_bound = kwargs.get('vel_upper_bound', +1000.)
 
-        self._update_ode_fn = Lambda(lambda x: self._update_ode(*x))
-        self._integrate_fn = Lambda(lambda x: self._integrate(*x))
-        self._path2cartesian_fn = Lambda(lambda x: self._path2cartesian(*x))
-        self._joint2cartesian_fn = Lambda(lambda x: self._joint2cartesian(x))
-        self._clip_velocity_fn = Lambda(lambda x: self._clip_velocity(*x))
+        self._update_ode_fn = Lambda(lambda x: self._update_ode(*x), name='skeleton_update_ode')
+        self._rk4_get_k = Lambda(lambda k: (k[0] + 2 * (k[1] + k[2]) + k[3]) / 6, name='skeleton_rk4_get_k')
+        self._path2cartesian_fn = Lambda(lambda x: self._path2cartesian(*x), name='path2cartesian')
+        self._joint2cartesian_fn = Lambda(lambda x: self._joint2cartesian(x), name='joint2cartesian')
+        self._clip_velocity_fn = Lambda(lambda x: self._clip_velocity(*x), name='skeleton_clip_velocity')
+        self.concat = Lambda(lambda x: tf.concat(x[0], axis=x[1]), name='skeleton_concat')
+        self.split_states = Lambda(lambda x: tf.split(x, 2, axis=1), name='skeleton_split_states')
+        self.multiply = Lambda(lambda x: x[0] * x[1], name='skeleton_mul')
+        self.clip_position = None
         self._call_fn = None
         self.init = False
         self.built = False
 
     def build(self, timestep, pos_upper_bound, pos_lower_bound, vel_upper_bound, vel_lower_bound,
               integration_method: str = 'euler'):
-        self.pos_upper_bound = pos_upper_bound
-        self.pos_lower_bound = pos_lower_bound
-        self.vel_upper_bound = vel_upper_bound
-        self.vel_lower_bound = vel_lower_bound
-        self.dt = timestep
-        self.half_dt = self.dt / 2  # to reduce online calculations for RK4 integration
+        self.pos_upper_bound = tf.constant(pos_upper_bound, name='pos_upper_bound')
+        self.pos_lower_bound = tf.constant(pos_lower_bound, name='pos_lower_bound')
+        self.vel_upper_bound = tf.constant(vel_upper_bound, name='vel_upper_bound')
+        self.vel_lower_bound = tf.constant(vel_lower_bound, name='vel_lower_bound')
+        self.dt = tf.constant(timestep, name='dt')
+        self.half_dt = tf.constant(self.dt / 2, name='half_dt')
         self.integration_method = integration_method.casefold()  # make string fully in lower case
+        self.clip_position = Lambda(
+            function=lambda x: tf.clip_by_value(x, self.pos_lower_bound, self.pos_upper_bound), name='clip_position')
+
         if self.integration_method == 'euler':
-            self._call_fn = Lambda(lambda x: self._euler(*x))
+            self._call_fn = Lambda(lambda x: self._euler(*x), name='skeleton_euler_integration')
         elif self.integration_method in ('rk4', 'rungekutta4', 'runge-kutta4', 'runge-kutta-4'):  # tuple faster thn set
-            self._call_fn = Lambda(lambda x: self._rungekutta4(*x))
+            self._call_fn = Lambda(lambda x: self._rungekutta4(*x), name='skeleton_rk4_integration')
+        else:
+            raise ValueError(' ''integration_method'' should be ''euler'' or ''rk4''.')
         self.built = True
 
     def __call__(self, inputs, joint_state, **kwargs):
@@ -70,11 +79,12 @@ class Skeleton:
         k3 = self.update_ode(inputs, state, endpoint_load)
         state = self.integrate(self.dt, state_derivative=k3, joint_state=state)
         k4 = self.update_ode(inputs, state, endpoint_load)
-        k = (k1 + 2 * (k2 + k3) + k4) / 6
+        k = self._rk4_get_k((k1, k2, k3, k4))
         return self.integrate(self.dt, state_derivative=k, joint_state=joint_state)
 
+    @abstractmethod
     def integrate(self, dt, state_derivative, joint_state):
-        return self._integrate_fn((dt, state_derivative, joint_state))
+        return
 
     def update_ode(self, inputs, joint_state, endpoint_load):
         return self._update_ode_fn((inputs, joint_state, endpoint_load))
@@ -96,14 +106,10 @@ class Skeleton:
     def _update_ode(self, *args, **kwargs):
         return
 
-    @abstractmethod
-    def _integrate(self, *args, **kwargs):
-        return
-
     def _clip_velocity(self, pos, vel):
         vel = tf.clip_by_value(vel, self.vel_lower_bound, self.vel_upper_bound)
-        vel = tf.where(condition=tf.logical_and(vel < 0, pos <= self.pos_lower_bound), x=tf.zeros_like(vel), y=vel)
-        vel = tf.where(condition=tf.logical_and(vel > 0, pos >= self.pos_upper_bound), x=tf.zeros_like(vel), y=vel)
+        vel = tf.where(condition=tf.logical_and(vel < 0, pos <= self.pos_lower_bound), x=0., y=vel)
+        vel = tf.where(condition=tf.logical_and(vel > 0, pos >= self.pos_upper_bound), x=0., y=vel)
         return vel
 
     @abstractmethod
@@ -127,14 +133,14 @@ class TwoDofArm(Skeleton):
         ub = (sho_limit[1], elb_limit[1])
         super().__init__(dof=2, space_dim=2, pos_lower_bound=lb, pos_upper_bound=ub, **kwargs)
 
-        self.m1 = kwargs.get('m1', 1.864572)  # masses of arm links
-        self.m2 = kwargs.get('m2', 1.534315)
-        self.L1g = kwargs.get('L1g', 0.180496)  # center of mass of the links
-        self.L2g = kwargs.get('L2g', 0.181479)
-        self.I1 = kwargs.get('I1', 0.013193)  # moments of inertia around the center of mass
-        self.I2 = kwargs.get('I2', 0.020062)
-        self.L1 = kwargs.get('L1', 0.309)  # length of links
-        self.L2 = kwargs.get('L2', 0.26)
+        self.m1 = tf.constant(kwargs.get('m1', 1.864572), name='skeleton_m1')  # masses of arm links
+        self.m2 = tf.constant(kwargs.get('m2', 1.534315), name='skeleton_m2')
+        self.L1g = tf.constant(kwargs.get('L1g', 0.180496), name='skeleton_L1g')  # center of mass of the links
+        self.L2g = tf.constant(kwargs.get('L2g', 0.181479), name='skeleton_L2g')
+        self.I1 = tf.constant(kwargs.get('I1', 0.013193), name='skeleton_I1')  # moment of inertia around center of mass
+        self.I2 = tf.constant(kwargs.get('I2', 0.020062), name='skeleton_I2')
+        self.L1 = tf.constant(kwargs.get('L1', 0.309), name='skeleton_L1')  # length of links
+        self.L2 = tf.constant(kwargs.get('L2', 0.26), name='skeleton_L2')
 
         # pre-compute values for mass, coriolis, and gravity matrices
         inertia_11_c = self.m1 * self.L1g ** 2 + self.I1 + self.m2 * (self.L2g ** 2 + self.L1 ** 2) + self.I2
@@ -145,31 +151,44 @@ class TwoDofArm(Skeleton):
 
         inertia_c = np.array([[[inertia_11_c, inertia_12_c], [inertia_12_c, inertia_22_c]]]).astype(np.float32)
         inertia_m = np.array([[[inertia_11_m, inertia_12_m], [inertia_12_m, 0.]]]).astype(np.float32)
-        self.inertia_c = inertia_c.reshape((1, 2, 2))  # 0-th axis is for broadcasting to batch_size when used
-        self.inertia_m = inertia_m.reshape((1, 2, 2))
+        self.inertia_c = tf.constant(inertia_c.reshape((1, 2, 2)), name='inertia_c')
+        self.inertia_m = tf.constant(inertia_m.reshape((1, 2, 2)), name='inertia_m')
 
-        self.coriolis_1 = -self.m2 * self.L1 * self.L2g
-        self.coriolis_2 = self.m2 * self.L1 * self.L2g
-        self.c_viscosity = 0.0  # put at zero but available if implemented later on
+        self.coriolis_1 = tf.constant(- self.m2 * self.L1 * self.L2g, name='coriolis_1')
+        self.coriolis_2 = tf.constant(self.m2 * self.L1 * self.L2g, name='coriolis_2')
+        self.c_viscosity = tf.constant(0., name='c_viscosity')  # put at zero but available if implemented later on
+
+        self.cos = Lambda(lambda x: tf.cos(x), name='cos')
+        self.sin = Lambda(lambda x: tf.sin(x), name='sin')
+
+        # todo remove the get_coriolis ones
+        # todo add a self.stack lambda
+        # todo add all the _get format to self.lambdas
+        self.get_coriolis_1 = Lambda(
+            function=lambda x:
+                (self.coriolis_1 * x[0] * (2 * x[1][:, 0] + x[1][:, 1])) * x[1][:, 1] + self.c_viscosity * x[1][:, 0],
+            name='get_coriolis_1')
+
+        self.get_coriolis_2 = Lambda(
+            function=lambda x: (self.coriolis_2 * x[0] * x[1][:, 0]) * x[1][:, 0] + self.c_viscosity * x[1][:, 1],
+            name='get_coriolis_2')
 
     def _update_ode(self, inputs, joint_state, endpoint_load):
         # first two elements of state are joint position, last two elements are joint angular velocities
-        old_vel = tf.cast(joint_state[:, 2:], dtype=tf.float32)
-        old_pos = tf.cast(joint_state[:, :2], dtype=tf.float32)
-        c1 = tf.cos(old_pos[:, 0])
-        c2 = tf.cos(old_pos[:, 1])
-        c12 = tf.cos(old_pos[:, 0] + old_pos[:, 1])
-        s1 = tf.sin(old_pos[:, 0])
-        s2 = tf.sin(old_pos[:, 1])
-        s12 = tf.sin(old_pos[:, 0] + old_pos[:, 1])
+        old_pos, old_vel = self.split_states(joint_state)
+        c1 = self.cos(old_pos[:, 0])
+        c2 = self.cos(old_pos[:, 1])
+        c12 = self.cos(old_pos[:, 0] + old_pos[:, 1])
+        s1 = self.sin(old_pos[:, 0])
+        s2 = self.sin(old_pos[:, 1])
+        s12 = self.sin(old_pos[:, 0] + old_pos[:, 1])
 
         # inertia matrix (batch_size x 2 x 2)
         inertia = self.inertia_c + c2[:, tf.newaxis, tf.newaxis] * self.inertia_m
 
         # coriolis torques (batch_size x 2) plus a damping term (scaled by self.c_viscosity)
-        coriolis_1 = self.coriolis_1 * s2 * (2 * old_vel[:, 0] * old_vel[:, 1] + old_vel[:, 1] ** 2) + \
-            self.c_viscosity * old_vel[:, 0]
-        coriolis_2 = self.coriolis_2 * s2 * (old_vel[:, 0] ** 2) + self.c_viscosity * old_vel[:, 1]
+        coriolis_1 = self.get_coriolis_1((s2, old_vel))
+        coriolis_2 = self.get_coriolis_2((s2, old_vel))
         coriolis = tf.stack([coriolis_1, coriolis_2], axis=1)
 
         # jacobian to distribute external loads (torques) applied at endpoint to the two rigid links
@@ -179,7 +198,6 @@ class TwoDofArm(Skeleton):
         jacobian_22 = s12 * self.L2
 
         # apply external loads
-        # loads = tf.cast(endpoint_load, dtype=tf.float32)
         r_col = (jacobian_11 * endpoint_load[:, 0]) + (jacobian_21 * endpoint_load[:, 1])  # these are torques
         l_col = (jacobian_12 * endpoint_load[:, 0]) + (jacobian_22 * endpoint_load[:, 1])
         torques = inputs + tf.stack([r_col, l_col], axis=1)
@@ -193,16 +211,16 @@ class TwoDofArm(Skeleton):
         new_acc_3d = tf.matmul(inertia_inv, rhs)
         return new_acc_3d[:, :, 0]  # somehow tf.squeeze doesn't work well in a Lambda wrap...
 
-    def _integrate(self, dt, state_derivative, joint_state):
-        old_pos, old_vel = tf.split(tf.cast(joint_state, dtype=tf.float32), 2, axis=1)
+    def integrate(self, dt, state_derivative, joint_state):
+        old_pos, old_vel = self.split_states(joint_state)
         new_vel = old_vel + state_derivative * dt
         new_pos = old_pos + old_vel * dt
 
         # Clip to ensure values don't get off-hand.
         # We clip position after velocity to ensure any off-space position is taken into account when clipping velocity.
         new_vel = self.clip_velocity(new_pos, new_vel)
-        new_pos = tf.clip_by_value(new_pos, self.pos_lower_bound, self.pos_upper_bound)
-        return tf.concat([new_pos, new_vel], axis=1)
+        new_pos = self.clip_position(new_pos)
+        return self.concat(([new_pos, new_vel], 1))
 
     def _joint2cartesian(self, joint_state):
         # compute cartesian state from joint state
@@ -210,10 +228,10 @@ class TwoDofArm(Skeleton):
         joint_state = tf.reshape(joint_state, (-1, self.state_dim))
         joint_angle_sum = joint_state[:, 0] + joint_state[:, 1]
 
-        c1 = tf.cos(joint_state[:, 0])
-        s1 = tf.sin(joint_state[:, 0])
-        c12 = tf.cos(joint_angle_sum)
-        s12 = tf.sin(joint_angle_sum)
+        c1 = self.cos(joint_state[:, 0])
+        s1 = self.sin(joint_state[:, 0])
+        c12 = self.cos(joint_angle_sum)
+        s12 = self.sin(joint_angle_sum)
 
         end_pos_x = self.L1 * c1 + self.L2 * c12
         end_pos_y = self.L1 * s1 + self.L2 * s12
@@ -225,11 +243,12 @@ class TwoDofArm(Skeleton):
 
     def _path2cartesian(self, path_coordinates, path_fixation_body, joint_state):
         n_points = tf.size(path_fixation_body)
-        joint_angles, joint_vel = tf.split(joint_state, 2, axis=-1)
-        sho, elb_wrt_sho = tf.split(joint_angles, 2, axis=-1)
+        joint_angles, joint_vel = self.split_states(joint_state)
+
+        sho, elb_wrt_sho = self.split_states(joint_angles)
         elb = elb_wrt_sho + sho
-        elb_y = self.L1 * tf.sin(sho)[:, :, tf.newaxis]
-        elb_x = self.L1 * tf.cos(sho)[:, :, tf.newaxis]
+        elb_y = self.L1 * self.sin(sho)[:, :, tf.newaxis]
+        elb_x = self.L1 * self.cos(sho)[:, :, tf.newaxis]
 
         # If we want the position of a fixation point relative to the origin of its bone given global cartesian
         # coordinates, then we use the joint angles; here we are trying to do the inverse of that, that is getting the
@@ -240,8 +259,8 @@ class TwoDofArm(Skeleton):
         # eblow angle if it is fixed on the forearm (path_fixation_body = 2).
         flat_path_fixation_body = tf.squeeze(tf.reshape(path_fixation_body, (-1, 1)))
         ang = tf.where(flat_path_fixation_body == 0., 0., tf.where(flat_path_fixation_body == 1., -sho, -elb))
-        ca = tf.cos(ang)
-        sa = tf.sin(ang)
+        ca = self.cos(ang)
+        sa = self.sin(ang)
 
         # rotation matrix to transform the bone-relative coordinates into global coordinates
         rot1 = tf.reshape(tf.concat([ca, sa], axis=1), (-1, 2, n_points))
@@ -285,24 +304,23 @@ class PointMass(Skeleton):
 
     def __init__(self, space_dim, mass=1., **kwargs):
         super().__init__(dof=space_dim, space_dim=space_dim, **kwargs)
-        self.mass = mass
+        self.mass = tf.constant(mass, name='mass')
 
     def _update_ode(self, inputs, joint_state, endpoint_load):
-        return inputs + endpoint_load  # load will broadcast to match batch_size
+        return inputs + endpoint_load
 
-    def _integrate(self, dt, state_derivative, joint_state):
-        old_vel = tf.cast(joint_state[:, self.dof:], dtype=tf.float32)
-        old_pos = tf.cast(joint_state[:, :self.dof], dtype=tf.float32)
+    def integrate(self, dt, state_derivative, joint_state):
+        old_pos, old_vel = self.split_states(joint_state)
+        # old_vel = tf.cast(joint_state[:, self.dof:], dtype=tf.float32)
+        # old_pos = tf.cast(joint_state[:, :self.dof], dtype=tf.float32)
         new_vel = old_vel + state_derivative * dt / self.mass
         new_pos = old_pos + old_vel * dt
-
         new_vel = self.clip_velocity(new_pos, new_vel)
-        new_pos = tf.clip_by_value(new_pos, self.pos_lower_bound, self.pos_upper_bound)
-        new_state = tf.concat([new_pos, new_vel], axis=1)
-        return new_state
+        new_pos = self.clip_position(new_pos)
+        return self.concat(([new_pos, new_vel], 1))
 
     def _path2cartesian(self, path_coordinates, path_fixation_body, joint_state):
-        pos, vel = tf.split(joint_state[:, :, tf.newaxis], 2, axis=1)
+        pos, vel = self.split_states(joint_state[:, :, tf.newaxis])
         # if fixed on the point mass, then add the point-mass position / velocity to the fixation point coordinate
         pos = tf.where(path_fixation_body == 0, 0., pos) + path_coordinates
         vel = tf.where(path_fixation_body == 0, 0., vel)
