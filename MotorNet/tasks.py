@@ -2,11 +2,14 @@
 import copy
 import numpy as np
 import tensorflow as tf
+import random
 from abc import abstractmethod
 from scipy.signal import butter, lfilter
+from MotorNet.nets.losses import PositionLoss, ActivationSquaredLoss, ActivationVelocitySquaredLoss,\
+    ActivationDiffSquaredLoss
 import random
 from MotorNet.nets.losses import position_loss, activation_squared_loss, activation_velocity_squared_loss,\
-                                 activation_diff_squared_loss
+                                 activation_diff_squared_loss, position_loss_bis
 # TODO: check that "generate" methods do not feed the memory leak
 
 
@@ -24,9 +27,9 @@ class Task(tf.keras.utils.Sequence):
         self.delay_range = [0, 0]
         self.do_recompute_targets = False
         self.kwargs = kwargs
-
-        self.losses = {}
-        self.loss_weights = {}
+        self.losses = {name: None for name in self.controller.output_names}
+        self.loss_names = {name: name for name in self.controller.output_names}
+        self.loss_weights = {name: 0. for name in self.controller.output_names}
 
         if initial_joint_state is not None:
             initial_joint_state = np.array(initial_joint_state)
@@ -38,6 +41,12 @@ class Task(tf.keras.utils.Sequence):
             self.initial_joint_state_original = None
             self.n_initial_joint_states = None
         self.initial_joint_state = initial_joint_state
+
+    def add_loss(self, assigned_output, loss, loss_weight=1.):
+        self.losses[assigned_output] = loss
+        self.loss_weights[assigned_output] = loss_weight
+        if hasattr(loss, 'name'):
+            self.loss_names[assigned_output] = loss.name
 
     @abstractmethod
     def generate(self, batch_size, n_timesteps, **kwargs):
@@ -96,9 +105,9 @@ class TaskStaticTarget(Task):
     def __init__(self, controller, **kwargs):
         super().__init__(controller, **kwargs)
         self.__name__ = 'TaskStaticTarget'
-        self.losses = {'cartesian position': position_loss(),
-                       'muscle state': activation_squared_loss(self.plant.Muscle.max_iso_force)}
-        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
+        max_iso_force = self.plant.Muscle.max_iso_force
+        self.add_loss('muscle state', loss=ActivationSquaredLoss(max_iso_force=max_iso_force), loss_weight=.2)
+        self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)
 
     def generate(self, batch_size, n_timesteps, **kwargs):
         init_states = self.get_initial_state(batch_size=batch_size)
@@ -107,14 +116,55 @@ class TaskStaticTarget(Task):
         inputs = {"inputs": targets[:, :, :self.plant.space_dim]}
         return [inputs, targets, init_states]
 
+class TaskStaticTargetBis(Task):
+    """
+    Other kind of cost functions do not change the behavior significantly. 
+    Let's try to change the recompute_targets function in order to play with the target redundancy
+    """
+    def __init__(self, controller,**kwargs):
+        super().__init__(controller,**kwargs)
+        self.__name__ = 'TaskStaticTarget'
+        self.losses = {'cartesian position': position_loss(),
+                       'muscle state': activation_squared_loss(self.plant.Muscle.max_iso_force)}
+        self.loss_weights = {'cartesian position':1, 'muscle state': 0.2}
+        self.do_recompute_targets = kwargs.get('do_recompute_targets',False)
+
+    def generate(self, batch_size, n_timesteps, **kwargs):
+        init_states = self.get_initial_state(batch_size=batch_size)
+        goal_states = self.plant.joint2cartesian(self.plant.draw_random_uniform_states(batch_size=batch_size))
+        targets = self.plant.state2target(state=goal_states, n_timesteps=n_timesteps).numpy()
+        inputs = {"inputs": targets[:,:,:self.plant.space_dim]}
+        return [inputs, targets, init_states]
+
+    def recompute_targets(selfs,inputs,targets,outputs):
+        #grab endpoint position and velocity 
+        cartesian_pos = outputs['cartesian position']
+        #calculate the distance to the targets along each axis as run by the forward pass
+        dist = tf.sqrt(tf.reduce_sum((cartesian_pos[:,:,0] - targets[:,:,0])**2,axis=2)) 
+        dist_x = tf.sqrt(tf.reduce_sum((cartesian_pos[:,:,0] - targets[:,:,0])**2,axis=2))
+        dist_y = tf.sqrt(tf.reduce_sum((cartesian_pos[:,:,1] - targets[:,:,1])**2,axis=2))
+        dist_x = tf.where(tf.equal(inputs[0][:,:,-1],-1.),1000.,dist_x)
+        dist_y = tf.where(tf.equal(inputs[0][:,:,-1],-1.),1000.,dist_y)
+        dist_x = tf.tile(tf.expand_dims(dist_x,axis=2),tf.constant([1,1,2],tf.int32))
+        dist_y = tf.tile(tf.expand_dims(dist_y,axis=2),tf.constant([1,1,2],tf.int32))
+        #keep the position only (drop the rest)
+        cartesian_pos_no_vel = tf.concat([cartesian_pos[:,:,0:2],tf.zeros_like(dist)],axis=2)
+        #preprocess the dist tensor for further computation
+        dist_x = tf.concat([dist_x,tf.zeros_like(dist_x)],axis=2)
+        dist_y = tf.concat([dist_y,tf.zeros_like(dist_y)],axis=2)
+        # if the distance is less than a certain amount, replace the target with the results of the forward pass
+        # Think about the stuff I can put here for the where condition --> playing with target redundancy
+        targets = tf.where(tf.math.logical_and(tf.less_equal(dist_x,0.035), tf.less_equal(dist_y,1)),cartesian_pos_no_vel,targets)
+        return targets
+
 
 class TaskStaticTargetWithPerturbations(Task):
     def __init__(self, controller, endpoint_load: float, **kwargs):
         super().__init__(controller, **kwargs)
         self.__name__ = 'TaskStaticTargetWithPerturbations'
-        self.losses = {'cartesian position': position_loss(),
-                       'muscle state': activation_squared_loss(self.plant.Muscle.max_iso_force)}
-        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
+        max_iso_force = self.plant.Muscle.max_iso_force
+        self.add_loss('muscle state', loss=ActivationSquaredLoss(max_iso_force=max_iso_force), loss_weight=.2)
+        self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)
         self.endpoint_load = endpoint_load
 
     def generate(self, batch_size, n_timesteps, **kwargs):
@@ -137,9 +187,9 @@ class TaskDelayedReach(Task):
     def __init__(self, controller, **kwargs):
         super().__init__(controller, **kwargs)
         self.__name__ = 'TaskDelayedReach'
-        self.losses = {'cartesian position': position_loss(),
-                       'muscle state': activation_squared_loss(self.plant.Muscle.max_iso_force)}
-        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
+        max_iso_force = self.plant.Muscle.max_iso_force
+        self.add_loss('muscle state', loss=ActivationSquaredLoss(max_iso_force=max_iso_force), loss_weight=.2)
+        self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)
         delay_range = np.array(kwargs.get('delay_range', [0.3, 0.6])) / self.plant.dt
         self.delay_range = [int(delay_range[0]), int(delay_range[1])]
         self.convert_to_tensor = tf.keras.layers.Lambda(lambda x: tf.convert_to_tensor(x))
@@ -165,9 +215,9 @@ class TaskDelayedMultiReach(Task):
     def __init__(self, controller, initial_joint_state=None, **kwargs):
         super().__init__(controller, initial_joint_state=initial_joint_state)
         self.__name__ = 'TaskDelayedMultiReach'
-        self.losses = {'cartesian position': position_loss(),
-                       'muscle state': activation_squared_loss(self.plant.Muscle.max_iso_force)}
-        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
+        max_iso_force = self.plant.Muscle.max_iso_force
+        self.add_loss('muscle state', loss=ActivationSquaredLoss(max_iso_force=max_iso_force), loss_weight=.2)
+        self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)
 
         self.bump_length = int(kwargs.get('bump_length', 50) / 1000 / self.plant.dt)
         self.bump_height = kwargs.get('bump_height', 3)
@@ -234,9 +284,9 @@ class SequenceHorizon(Task):
     def __init__(self, controller, initial_joint_state=None, **kwargs):
         super().__init__(controller, initial_joint_state=initial_joint_state)
         self.__name__ = 'TaskDelayedMultiReach'
-        self.losses = {'cartesian position': position_loss(),
-                       'muscle state': activation_squared_loss(self.plant.Muscle.max_iso_force)}
-        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.2}
+        max_iso_force = self.plant.Muscle.max_iso_force
+        self.add_loss('muscle state', loss=ActivationSquaredLoss(max_iso_force=max_iso_force), loss_weight=.2)
+        self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)
 
         self.bump_length = int(kwargs.get('bump_length', 50) / 1000 / self.plant.dt)
         self.bump_height = kwargs.get('bump_height', 3)
@@ -303,13 +353,17 @@ class TaskLoadProbability(Task):
         super().__init__(controller, **kwargs)
         self.__name__ = 'TaskLoadProbability'
 
-        self.vel_weight = kwargs.get('vel_weight', 0.)
-        self.losses = {'cartesian position': position_loss(),
-                       'muscle state': activation_velocity_squared_loss(self.plant.Muscle.max_iso_force,
-                                                                        vel_weight=self.vel_weight)}
         self.cartesian_loss = kwargs.get('cartesian_loss', 1)
         self.muscle_loss = kwargs.get('muscle_loss', 0)
-        self.loss_weights = {'cartesian position': self.cartesian_loss, 'muscle state': self.muscle_loss}  # 10-20 best
+        self.vel_weight = kwargs.get('vel_weight', 0.)
+
+        self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=self.cartesian_loss)  # 10-20 best
+        self.add_loss(
+            'muscle state',
+            loss=ActivationVelocitySquaredLoss(
+                max_iso_force=self.plant.Muscle.max_iso_force,
+                vel_weight=self.vel_weight),
+            loss_weight=self.muscle_loss)
 
         self.target_time_range = np.array(kwargs.get('target_time_range', [200, 400])) / 1000 / self.plant.dt
         self.delay_range = np.array(kwargs.get('delay_range', [200, 1000])) / 1000 / self.plant.dt
@@ -445,15 +499,17 @@ class TaskLoadProbabilityDistributed(Task):
     def __init__(self, controller, **kwargs):
         super().__init__(controller, **kwargs)
         self.__name__ = 'TaskLoadProbabilityDistributed'
-
-        self.vel_weight = kwargs.get('vel_weight', 0.)
-        self.losses = {'cartesian position': position_loss(),
-                       'muscle state': activation_diff_squared_loss(self.plant.Muscle.max_iso_force,
-                                                                        vel_weight=self.vel_weight)}
         self.cartesian_loss = kwargs.get('cartesian_loss', 1)
         self.muscle_loss = kwargs.get('muscle_loss', 0)
-        self.loss_weights = {'cartesian position': self.cartesian_loss, 'muscle state': self.muscle_loss}  # 10-20 best
-
+        self.vel_weight = kwargs.get('vel_weight', 0.)
+        self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=self.cartesian_loss)  # 10-20 best
+        self.add_loss(
+            'muscle state',
+            loss=ActivationDiffSquaredLoss(
+                max_iso_force=self.plant.Muscle.max_iso_force,
+                vel_weight=self.vel_weight,
+                dt=self.plant.dt),
+            loss_weight=self.muscle_loss)
         target_time_range = np.array(kwargs.get('target_time_range', [0.1, 0.3])) / self.plant.dt
         self.target_time_range = [int(target_time_range[0]), int(target_time_range[1])]
         delay_range = np.array(kwargs.get('delay_range', [0.2, 1.0])) / self.plant.dt
@@ -591,10 +647,9 @@ class TaskYangetal2011(Task):
     def __init__(self, controller, **kwargs):
         super().__init__(controller, **kwargs)
         self.__name__ = 'TaskYangetal2011'
-        self.losses = {'cartesian position': position_loss(),
-                       'muscle state': activation_squared_loss(self.plant.Muscle.max_iso_force)}
-        self.loss_weights = {'cartesian position': 1, 'muscle state': 0.5}  # 2-10 best
-
+        max_iso_force = self.plant.Muscle.max_iso_force
+        self.add_loss('muscle state', loss=ActivationSquaredLoss(max_iso_force=max_iso_force), loss_weight=0.5)
+        self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)  # 2-10 best
         self.do_recompute_targets = True
         self.controller.perturbation_dim_start = 2
 
