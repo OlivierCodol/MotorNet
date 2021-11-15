@@ -7,6 +7,9 @@ from abc import abstractmethod
 from scipy.signal import butter, lfilter
 from MotorNet.nets.losses import PositionLoss, ActivationSquaredLoss, ActivationVelocitySquaredLoss,\
     ActivationDiffSquaredLoss
+import random
+from MotorNet.nets.losses import position_loss, activation_squared_loss, activation_velocity_squared_loss,\
+                                 activation_diff_squared_loss, position_loss_bis
 # TODO: check that "generate" methods do not feed the memory leak
 
 
@@ -112,6 +115,47 @@ class TaskStaticTarget(Task):
         targets = self.plant.state2target(state=goal_states, n_timesteps=n_timesteps).numpy()
         inputs = {"inputs": targets[:, :, :self.plant.space_dim]}
         return [inputs, targets, init_states]
+
+class TaskStaticTargetBis(Task):
+    """
+    Other kind of cost functions do not change the behavior significantly. 
+    Let's try to change the recompute_targets function in order to play with the target redundancy
+    """
+    def __init__(self, controller,**kwargs):
+        super().__init__(controller,**kwargs)
+        self.__name__ = 'TaskStaticTarget'
+        self.losses = {'cartesian position': position_loss(),
+                       'muscle state': activation_squared_loss(self.plant.Muscle.max_iso_force)}
+        self.loss_weights = {'cartesian position':1, 'muscle state': 0.2}
+        self.do_recompute_targets = kwargs.get('do_recompute_targets',False)
+
+    def generate(self, batch_size, n_timesteps, **kwargs):
+        init_states = self.get_initial_state(batch_size=batch_size)
+        goal_states = self.plant.joint2cartesian(self.plant.draw_random_uniform_states(batch_size=batch_size))
+        targets = self.plant.state2target(state=goal_states, n_timesteps=n_timesteps).numpy()
+        inputs = {"inputs": targets[:,:,:self.plant.space_dim]}
+        return [inputs, targets, init_states]
+
+    def recompute_targets(selfs,inputs,targets,outputs):
+        #grab endpoint position and velocity 
+        cartesian_pos = outputs['cartesian position']
+        #calculate the distance to the targets along each axis as run by the forward pass
+        dist = tf.sqrt(tf.reduce_sum((cartesian_pos[:,:,0] - targets[:,:,0])**2,axis=2)) 
+        dist_x = tf.sqrt(tf.reduce_sum((cartesian_pos[:,:,0] - targets[:,:,0])**2,axis=2))
+        dist_y = tf.sqrt(tf.reduce_sum((cartesian_pos[:,:,1] - targets[:,:,1])**2,axis=2))
+        dist_x = tf.where(tf.equal(inputs[0][:,:,-1],-1.),1000.,dist_x)
+        dist_y = tf.where(tf.equal(inputs[0][:,:,-1],-1.),1000.,dist_y)
+        dist_x = tf.tile(tf.expand_dims(dist_x,axis=2),tf.constant([1,1,2],tf.int32))
+        dist_y = tf.tile(tf.expand_dims(dist_y,axis=2),tf.constant([1,1,2],tf.int32))
+        #keep the position only (drop the rest)
+        cartesian_pos_no_vel = tf.concat([cartesian_pos[:,:,0:2],tf.zeros_like(dist)],axis=2)
+        #preprocess the dist tensor for further computation
+        dist_x = tf.concat([dist_x,tf.zeros_like(dist_x)],axis=2)
+        dist_y = tf.concat([dist_y,tf.zeros_like(dist_y)],axis=2)
+        # if the distance is less than a certain amount, replace the target with the results of the forward pass
+        # Think about the stuff I can put here for the where condition --> playing with target redundancy
+        targets = tf.where(tf.math.logical_and(tf.less_equal(dist_x,0.035), tf.less_equal(dist_y,1)),cartesian_pos_no_vel,targets)
+        return targets
 
 
 class TaskStaticTargetWithPerturbations(Task):
