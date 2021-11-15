@@ -67,8 +67,7 @@ def f(run_iter):
                 "(cell, initial_joint_state=cfg['Task']['initial_joint_state'],**task_kwargs)")
 
     # declare inputs
-    inputs = {"inputs": Input((None, task.get_input_dim()), name='inputs'),
-              "joint_load": Input((None, 2), name='joint_load')}
+    inputs = {key: Input((None, val,), name=key) for key, val in task.get_input_dim().items()}
     state0 = [Input((arm.state_dim,), name='joint0'),
               Input((arm.state_dim,), name='cartesian0'),
               Input((arm.muscle_state_dim, arm.n_muscles,), name='muscle0'),
@@ -141,7 +140,7 @@ def f(run_iter):
 
 if __name__ == '__main__':
     iter_list = range(len(run_list))
-    n_jobs = 8
+    n_jobs = 16
     while len(iter_list) > 0:
         these_iters = iter_list[0:n_jobs]
         iter_list = iter_list[n_jobs:]
