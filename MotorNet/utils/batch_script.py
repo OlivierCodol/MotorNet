@@ -49,10 +49,10 @@ def f(run_iter):
     #cfg['Controller']['visual_noise_sd'] = 0.
     #cfg['Controller']['hidden_noise_sd'] = 0.
 
-
-    arm = RigidTendonArm(muscle_type=eval(muscle_type + '()'), timestep=cfg['Plant']['Skeleton']['dt'],
-                         proprioceptive_delay=cfg['Plant']['proprioceptive_delay'] * cfg['Plant']['Skeleton']['dt'],
-                         visual_delay=cfg['Plant']['visual_delay'] * cfg['Plant']['Skeleton']['dt'],
+    arm = RigidTendonArm(muscle_type=eval(muscle_type + '()'), timestep=float(cfg['Plant']['Skeleton']['dt']),
+                         proprioceptive_delay=cfg['Plant']['proprioceptive_delay'] *
+                                              float(cfg['Plant']['Skeleton']['dt']),
+                         visual_delay=cfg['Plant']['visual_delay'] * float(cfg['Plant']['Skeleton']['dt']),
                          excitation_noise_sd=cfg['Plant']['excitation_noise_sd'])
     cell = GRUController(plant=arm, n_units=cfg['Controller']['n_units'],
                          kernel_regularizer=cfg['Controller']['kernel_regularizer_weight'],
@@ -140,7 +140,7 @@ def f(run_iter):
 
 if __name__ == '__main__':
     iter_list = range(len(run_list))
-    n_jobs = 16
+    n_jobs = 18
     while len(iter_list) > 0:
         these_iters = iter_list[0:n_jobs]
         iter_list = iter_list[n_jobs:]
