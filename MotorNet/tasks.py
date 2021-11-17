@@ -494,7 +494,7 @@ class TaskLoadProbabilityDistributed(Task):
         inputs = np.zeros(shape=(batch_size, n_timesteps, 30 + 2 + 1))
         perturbations = np.zeros(shape=(batch_size, n_timesteps, 2))
         pert_range = np.linspace(-1.5263, 1.5263, 30)
-        visual_delay = 1000
+        visual_delay = 1000 # large number means forever
         if self.run_mode == 'experiment':
             catch_chance = 0.
         else:
@@ -522,6 +522,7 @@ class TaskLoadProbabilityDistributed(Task):
                 inputs[i, target_time: pert_time + visual_delay, pos_pert_ind] = prob
                 inputs[i, target_time: pert_time + visual_delay, neg_pert_ind] = 1 - prob
                 elb_prob = inputs[i, target_time + 1, 0:30]
+                # The following is our expectation violation condition
                 if inputs[i, target_time + 1, pos_pert_ind] == 0 or inputs[i, target_time + 1, pos_pert_ind] == 1:
                     if np.random.rand() < 0.5:
                         elb_prob[pos_pert_ind] = 1 - prob
