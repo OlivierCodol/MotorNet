@@ -49,8 +49,10 @@ class GRUController(Layer):
         self.n_hidden_layers = n_hidden_layers
         if activation == 'recttanh':
             self.activation = recttanh
+            self.activation_name = 'recttanh'
         else:
             self.activation = activation
+            self.activation_name = activation
         self.n_units = n_units
         self.layers = []
 
@@ -121,7 +123,7 @@ class GRUController(Layer):
                'n_ministeps': self.n_ministeps,
                'kernel_regularizer_weight': self.kernel_regularizer_weight,
                'recurrent_regularizer_weight': self.recurrent_regularizer_weight, 'n_units': int(self.n_units[0]),
-               'n_hidden_layers': self.n_hidden_layers, 'activation': self.activation}
+               'n_hidden_layers': self.n_hidden_layers, 'activation': self.activation_name}
         return cfg
 
     @classmethod

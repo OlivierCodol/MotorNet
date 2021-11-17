@@ -112,7 +112,7 @@ class Skeleton:
         return vel
 
     def get_base_config(self):
-        cfg = {'dof': self.dof, 'dt': self.dt, 'space_dim': self.space_dim}
+        cfg = {'dof': self.dof, 'dt': str(self.dt.numpy()), 'space_dim': self.space_dim}
         return cfg
 
     def get_save_config(self):
@@ -280,9 +280,10 @@ class TwoDofArm(Skeleton):
 
     def get_save_config(self):
         cfg = self.get_base_config()
-        cfg.update({'I1': self.I1, 'I2': self.I2, 'L1': self.L1, 'L2': self.L2, 'L1g': self.L1g, 'L2g': self.L2g,
-                    'c_viscosity': self.c_viscosity, 'coriolis_1': self.coriolis_1, 'coriolis_2': self.coriolis_2,
-                    'm1': self.m1, 'm2': self.m2})
+        cfg.update({'I1': str(self.I1.numpy()), 'I2': str(self.I2.numpy()), 'L1': str(self.L1.numpy()),
+                    'L2': str(self.L2.numpy()), 'L1g': str(self.L1g.numpy()), 'L2g': str(self.L2g.numpy()),
+                    'c_viscosity': str(self.c_viscosity.numpy()), 'coriolis_1': str(self.coriolis_1.numpy()),
+                    'coriolis_2': str(self.coriolis_2.numpy()), 'm1': str(self.m1.numpy()), 'm2': str(self.m2.numpy())})
         return cfg
 
 
