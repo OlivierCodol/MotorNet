@@ -99,7 +99,7 @@ def f(run_iter):
         if os.path.isfile(file_name + '.index'):
             control_rnn.load_weights(file_name).expect_partial()
         # train it up
-        iters_per_batch = 250
+        iters_per_batch = cfg['Task']['training_iterations']
         task.set_training_params(batch_size=cfg['Task']['training_batch_size'],
                                  n_timesteps=cfg['Task']['training_n_timesteps'],
                                  iterations=iters_per_batch)
@@ -140,12 +140,12 @@ def f(run_iter):
 
 if __name__ == '__main__':
     iter_list = range(len(run_list))
-    n_jobs = 18
+    n_jobs = 16
     while len(iter_list) > 0:
         these_iters = iter_list[0:n_jobs]
         iter_list = iter_list[n_jobs:]
         if run_mode == 'train':
-            repeats = 60
+            repeats = 1
         else:
             repeats = 1
         for i in range(repeats):
