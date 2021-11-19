@@ -1,11 +1,10 @@
-from abc import ABC
 import tensorflow as tf
-import keras
 import json
 import os
+from abc import ABC
 
 
-class MotorNetModel(keras.Model, ABC):
+class MotorNetModel(tf.keras.Model, ABC):
     def __init__(self, inputs, outputs, task, name='controller'):
         self.inputs = inputs
         self.outputs = outputs
