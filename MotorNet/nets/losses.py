@@ -53,7 +53,7 @@ def activation_velocity_squared_loss(y_true, y_pred, max_iso_force, vel_weight):
 def activation_diff_squared_loss(y_true, y_pred, max_iso_force, vel_weight, dt):
     activation = tf.slice(y_pred, [0, 0, 0, 0], [-1, -1, 1, -1])
     activation_scaled = scale_activation(activation, max_iso_force)
-    d_activation = tf.reduce_mean(tf.math.subtract(activation_scaled[1:], activation_scaled[:-1]) ** 2) * dt
+    d_activation = tf.reduce_mean(tf.math.subtract(activation_scaled[1:], activation_scaled[0:-1]) ** 2) * dt
     return tf.reduce_mean(activation_scaled ** 2) + vel_weight * d_activation
 
 
@@ -64,4 +64,4 @@ def scale_activation(activation, max_iso_force):
 
 
 def y_pred_l2(y_true, y_pred):
-    return tf.sqrt(y_pred ** 2)
+    return tf.reduce_mean(tf.square(y_pred))
