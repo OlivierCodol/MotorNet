@@ -5,8 +5,8 @@ import tensorflow as tf
 import random
 from abc import abstractmethod
 from scipy.signal import butter, lfilter
-from MotorNet.nets.losses import PositionLoss, ActivationSquaredLoss, ActivationVelocitySquaredLoss,\
-    ActivationDiffSquaredLoss
+from MotorNet.nets.losses import PositionLoss, ActivationSquaredLoss, ActivationVelocitySquaredLoss, \
+    ActivationDiffSquaredLoss, L2Regularizer, RecurrentActivityRegularizer
 # TODO: check that "generate" methods do not feed the memory leak
 
 
@@ -304,168 +304,28 @@ class SequenceHorizon(Task):
         return [tf.convert_to_tensor(inp), tf.convert_to_tensor(outp), init_states]
 
 
-class TaskLoadProbability(Task):
-    def __init__(self, controller, **kwargs):
-        super().__init__(controller, **kwargs)
-        self.__name__ = 'TaskLoadProbability'
-
-        self.cartesian_loss = kwargs.get('cartesian_loss', 1)
-        self.muscle_loss = kwargs.get('muscle_loss', 0)
-        self.vel_weight = kwargs.get('vel_weight', 0.)
-
-        self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=self.cartesian_loss)  # 10-20 best
-        self.add_loss(
-            'muscle state',
-            loss=ActivationVelocitySquaredLoss(
-                max_iso_force=self.plant.Muscle.max_iso_force,
-                vel_weight=self.vel_weight),
-            loss_weight=self.muscle_loss)
-
-        self.target_time_range = np.array(kwargs.get('target_time_range', [200, 400])) / 1000 / self.plant.dt
-        self.delay_range = np.array(kwargs.get('delay_range', [200, 1000])) / 1000 / self.plant.dt
-        self.condition_independent_magnitude = kwargs.get('condition_independent_magnitude', 0.2)
-        self.background_load = kwargs.get('background_load', 0.)
-
-        self.run_mode = kwargs.get('run_mode', 'train')
-
-        self.do_recompute_targets = kwargs.get('do_recompute_targets', False)
-        self.controller.perturbation_dims_active = True
-
-    def generate(self, batch_size, n_timesteps, **kwargs):
-        if self.run_mode == 'mesh_target' or self.run_mode == '2target':
-            batch_size = 1000
-            n_timesteps = 130
-            self.delay_range = np.array([500, 500]) / 1000 / self.plant.dt
-            self.target_time_range = np.array([200, 200]) / 1000 / self.plant.dt
-        init_states = self.get_initial_state(batch_size=batch_size)
-        center = self.plant.joint2cartesian(init_states[0][0, :]).numpy()
-        goal_state1 = center + np.array([-0.028279, -0.042601, 0, 0])
-        goal_state2 = center - np.array([-0.028279, -0.042601, 0, 0])
-        goal_states = self.plant.joint2cartesian(self.plant.draw_random_uniform_states(batch_size=batch_size))
-        targets = np.tile(np.expand_dims(goal_states, axis=1), (1, n_timesteps, 1))
-        prob_array = np.array([0, 0.25, 0.5, 0.75, 1])
-        mesh = np.linspace(-0.0707, 0.0707, num=10)
-        mesh_x_counter = 0
-        mesh_y_counter = 0
-        prob_counter = 0
-        target_counter = 0
-        visual_delay = self.controller.visual_delay
-        proprioceptive_delay = self.controller.proprioceptive_delay
-        inputs = np.zeros(shape=(batch_size, n_timesteps, 7))
-        for i in range(batch_size):
-            prob = prob_array[np.random.randint(0, 5)]
-            if self.run_mode != 'train':
-                prob = prob_array[prob_counter]
-                x = mesh[mesh_x_counter]
-                y = mesh[mesh_y_counter]
-                mesh_x_counter += 1
-                new_pos = center[0, 0:2] + np.expand_dims([x, y], axis=0)
-                if self.run_mode == 'mesh_target':
-                    targets[i, :, 0:2] = np.tile(np.expand_dims(new_pos, axis=1), [1, n_timesteps, 1])
-                elif self.run_mode == '2target':
-                    if target_counter < 50:
-                        targets[i, :, :] = np.tile(np.expand_dims(goal_state1, axis=1), [1, n_timesteps, 1])
-                    else:
-                        targets[i, :, :] = np.tile(np.expand_dims(goal_state2, axis=1), [1, n_timesteps, 1])
-                if mesh_x_counter >= len(mesh):
-                    mesh_y_counter += 1
-                    mesh_x_counter = 0
-                if mesh_y_counter >= len(mesh):
-                    mesh_x_counter = 0
-                    mesh_y_counter = 0
-                    prob_counter += 1
-                if prob_counter == 5:
-                    prob_counter = 0
-                target_counter += 1
-                if target_counter >= 100:
-                    target_counter = 0
-            elif self.run_mode == 'train':
-                r = 0.15 * np.sqrt(np.random.rand())
-                theta = np.random.rand() * 2 * np.pi
-                new_pos = center[0, 0:2] + np.expand_dims([r * np.cos(theta), r * np.sin(theta)], axis=0)
-                targets[i, :, 0:2] = np.tile(np.expand_dims(new_pos, axis=1), [1, n_timesteps, 1])
-            inputs[i, :, 2:4] = targets[i, :, 0:2]
-            input_5 = np.zeros(shape=n_timesteps)
-            input_1 = np.zeros(shape=n_timesteps)
-            input_2 = np.zeros(shape=n_timesteps)
-            perturbation = np.tile([0, self.background_load], (n_timesteps, 1))  # background load
-            target_time = generate_delay_time(self.target_time_range[0], self.target_time_range[1], 'random')
-            delay_time = generate_delay_time(self.delay_range[0], self.delay_range[1], 'random')
-            pert_time = delay_time
-            if self.run_mode != 'train':
-                catch_chance = 0
-                no_prob_chance = 0
-            else:
-                catch_chance = 0.1  # 0.3 best
-                no_prob_chance = 0  # 0 best
-            if np.greater_equal(np.random.rand(), catch_chance):
-                targets[i, 0:pert_time, :] = center
-                if self.run_mode != 'train':
-                    if i < 500:
-                        pert = self.background_load - 1
-                    else:
-                        pert = self.background_load + 1
-                else:
-                    if np.greater_equal(np.random.rand(),  prob):
-                        pert = self.background_load + 1
-                    else:
-                        pert = self.background_load - 1
-                if np.greater_equal(np.random.rand(), no_prob_chance):
-                    # The visual delay MUST be built into these inputs, otherwise the network gets immediate visual cues
-                    input_1[target_time + visual_delay:] = prob  # turn off after 9 best   (pert_time + visual_delay)
-                    input_2[target_time + visual_delay:] = 1 - prob
-                input_5[pert_time + proprioceptive_delay:] = self.condition_independent_magnitude  # +4 best, 0.2 best
-                perturbation[pert_time:, 1] = pert
-            else:
-                targets[i, :, :] = center
-                if np.greater_equal(np.random.rand(), no_prob_chance):
-                    input_1[target_time + visual_delay:] = prob
-                    input_2[target_time + visual_delay:] = 1 - prob
-
-            inputs[i, :, 0] = input_1
-            inputs[i, :, 1] = input_2
-            inputs[i, :, 4] = input_5
-
-            inputs[i, :, 4] = inputs[i, :, 4] + np.random.normal(loc=0.,
-                                                         scale=self.controller.proprioceptive_noise_sd,
-                                                         size=n_timesteps)
-            inputs[i, :, 0:4] = inputs[i, :, 0:4] + np.random.normal(loc=0.,
-                                                                     scale=self.controller.visual_noise_sd,
-                                                                     size=(n_timesteps, 4))
-            inputs[i, :, 5:7] = perturbation
-
-        return [tf.convert_to_tensor(inputs, dtype=tf.float32), tf.convert_to_tensor(targets, dtype=tf.float32),
-                init_states]
-
-    def recompute_targets(self, inputs, targets, outputs):
-        # grab endpoint position and velocity
-        cartesian_pos = outputs['cartesian position']
-        # calculate the distance to the targets as run by the forward pass
-        dist = tf.sqrt(tf.reduce_sum((cartesian_pos[:, :, 0:2] - targets[:, :, 0:2])**2, axis=2))
-        dist = tf.where(tf.equal(inputs[0][:, :, -1], -1.), 1000., dist)
-        dist = tf.tile(tf.expand_dims(dist, axis=2), tf.constant([1, 1, 2], tf.int32))
-        cartesian_pos_no_vel = tf.concat([cartesian_pos[:, :, 0:2], tf.zeros_like(dist)], axis=2)
-        dist = tf.concat([dist, tf.zeros_like(dist)], axis=2)
-        # if the distance is less than a certain amount, replace the target with the result of the forward pass
-        targets = tf.where(tf.less_equal(dist, 0.035), cartesian_pos_no_vel, targets)
-        return targets
-
-
 class TaskLoadProbabilityDistributed(Task):
     def __init__(self, controller, **kwargs):
         super().__init__(controller, **kwargs)
         self.__name__ = 'TaskLoadProbabilityDistributed'
-        self.cartesian_loss = kwargs.get('cartesian_loss', 1)
-        self.muscle_loss = kwargs.get('muscle_loss', 0)
+        self.cartesian_loss = kwargs.get('cartesian_loss', 1.)
+        self.muscle_loss = kwargs.get('muscle_loss', 0.)
         self.vel_weight = kwargs.get('vel_weight', 0.)
-        self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=self.cartesian_loss)  # 10-20 best
-        self.add_loss(
-            'muscle state',
-            loss=ActivationDiffSquaredLoss(
-                max_iso_force=self.plant.Muscle.max_iso_force,
-                vel_weight=self.vel_weight,
-                dt=self.plant.dt),
-            loss_weight=self.muscle_loss)
+        self.activity_weight = kwargs.get('activity_weight', 0.)
+        self.recurrent_weight = kwargs.get('recurrent_weight', 0.)
+        self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=self.cartesian_loss)
+        max_iso_force = self.plant.Muscle.max_iso_force
+        self.add_loss('muscle state',
+                      loss=ActivationDiffSquaredLoss(max_iso_force=max_iso_force,
+                                                     muscle_loss=self.muscle_loss,
+                                                     vel_weight=self.vel_weight,
+                                                     dt=self.plant.dt),
+                      loss_weight=1.)
+        self.add_loss(assigned_output='gru_hidden0',
+                      loss=RecurrentActivityRegularizer(self.controller,
+                                                        activity_weight=self.activity_weight,
+                                                        recurrent_weight=self.recurrent_weight),
+                      loss_weight=1.)
         target_time_range = np.array(kwargs.get('target_time_range', [0.1, 0.3])) / self.plant.dt
         self.target_time_range = [int(target_time_range[0]), int(target_time_range[1])]
         delay_range = np.array(kwargs.get('delay_range', [0.2, 1.0])) / self.plant.dt
@@ -494,7 +354,7 @@ class TaskLoadProbabilityDistributed(Task):
         inputs = np.zeros(shape=(batch_size, n_timesteps, 30 + 2 + 1))
         perturbations = np.zeros(shape=(batch_size, n_timesteps, 2))
         pert_range = np.linspace(-1.5263, 1.5263, 30)
-        visual_delay = 1000 # large number means forever
+        visual_delay = 100000 # large number means forever
         if self.run_mode == 'experiment':
             catch_chance = 0.
         else:
@@ -511,11 +371,11 @@ class TaskLoadProbabilityDistributed(Task):
                 is_catch = False
             else:
                 is_catch = True
-                pert_time = 1000
+                pert_time = 100000
             if self.run_mode == 'experiment' or self.run_mode == 'train_experiment':
                 if self.run_mode == 'experiment':
-                    target_time = 30
-                    delay_time = 80
+                    target_time = int(0.3 / self.plant.dt)
+                    delay_time = int(0.8 / self.plant.dt)
                     pert_time = delay_time
                 # Inputs
                 prob = prob_array[np.random.randint(0, 5)]
