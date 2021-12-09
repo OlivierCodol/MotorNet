@@ -10,13 +10,19 @@ if run_mode != 'train' and run_mode != 'test':
     raise ValueError('the run mode must be train or test')
 # input 3 - run mode to be passed to task object
 task_run_mode = str(sys.argv[3])
+# input 4 - total training iterations
+total_training_iterations = int(sys.argv[4])
+
+iters_per_batch = 200
+total_repeats = int(total_training_iterations / iters_per_batch)
 
 run_list = []
 for file in os.listdir(active_directory):
-    if file.endswith(".json"):
+    if file.endswith("_config.json"):
         run_list.append(os.path.join(active_directory, file))
 if not run_list:
     raise ValueError('No configuration files found')
+
 
 def f(run_iter):
     # find root directory and add to path
@@ -84,7 +90,7 @@ def f(run_iter):
     [losses, loss_weights] = task.get_losses()
 
     # compile
-    control_rnn.compile(optimizer=tf.optimizers.Adam(learning_rate=0.001, clipnorm=1.), loss=losses,
+    control_rnn.compile(optimizer=tf.optimizers.Adam(learning_rate=0.0001), loss=losses,
                         loss_weights=loss_weights, run_eagerly=False)
     tensorflowfix_callback = TensorflowFix()
     batchlog_callback = BatchLogger()
@@ -92,14 +98,13 @@ def f(run_iter):
     control_rnn.summary()
 
     ## SPECIAL
-    cell.layers[1].bias = tf.convert_to_tensor([-5.18, -6.47, -3.63, -6.42, -4.40, -6.48])
+    cell.layers[1].bias = tf.convert_to_tensor([-5.04, -4.86, -4.55, -5.25, -4.81, -5.09])
 
     if run_mode == 'train':
         # load trained weights
         if os.path.isfile(file_name + '.index'):
             control_rnn.load_weights(file_name).expect_partial()
         # train it up
-        iters_per_batch = 250
         task.set_training_params(batch_size=cfg['Task']['training_batch_size'],
                                  n_timesteps=cfg['Task']['training_n_timesteps'],
                                  iterations=iters_per_batch)
@@ -111,18 +116,30 @@ def f(run_iter):
         # save weights of the model
         control_rnn.save_weights(file_name)
         # add any info generated during the training process
-        control_rnn.save_model(file_name, loss_history=batchlog_callback.history)
+        if os.path.isfile(file_name[0:-7] + '_training_log.json'):
+            with open(file_name[0:-7] + '_training_log.json', 'r') as training_file:
+                training_log = json.load(training_file)
+            for key, value in training_log.items():
+                training_log[key] = training_log[key] + batchlog_callback.history[key]
+        else:
+            training_log = batchlog_callback.history
+        with open(file_name[0:-7] + '_training_log.json', 'w') as training_file:
+            json.dump(training_log, training_file)
     elif run_mode == 'test':
         # load trained weights
         control_rnn.load_weights(file_name).expect_partial()
 
         # run task
         [inputs, targets, init_states] = task.generate(n_timesteps=cfg['Task']['training_n_timesteps'],
-                                                       batch_size=cfg['Task']['training_batch_size'])
+                                                       batch_size=total_training_iterations)
         results = control_rnn([inputs, init_states], training=False)
 
+        # retrieve training history
+        with open(file_name[0:-7] + '_training_log.json', 'r') as training_file:
+            training_log = json.load(training_file)
+
         # save run as .mat file
-        scipy.io.savemat(file_name + '.mat',
+        scipy.io.savemat(file_name[0:-7] + '.mat',
                          {'joint': results['joint position'].numpy(),
                           'cartesian': results['cartesian position'].numpy(),
                           'muscle': results['muscle state'].numpy(),
@@ -133,7 +150,7 @@ def f(run_iter):
                           'proprio': results['proprioceptive feedback'].numpy(),
                           'visual': results['visual feedback'].numpy(),
                           'weights': control_rnn.get_weights(),
-                          'training': cfg['Training Log'],
+                          'training_log': training_log,
                           'task_config': cfg['Task']['task_kwargs'],
                           'controller_config': cfg['Controller']})
 
@@ -145,9 +162,9 @@ if __name__ == '__main__':
         these_iters = iter_list[0:n_jobs]
         iter_list = iter_list[n_jobs:]
         if run_mode == 'train':
-            repeats = 60
+            repeats = total_repeats
         else:
             repeats = 1
         for i in range(repeats):
             print('repeat#' + str(i))
-            result = Parallel(n_jobs=n_jobs)(delayed(f)(iteration) for iteration in these_iters)
+            result = Parallel(n_jobs=len(these_iters))(delayed(f)(iteration) for iteration in these_iters)
