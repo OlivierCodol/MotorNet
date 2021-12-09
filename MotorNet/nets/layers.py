@@ -5,9 +5,9 @@ from tensorflow.keras.layers import Layer, GRUCell, Dense, Lambda
 
 class GRUController(Layer):
     def __init__(self, plant, n_units=20, n_hidden_layers=1, activation='tanh', kernel_regularizer=0.,
-                 activity_regularizer=0., recurrent_regularizer=0., proprioceptive_noise_sd=0., visual_noise_sd=0.,
+                 recurrent_regularizer=0., proprioceptive_noise_sd=0., visual_noise_sd=0.,
                  hidden_noise_sd=0., n_ministeps=1, output_bias_initializer=tf.initializers.Constant(value=-5),
-                 output_kernel_initializer=tf.initializers.random_normal(stddev=10 ** -3), **kwargs):
+                 output_kernel_initializer=tf.keras.initializers.random_normal(stddev=10 ** -3), **kwargs):
 
         if type(n_units) == int:
             n_units = list(np.repeat(n_units, n_hidden_layers).astype('int32'))
@@ -41,7 +41,6 @@ class GRUController(Layer):
         self.plant = plant
         self.kernel_regularizer_weight = kernel_regularizer  # to save the values in `get_save_config`
         self.kernel_regularizer = tf.keras.regularizers.l2(kernel_regularizer)
-        self.activity_regularizer = tf.keras.regularizers.l2(activity_regularizer)
         self.recurrent_regularizer_weight = recurrent_regularizer  # to save the values in `get_save_config`
         self.recurrent_regularizer = tf.keras.regularizers.l2(recurrent_regularizer)
         self.output_bias_initializer = output_bias_initializer
@@ -102,7 +101,6 @@ class GRUController(Layer):
                             name='hidden_layer_' + str(k),
                             kernel_regularizer=self.kernel_regularizer,
                             recurrent_regularizer=self.recurrent_regularizer,
-                            # activity_regularizer=self.activity_regularizer  # this doesn't work yet for some reason
                             )
             self.layers.append(layer)
         output_layer = Dense(units=self.plant.input_dim,
@@ -111,7 +109,6 @@ class GRUController(Layer):
                              bias_initializer=self.output_bias_initializer,
                              kernel_initializer=self.output_kernel_initializer,
                              kernel_regularizer=self.kernel_regularizer,
-                             # activity_regularizer=self.activity_regularizer  # this doesn't work yet for some reason
                              )
         self.layers.append(output_layer)
         self.built = True
