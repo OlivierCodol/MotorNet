@@ -336,6 +336,10 @@ class TaskLoadProbabilityDistributed(Task):
         self.background_load = kwargs.get('background_load', 0.)
         self.run_mode = kwargs.get('run_mode', 'train')
         self.do_recompute_targets = kwargs.get('do_recompute_targets', False)
+        self.do_recompute_inputs = kwargs.get('do_recompute_inputs', False)
+        if self.do_recompute_inputs:
+            self.controller.do_recompute_inputs = True
+            self.controller.recompute_inputs = self.recompute_inputs
         self.delay_range = [500, 500]  # this has to exist to get the size of the inputs
 
     def generate(self, batch_size, n_timesteps, **kwargs):
@@ -352,7 +356,6 @@ class TaskLoadProbabilityDistributed(Task):
         pos_pert_ind = 24
         neg_pert_ind = 5
         prob_array = np.array([0, 0.25, 0.5, 0.75, 1])
-        proprioceptive_delay = self.controller.proprioceptive_delay
         inputs = np.zeros(shape=(batch_size, n_timesteps, 30 + 2 + 1))
         perturbations = np.zeros(shape=(batch_size, n_timesteps, 2))
         #pert_range = np.linspace(-0.3346, 0.3346, 30)
@@ -368,7 +371,7 @@ class TaskLoadProbabilityDistributed(Task):
             self.c2_range = [int(c2_range[0]), int(c2_range[1])]
             self.target_size = np.array([0.05])
         else:
-            catch_chance = 0.2  # 0.2 best
+            catch_chance = 0.3  # 0.2 best
         for i in range(batch_size):
             c1_time = generate_delay_time(self.pre_range[0], self.pre_range[1], 'random')
             c2_time = c1_time + generate_delay_time(self.c1_range[0], self.c1_range[1], 'random')
@@ -463,6 +466,10 @@ class TaskLoadProbabilityDistributed(Task):
         # if the distance is less than a certain amount, replace the target with the result of the forward pass
         targets = tf.where(tf.less_equal(dist, size_matrix), cartesian_pos_no_vel, targets)
         return targets
+
+    @staticmethod
+    def recompute_inputs(inputs, states):
+        return inputs
 
 
 class TaskYangetal2011(Task):

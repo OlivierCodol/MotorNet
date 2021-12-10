@@ -54,6 +54,9 @@ class GRUController(Layer):
             self.activation_name = activation
         self.n_units = n_units
         self.layers = []
+        # functionality for recomputing inputs at every timestep
+        self.do_recompute_inputs = False
+        self.recompute_inputs = lambda x, states: x
 
         # create Lambda-wrapped functions (to prevent memory leaks)
         def get_new_proprio_feedback(mstate):
@@ -140,6 +143,10 @@ class GRUController(Layer):
         visual_fb = self.get_feedback_current(old_visual_feedback)
 
         x = self.lambda_cat((proprio_fb, visual_fb, inputs.pop("inputs")))
+
+        # if the task demands it, inputs will be recomputed at every timestep
+        if self.do_recompute_inputs:
+            x = self.recompute_inputs(x, states)
 
         # net forward pass
         for k in range(self.n_hidden_layers):
