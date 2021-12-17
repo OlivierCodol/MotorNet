@@ -45,7 +45,7 @@ def position_loss(y_true, y_pred):
     true_pos, _ = tf.split(y_true, 2, axis=-1)
     pred_pos, pred_vel = tf.split(y_pred, 2, axis=-1)
     # add a fixed penalty any time the arm hits the joint limits
-    joint_limit_cost = tf.where(tf.equal(pred_vel[:, 1:, :], 0.), x=10., y=0.)
+    joint_limit_cost = tf.where(tf.equal(pred_vel[:, 1:, :], 0.), x=0., y=0.)
     return tf.reduce_mean(tf.abs(true_pos - pred_pos)) + tf.reduce_mean(joint_limit_cost)
 
 

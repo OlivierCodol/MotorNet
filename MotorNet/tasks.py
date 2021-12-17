@@ -371,19 +371,19 @@ class TaskLoadProbabilityDistributed(Task):
             self.c2_range = [int(c2_range[0]), int(c2_range[1])]
             self.target_size = np.array([0.05])
         else:
-            catch_chance = 0.3  # 0.2 best
+            catch_chance = 0.3  # 0.3 best
         for i in range(batch_size):
             c1_time = generate_delay_time(self.pre_range[0], self.pre_range[1], 'random')
             c2_time = c1_time + generate_delay_time(self.c1_range[0], self.c1_range[1], 'random')
             pert_time = c2_time + generate_delay_time(self.c2_range[0], self.c2_range[1], 'random')
             target_size = np.random.uniform(self.size_range[0], self.size_range[1])
             # randomize cue order
-            if np.greater_equal(np.random.rand(), 0.5):
-                targ_time = c1_time
-                prob_time = c2_time
-            else:
+            if np.greater_equal(np.random.rand(), 0.5) or self.run_mode == 'experiment':
                 targ_time = c2_time
                 prob_time = c1_time
+            else:
+                targ_time = c1_time
+                prob_time = c2_time
             # is this a catch trial?
             if np.greater_equal(np.random.rand(), catch_chance):
                 is_catch = False
