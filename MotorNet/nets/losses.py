@@ -27,9 +27,10 @@ class ActivationSquaredLoss(LossFunctionWrapper):
 
 
 class ActivationVelocitySquaredLoss(LossFunctionWrapper):
-    def __init__(self, max_iso_force, vel_weight, name='activation_vel_sq', reduction=losses_utils.ReductionV2.AUTO):
+    def __init__(self, max_iso_force, muscle_loss, vel_weight, name='activation_vel_sq', reduction=losses_utils.ReductionV2.AUTO):
         fn = activation_velocity_squared_loss
-        super().__init__(fn, name=name, reduction=reduction, max_iso_force=max_iso_force, vel_weight=vel_weight)
+        super().__init__(fn, name=name, reduction=reduction, max_iso_force=max_iso_force, muscle_loss=muscle_loss,
+                         vel_weight=vel_weight)
 
 
 class ActivationDiffSquaredLoss(LossFunctionWrapper):
@@ -42,8 +43,10 @@ class ActivationDiffSquaredLoss(LossFunctionWrapper):
 
 def position_loss(y_true, y_pred):
     true_pos, _ = tf.split(y_true, 2, axis=-1)
-    pred_pos, _ = tf.split(y_pred, 2, axis=-1)
-    return tf.reduce_mean(tf.abs(true_pos - pred_pos))
+    pred_pos, pred_vel = tf.split(y_pred, 2, axis=-1)
+    # add a fixed penalty any time the arm hits the joint limits
+    joint_limit_cost = tf.where(tf.equal(pred_vel[:, 1:, :], 0.), x=0., y=0.)
+    return tf.reduce_mean(tf.abs(true_pos - pred_pos)) + tf.reduce_mean(joint_limit_cost)
 
 
 def activation_squared_loss(y_true, y_pred, max_iso_force):
@@ -52,17 +55,17 @@ def activation_squared_loss(y_true, y_pred, max_iso_force):
     return tf.reduce_mean(activation_scaled ** 2)
 
 
-def activation_velocity_squared_loss(y_true, y_pred, max_iso_force, vel_weight):
+def activation_velocity_squared_loss(y_true, y_pred, max_iso_force, muscle_loss, vel_weight):
     activation = tf.slice(y_pred, [0, 0, 0, 0], [-1, -1, 1, -1])
     muscle_vel = tf.slice(y_pred, [0, 0, 2, 0], [-1, -1, 1, -1])
     activation_scaled = scale_activation(activation, max_iso_force)
-    return tf.reduce_mean(activation_scaled ** 2) + vel_weight * tf.reduce_mean(tf.abs(muscle_vel))
+    return muscle_loss * tf.reduce_mean(activation_scaled ** 2) + vel_weight * tf.reduce_mean(tf.abs(muscle_vel))
 
 
 def activation_diff_squared_loss(y_true, y_pred, max_iso_force, muscle_loss, vel_weight, dt):
     activation = tf.slice(y_pred, [0, 0, 0, 0], [-1, -1, 1, -1])
     activation_scaled = scale_activation(activation, max_iso_force)
-    d_activation = tf.reduce_mean(tf.square((activation_scaled[:, :, 1:, :, :] -
+    d_activation = tf.reduce_mean(tf.abs((activation_scaled[:, :, 1:, :, :] -
                                              activation_scaled[:, :, :-1, :, :]) / dt))
     return muscle_loss * tf.reduce_mean(tf.square(activation_scaled)) + vel_weight * d_activation
 

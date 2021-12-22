@@ -59,13 +59,11 @@ class MotorNetModel(tf.keras.Model, ABC):
         cfg = {'Task': self.task.get_save_config()}
         cfg.update({'Controller': self.task.controller.get_save_config()})
         cfg.update({'Plant': self.task.plant.get_save_config()})
-        loss_history = kwargs.get('loss_history', None)
-        cfg.update({'Training Log': loss_history})
-        if os.path.isfile(path + '.json') and loss_history is None:
+        if os.path.isfile(path + '.json'):
             raise ValueError('Configuration file already exists')
         else:
-            file = open(path + '.json', 'w+')
-            json.dump(cfg, file)
+            with open(path + '.json', 'w+') as file:
+                json.dump(cfg, file)
 
     def get_config(self):
         cfg = super().get_config()

@@ -93,7 +93,7 @@ class ReluMuscle(Muscle):
         self.__name__ = 'ReluMuscle'
 
         self.state_name = ['excitation',
-                           'muscle lenth',
+                           'muscle length',
                            'muscle velocity',
                            'force']
         self.state_dim = len(self.state_name)
