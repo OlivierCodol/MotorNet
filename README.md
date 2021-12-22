@@ -7,7 +7,7 @@ biomechanically realistic effectors. This toolbox is designed to meet several go
 - Provide users with a variety of muscle types to chose from.
 - Flexibility in creating new, arbitrary muscle wrappings around the skeleton, to enable fast exploration of
 different potential effectors and how to control them. The moment arm are calculated online according to the 
-geometry of the skeleton and the paths of 
+geometry of the skeleton and the (user-defined) paths of the muscles.
 - User-friendly API, to allow for easier familiarization and intuitive usage. We want to enable a focus on ideas, not implementation.
 Currently, we focus on subclassing to allow users to implement their task designs and 
 
@@ -27,6 +27,6 @@ There are no dependencies outside of Python 3. The packages required for MotorNe
 
 ## Tutorials
 
-There are a couple of tutorials available to get you started. Hopefully they will give a sense of how the 
+There are a couple of tutorials available to get you started (see <em>tutorials</em> folder). Hopefully they will give a sense of how the 
 API is supposed to work. As indicated above, more furnished documentation is on the way, hopefully very soon!
 
