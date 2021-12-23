@@ -14,7 +14,7 @@ Currently, we focus on subclassing to allow users to implement their custom task
 ## State of the project
 
 The package is technically functional, and is used by several people to progress in their research.
-However we are still in testing and developpment (pre-alpha), and we are currently focusing on documenting,
+However we are still in testing and development (pre-alpha), and we are currently focusing on documenting,
 commenting, and cleaning the code. For now, the package is available "as-is" but we hope to soon move to an
 alpha and beta stage. Please feel free to log an issue if you think you found a bug, we appreciate any contribution. 
 Stay tuned for more!
