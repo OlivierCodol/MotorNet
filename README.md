@@ -3,7 +3,7 @@
 This repository contains MotorNet, a python package that allows training Recurrent Neural Networks to control for
 biomechanically realistic effectors. This toolbox is designed to meet several goals:
 
-- No hard dependencies beyond typically available python packages. This should make it easier to run this package in remote computing units.
+- No hard dependencies beyond typically available python packages. This should make it easier to run this package on remote computing units.
 - Provide users with a variety of muscle types to chose from.
 - Flexibility in creating new, arbitrary muscle wrappings around the skeleton, to enable fast exploration of
 different potential effectors and how to control them. The moment arm are calculated online according to the 
