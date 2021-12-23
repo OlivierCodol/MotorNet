@@ -9,7 +9,7 @@ biomechanically realistic effectors. This toolbox is designed to meet several go
 different potential effectors and how to control them. The moment arm are calculated online according to the 
 geometry of the skeleton and the (user-defined) paths of the muscles.
 - User-friendly API, to allow for easier familiarization and intuitive usage. We want to enable a focus on ideas, not implementation.
-Currently, we focus on subclassing to allow users to implement their task designs and 
+Currently, we focus on subclassing to allow users to implement their custom task designs, custom plants, and custom controllers.
 
 ## State of the project
 
