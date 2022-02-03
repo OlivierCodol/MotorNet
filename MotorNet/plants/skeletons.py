@@ -290,6 +290,7 @@ class PointMass(Skeleton):
     def __init__(self, space_dim, mass=1., **kwargs):
         super().__init__(dof=space_dim, space_dim=space_dim, **kwargs)
         self.mass = tf.constant(mass, name='mass')
+        self._mass_cfg = mass  # to avoid eager tensors for json serialization when saving models
 
     def _update_ode(self, inputs, joint_state, endpoint_load):
         return inputs + endpoint_load
@@ -317,5 +318,5 @@ class PointMass(Skeleton):
 
     def get_save_config(self):
         cfg = self.get_base_config()
-        cfg['mass'] = self.mass
+        cfg['mass'] = self._mass_cfg
         return cfg
