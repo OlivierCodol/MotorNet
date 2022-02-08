@@ -314,6 +314,7 @@ class PlantWrapper:
         skeleton_cfg = self.Skeleton.get_save_config()
         cfg = {'Muscle': muscle_cfg,
                'Skeleton': skeleton_cfg,
+               'dt': self.dt, 'muscle_names': self.muscle_name,
                'excitation_noise_sd': self.excitation_noise_sd, 'n_muscles': self.n_muscles,
                'proprioceptive_delay': self.proprioceptive_delay, 'visual_delay': self.visual_delay}
         return cfg

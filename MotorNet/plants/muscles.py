@@ -79,7 +79,7 @@ class Muscle:
         self.__setattr__(name, value)
 
     def get_save_config(self):
-        cfg = {'name': str(self.__name__)}
+        cfg = {'name': str(self.__name__), 'state names': self.state_name}
         return cfg
 
 
