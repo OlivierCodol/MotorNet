@@ -116,7 +116,7 @@ class GRUController(Layer):
         self.layers.append(output_layer)
         self.built = True
 
-    def get_save_config(self):
+    def get_base_config(self):
         cfg = {'proprioceptive_noise_sd': self.proprioceptive_noise_sd, 'visual_noise_sd': self.visual_noise_sd,
                'hidden_noise_sd': self.hidden_noise_sd, 'proprioceptive_delay': self.proprioceptive_delay,
                'visual_delay': self.visual_delay, 'n_muscle': self.n_muscles,
@@ -125,6 +125,9 @@ class GRUController(Layer):
                'recurrent_regularizer_weight': self.recurrent_regularizer_weight, 'n_units': int(self.n_units[0]),
                'n_hidden_layers': self.n_hidden_layers, 'activation': self.activation_name}
         return cfg
+
+    def get_save_config(self):
+        return self.get_base_config()
 
     @classmethod
     def from_config(cls, config):
