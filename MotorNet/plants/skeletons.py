@@ -10,6 +10,7 @@ class Skeleton:
     """
 
     def __init__(self, dof, space_dim, **kwargs):
+        self.__name__ = kwargs.get('name', "skeleton")
         self.dof = dof  # degrees of freedom of the skeleton (eg number of joints)
         self.space_dim = space_dim  # the dimensionality of the space (eg 2 for cartesian xy space)
         self.input_dim = kwargs.get('input_dim', self.dof)  # dim of the control input (eg torques), usually >= dof
@@ -127,11 +128,12 @@ class Skeleton:
 class TwoDofArm(Skeleton):
 
     def __init__(self, **kwargs):
+        name = kwargs.get('name', "two_dof_arm")
         sho_limit = np.deg2rad([-0, 140])  # mechanical constraints - used to be -90 180
         elb_limit = np.deg2rad([0, 160])
         lb = (sho_limit[0], elb_limit[0])
         ub = (sho_limit[1], elb_limit[1])
-        super().__init__(dof=2, space_dim=2, pos_lower_bound=lb, pos_upper_bound=ub, **kwargs)
+        super().__init__(dof=2, space_dim=2, pos_lower_bound=lb, pos_upper_bound=ub, name=name, **kwargs)
 
         self.m1 = tf.constant(kwargs.get('m1', 1.864572), name='skeleton_m1')  # masses of arm links
         self.m2 = tf.constant(kwargs.get('m2', 1.534315), name='skeleton_m2')
@@ -288,7 +290,8 @@ class TwoDofArm(Skeleton):
 class PointMass(Skeleton):
 
     def __init__(self, space_dim, mass=1., **kwargs):
-        super().__init__(dof=space_dim, space_dim=space_dim, **kwargs)
+        name = kwargs.get('name', "point_mass")
+        super().__init__(dof=space_dim, space_dim=space_dim, name=name, **kwargs)
         self.mass = tf.constant(mass, name='mass')
         self._mass_cfg = mass  # to avoid eager tensors for json serialization when saving models
 
