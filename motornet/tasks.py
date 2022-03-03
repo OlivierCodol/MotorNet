@@ -5,9 +5,8 @@ import tensorflow as tf
 import random
 from abc import abstractmethod
 from scipy.signal import butter, lfilter
-from motornet.nets.losses import PositionLoss, ActivationSquaredLoss, ActivationVelocitySquaredLoss, \
-    ActivationDiffSquaredLoss, L2Regularizer, RecurrentActivityRegularizer
-# TODO: check that "generate" methods do not feed the memory leak
+from motornet.nets.losses import PositionLoss, L2ActivationLoss, L2ActivationMuscleVelLoss, \
+    L2xDxActivationLoss, L2xDxRegularizer, RecurrentActivityRegularizer
 
 
 class Task(tf.keras.utils.Sequence):
@@ -17,7 +16,6 @@ class Task(tf.keras.utils.Sequence):
     def __init__(self, network, initial_joint_state=None, **kwargs):
         self.__name__ = 'Generic Task'
         self.network = network
-        self.plant = network.plant
         self.training_iterations = 1000
         self.training_batch_size = 32
         self.training_n_timesteps = 100
@@ -38,6 +36,8 @@ class Task(tf.keras.utils.Sequence):
             self.initial_joint_state_original = None
             self.n_initial_joint_states = None
         self.initial_joint_state = initial_joint_state
+
+        self.convert_to_tensor = tf.keras.layers.Lambda(lambda x: tf.convert_to_tensor(x))
 
     def add_loss(self, assigned_output, loss, loss_weight=1.):
         self.losses[assigned_output] = loss
@@ -98,37 +98,37 @@ class Task(tf.keras.utils.Sequence):
         return self.training_iterations
 
 
-class TaskStaticTarget(Task):
+class RandomTargetReach(Task):
     def __init__(self, network, **kwargs):
         super().__init__(network, **kwargs)
-        self.__name__ = 'TaskStaticTarget'
-        max_iso_force = self.plant.Muscle.max_iso_force
-        self.add_loss('muscle state', loss=ActivationSquaredLoss(max_iso_force=max_iso_force), loss_weight=.2)
+        self.__name__ = 'RandomTargetReach'
+        max_iso_force = self.network.plant.Muscle.max_iso_force
+        self.add_loss('muscle state', loss=L2ActivationLoss(max_iso_force=max_iso_force), loss_weight=.2)
         self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)
 
     def generate(self, batch_size, n_timesteps, **kwargs):
         init_states = self.get_initial_state(batch_size=batch_size)
-        goal_states = self.plant.joint2cartesian(self.plant.draw_random_uniform_states(batch_size=batch_size))
-        targets = self.plant.state2target(state=goal_states, n_timesteps=n_timesteps).numpy()
-        inputs = {"inputs": targets[:, :, :self.plant.space_dim]}
+        goal_states = self.network.plant.joint2cartesian(self.network.plant.draw_random_uniform_states(batch_size=batch_size))
+        targets = self.network.plant.state2target(state=goal_states, n_timesteps=n_timesteps).numpy()
+        inputs = {"inputs": targets[:, :, :self.network.plant.space_dim]}
         return [inputs, targets, init_states]
 
 
-class TaskStaticTargetWithPerturbations(Task):
+class RandomTargetReachWithLoads(Task):
     def __init__(self, network, endpoint_load: float, **kwargs):
         super().__init__(network, **kwargs)
-        self.__name__ = 'TaskStaticTargetWithPerturbations'
-        max_iso_force = self.plant.Muscle.max_iso_force
-        self.add_loss('muscle state', loss=ActivationSquaredLoss(max_iso_force=max_iso_force), loss_weight=.2)
+        self.__name__ = 'RandomTargetReachWithLoads'
+        max_iso_force = self.network.plant.Muscle.max_iso_force
+        self.add_loss('muscle state', loss=L2ActivationLoss(max_iso_force=max_iso_force), loss_weight=.2)
         self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)
         self.endpoint_load = endpoint_load
 
     def generate(self, batch_size, n_timesteps, **kwargs):
         init_states = self.get_initial_state(batch_size=batch_size)
-        goal_states = self.plant.joint2cartesian(self.plant.draw_random_uniform_states(batch_size=batch_size))
-        targets = self.plant.state2target(state=goal_states, n_timesteps=n_timesteps).numpy()
+        goal_states = self.network.plant.joint2cartesian(self.network.plant.draw_random_uniform_states(batch_size=batch_size))
+        targets = self.network.plant.state2target(state=goal_states, n_timesteps=n_timesteps).numpy()
         endpoint_load = tf.constant(self.endpoint_load, shape=(batch_size, n_timesteps, 2))
-        inputs = {"inputs": targets[:, :, :self.plant.space_dim], "endpoint_load": endpoint_load}
+        inputs = {"inputs": targets[:, :, :self.network.plant.space_dim], "endpoint_load": endpoint_load}
         return [inputs, targets, init_states]
 
 
@@ -143,18 +143,18 @@ class DelayedReach(Task):
     def __init__(self, network, **kwargs):
         super().__init__(network, **kwargs)
         self.__name__ = 'DelayedReach'
-        max_iso_force = self.plant.Muscle.max_iso_force
-        self.add_loss('muscle state', loss=ActivationSquaredLoss(max_iso_force=max_iso_force), loss_weight=.2)
+        max_iso_force = self.network.plant.Muscle.max_iso_force
+        self.add_loss('muscle state', loss=L2ActivationLoss(max_iso_force=max_iso_force), loss_weight=.2)
         self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)
-        delay_range = np.array(kwargs.get('delay_range', [0.3, 0.6])) / self.plant.dt
+        delay_range = np.array(kwargs.get('delay_range', [0.3, 0.6])) / self.network.plant.dt
         self.delay_range = [int(delay_range[0]), int(delay_range[1])]
         self.convert_to_tensor = tf.keras.layers.Lambda(lambda x: tf.convert_to_tensor(x))
 
     def generate(self, batch_size, n_timesteps, **kwargs):
         init_states = self.get_initial_state(batch_size=batch_size)
-        center = self.plant.joint2cartesian(init_states[0][:, :])
-        goal_states = self.plant.joint2cartesian(self.plant.draw_random_uniform_states(batch_size=batch_size))
-        targets = self.plant.state2target(state=goal_states, n_timesteps=n_timesteps).numpy()
+        center = self.network.plant.joint2cartesian(init_states[0][:, :])
+        goal_states = self.network.plant.joint2cartesian(self.network.plant.draw_random_uniform_states(batch_size=batch_size))
+        targets = self.network.plant.state2target(state=goal_states, n_timesteps=n_timesteps).numpy()
 
         inputs = copy.deepcopy(targets)
         gocue = np.zeros([batch_size, n_timesteps, 1])
@@ -171,21 +171,30 @@ class CentreOutReach(Task):
     def __init__(self, network, **kwargs):
         super().__init__(network, **kwargs)
         self.__name__ = 'CentreOutReach'
+
         self.angle_step = kwargs.get('reach_angle_step_deg', 15)
         self.catch_trial_perc = kwargs.get('catch_trial_perc', 33)
-        vel_weight = kwargs.get('vel_weight', 0.05)
+        self.reaching_distance = kwargs.get('reaching_distance', 0.1)
+        self.start_position = kwargs.get('start_joint_position', None)
+        if not self.start_position:
+            # start at the center of the workspace
+            lb = np.array(self.network.plant.pos_lower_bound)
+            ub = np.array(self.network.plant.pos_upper_bound)
+            self.start_position = lb + (ub - lb) / 2
+        self.start_position = np.array(self.start_position).reshape(1, -1)
+
+        deriv_weight = kwargs.get('deriv_weight', 0.05)
         max_iso_force = self.network.plant.Muscle.max_iso_force
-        muscle_loss = ActivationDiffSquaredLoss(max_iso_force=max_iso_force, muscle_loss=1.,
-                                                dt=self.network.plant.dt, vel_weight=vel_weight)
-        gru_loss = GRURegularizer(vel_weight=.01, dt=self.network.plant.dt)
+        dt = self.network.plant.dt
+        muscle_loss = L2xDxActivationLoss(max_iso_force=max_iso_force, dt=dt, deriv_weight=deriv_weight)
+        gru_loss = L2xDxRegularizer(deriv_weight=.01, dt=self.network.plant.dt)
         self.add_loss('gru_hidden0', loss_weight=0.75, loss=gru_loss)
         self.add_loss('muscle state', loss_weight=.2, loss=muscle_loss)
         self.add_loss('cartesian position', loss_weight=1., loss=PositionLoss())
 
-        go_cue_range = np.array(kwargs.get('go_cue_range', [0.05, 0.25])) / self.network.plant.dt
+        go_cue_range = np.array(kwargs.get('go_cue_range', [0.05, 0.25])) / dt
         self.go_cue_range = [int(go_cue_range[0]), int(go_cue_range[1])]
         self.delay_range = self.go_cue_range
-        self.convert_to_tensor = tf.keras.layers.Lambda(lambda x: tf.convert_to_tensor(x))
 
     def generate(self, batch_size, n_timesteps, **kwargs):
         catch_trial = np.zeros(batch_size, dtype='float32')
@@ -203,12 +212,9 @@ class CentreOutReach(Task):
             batch_size = reps * len(angle_set)
             catch_trial = np.zeros(batch_size, dtype='float32')
 
-            start_jp = np.deg2rad([45, 90]).reshape((1, 2))
-            d = 0.1
-
-            start_jpv = np.concatenate([start_jp, np.zeros_like(start_jp)], axis=1)
+            start_jpv = np.concatenate([self.start_position, np.zeros_like(self.start_position)], axis=1)
             start_cpv = self.network.plant.joint2cartesian(start_jpv)
-            end_cp = d * np.stack([np.cos(angle), np.sin(angle)], axis=-1)
+            end_cp = self.reaching_distance * np.stack([np.cos(angle), np.sin(angle)], axis=-1)
             init_states = self.network.get_initial_state(batch_size=batch_size, inputs=start_jpv)
             goal_states = start_cpv + np.concatenate([end_cp, np.zeros_like(end_cp)], axis=-1)
 
@@ -237,26 +243,26 @@ class TaskDelayedMultiReach(Task):
     def __init__(self, network, initial_joint_state=None, **kwargs):
         super().__init__(network, initial_joint_state=initial_joint_state)
         self.__name__ = 'TaskDelayedMultiReach'
-        max_iso_force = self.plant.Muscle.max_iso_force
-        self.add_loss('muscle state', loss=ActivationSquaredLoss(max_iso_force=max_iso_force), loss_weight=.2)
+        max_iso_force = self.network.plant.Muscle.max_iso_force
+        self.add_loss('muscle state', loss=L2ActivationLoss(max_iso_force=max_iso_force), loss_weight=.2)
         self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)
 
-        self.bump_length = int(kwargs.get('bump_length', 50) / 1000 / self.plant.dt)
+        self.bump_length = int(kwargs.get('bump_length', 50) / 1000 / self.network.plant.dt)
         self.bump_height = kwargs.get('bump_height', 3)
-        self.delay_range = np.array(kwargs.get('delay_range', [100, 900])) / 1000 / self.plant.dt
+        self.delay_range = np.array(kwargs.get('delay_range', [100, 900])) / 1000 / self.network.plant.dt
         self.num_target = kwargs.get('num_target', 1)
 
     def generate(self, batch_size, n_timesteps, **kwargs):
         init_states = self.get_initial_state(batch_size=batch_size)
-        center = self.plant.joint2cartesian(init_states[0][0, :])
+        center = self.network.plant.joint2cartesian(init_states[0][0, :])
 
         num_target = self.num_target
         target_list = np.zeros((batch_size, n_timesteps, 4, num_target))
 
         for tg in range(num_target):
-            goal_states = self.plant.draw_random_uniform_states(batch_size=batch_size)
-            target_list[:, :, :, tg] = self.plant.state2target(
-                state=self.plant.joint2cartesian(goal_states),
+            goal_states = self.network.plant.draw_random_uniform_states(batch_size=batch_size)
+            target_list[:, :, :, tg] = self.network.plant.state2target(
+                state=self.network.plant.joint2cartesian(goal_states),
                 n_timesteps=n_timesteps).numpy()
 
         temp_inputs = []
@@ -306,26 +312,26 @@ class SequenceHorizon(Task):
     def __init__(self, network, initial_joint_state=None, **kwargs):
         super().__init__(network, initial_joint_state=initial_joint_state)
         self.__name__ = 'TaskDelayedMultiReach'
-        max_iso_force = self.plant.Muscle.max_iso_force
-        self.add_loss('muscle state', loss=ActivationSquaredLoss(max_iso_force=max_iso_force), loss_weight=.2)
+        max_iso_force = self.network.plant.Muscle.max_iso_force
+        self.add_loss('muscle state', loss=L2ActivationLoss(max_iso_force=max_iso_force), loss_weight=.2)
         self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)
 
-        self.bump_length = int(kwargs.get('bump_length', 50) / 1000 / self.plant.dt)
+        self.bump_length = int(kwargs.get('bump_length', 50) / 1000 / self.network.plant.dt)
         self.bump_height = kwargs.get('bump_height', 3)
-        self.delay_range = np.array(kwargs.get('delay_range', [100, 900])) / 1000 / self.plant.dt
+        self.delay_range = np.array(kwargs.get('delay_range', [100, 900])) / 1000 / self.network.plant.dt
         self.num_target = kwargs.get('num_target', 1)
         self.num_horizon = kwargs.get('num_horizon', 0)
 
     def generate(self, batch_size, n_timesteps, **kwargs):
         init_states = self.get_initial_state(batch_size=batch_size)
-        center = self.plant.joint2cartesian(init_states[0][0, :])
+        center = self.network.plant.joint2cartesian(init_states[0][0, :])
 
         target_list = np.zeros((batch_size, n_timesteps, 4, self.num_target))
 
         for tg in range(self.num_target):
-            goal_states = self.plant.draw_random_uniform_states(batch_size=batch_size)
-            target_list[:, :, :, tg] = self.plant.state2target(
-                state=self.plant.joint2cartesian(goal_states),
+            goal_states = self.network.plant.draw_random_uniform_states(batch_size=batch_size)
+            target_list[:, :, :, tg] = self.network.plant.state2target(
+                state=self.network.plant.joint2cartesian(goal_states),
                 n_timesteps=n_timesteps).numpy()
 
         # Fill in itial part of trials
@@ -376,26 +382,25 @@ class TaskLoadProbabilityDistributed(Task):
         self.__name__ = 'TaskLoadProbabilityDistributed'
         self.cartesian_loss = kwargs.get('cartesian_loss', 1.)
         self.muscle_loss = kwargs.get('muscle_loss', 0.)
-        self.vel_weight = kwargs.get('vel_weight', 0.)
+        self.deriv_weight = kwargs.get('deriv_weight', 0.)
         self.activity_weight = kwargs.get('activity_weight', 0.)
         self.recurrent_weight = kwargs.get('recurrent_weight', 0.)
         self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=self.cartesian_loss)
-        max_iso_force = self.plant.Muscle.max_iso_force
+        max_iso_force = self.network.plant.Muscle.max_iso_force
         self.add_loss('muscle state',
-                      loss=ActivationVelocitySquaredLoss(max_iso_force=max_iso_force,
-                                                         muscle_loss=self.muscle_loss,
-                                                         vel_weight=self.vel_weight),
+                      loss=L2ActivationMuscleVelLoss(max_iso_force=max_iso_force, deriv_weight=self.deriv_weight),
                       loss_weight=1.)
         self.add_loss(assigned_output='gru_hidden0',
-                      loss=RecurrentActivityRegularizer(self.network,
-                                                        activity_weight=self.activity_weight,
-                                                        recurrent_weight=self.recurrent_weight),
+                      loss=RecurrentActivityRegularizer(
+                          self.network,
+                          activity_weight=self.activity_weight,
+                          recurrent_weight=self.recurrent_weight),
                       loss_weight=1.)
-        pre_range = np.array(kwargs.get('pre_range', [0.3, 0.3])) / self.plant.dt
+        pre_range = np.array(kwargs.get('pre_range', [0.3, 0.3])) / self.network.plant.dt
         self.pre_range = [int(pre_range[0]), int(pre_range[1])]
-        c1_range = np.array(kwargs.get('c1_range', [0.6, 1.0])) / self.plant.dt
+        c1_range = np.array(kwargs.get('c1_range', [0.6, 1.0])) / self.network.plant.dt
         self.c1_range = [int(c1_range[0]), int(c1_range[1])]
-        c2_range = np.array(kwargs.get('c2_range', [0.6, 1.0])) / self.plant.dt
+        c2_range = np.array(kwargs.get('c2_range', [0.6, 1.0])) / self.network.plant.dt
         self.c2_range = [int(c2_range[0]), int(c2_range[1])]
         self.size_range = np.array(kwargs.get('size_range', [0., 0.1]))
         self.target_size = np.array(kwargs.get('target_size', 0.05))
@@ -411,11 +416,11 @@ class TaskLoadProbabilityDistributed(Task):
     def generate(self, batch_size, n_timesteps, **kwargs):
         init_states = self.get_initial_state(batch_size=batch_size)
         center_joint = init_states[0][0, :]
-        center = self.plant.joint2cartesian(center_joint).numpy()
+        center = self.network.plant.joint2cartesian(center_joint).numpy()
         # these are our target locations for the experiment version
-        goal_state1 = self.plant.joint2cartesian(center_joint + np.deg2rad([-2, 12, 0, 0])).numpy()
-        goal_state2 = self.plant.joint2cartesian(center_joint + np.deg2rad([2, -12.3, 0, 0])).numpy()
-        goal_states = self.plant.joint2cartesian(self.plant.draw_random_uniform_states(batch_size=batch_size)).numpy()
+        goal_state1 = self.network.plant.joint2cartesian(center_joint + np.deg2rad([-2, 12, 0, 0])).numpy()
+        goal_state2 = self.network.plant.joint2cartesian(center_joint + np.deg2rad([2, -12.3, 0, 0])).numpy()
+        goal_states = self.network.plant.joint2cartesian(self.network.plant.draw_random_uniform_states(batch_size=batch_size)).numpy()
         targets = np.tile(np.expand_dims(goal_states, axis=1), (1, n_timesteps, 1))
         #pos_pert_ind = 21
         #neg_pert_ind = 8
@@ -429,11 +434,11 @@ class TaskLoadProbabilityDistributed(Task):
         visual_delay = 7
         if self.run_mode == 'experiment':
             catch_chance = 0.
-            pre_range = np.array([0.3, 0.3]) / self.plant.dt
+            pre_range = np.array([0.3, 0.3]) / self.network.plant.dt
             self.pre_range = [int(pre_range[0]), int(pre_range[1])]
-            c1_range = np.array([0.8, 0.8]) / self.plant.dt
+            c1_range = np.array([0.8, 0.8]) / self.network.plant.dt
             self.c1_range = [int(c1_range[0]), int(c1_range[1])]
-            c2_range = np.array([0.8, 0.8]) / self.plant.dt
+            c2_range = np.array([0.8, 0.8]) / self.network.plant.dt
             self.c2_range = [int(c2_range[0]), int(c2_range[1])]
             self.target_size = np.array([0.05])
         else:
@@ -542,25 +547,25 @@ class TaskYangetal2011(Task):
     def __init__(self, network, **kwargs):
         super().__init__(network, **kwargs)
         self.__name__ = 'TaskYangetal2011'
-        max_iso_force = self.plant.Muscle.max_iso_force
-        self.add_loss('muscle state', loss=ActivationSquaredLoss(max_iso_force=max_iso_force), loss_weight=0.5)
+        max_iso_force = self.network.plant.Muscle.max_iso_force
+        self.add_loss('muscle state', loss=L2ActivationLoss(max_iso_force=max_iso_force), loss_weight=0.5)
         self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)  # 2-10 best
         self.do_recompute_targets = True
         self.network.perturbation_dim_start = 2
 
     def generate(self, batch_size, n_timesteps, **kwargs):
         init_states = self.get_initial_state(batch_size=batch_size)
-        center = self.plant.joint2cartesian(init_states[0][0, :]).numpy()
+        center = self.network.plant.joint2cartesian(init_states[0][0, :]).numpy()
         goal_state1 = center + np.array([-0.15551, -0.13049, 0, 0])
         goal_state2 = center + np.array([0.15551, 0.13049, 0, 0])
-        delay_array = np.array([2000, 500, 190, 170, 150, 130, 110, 90, 70, 50, 30, 10, -90]) / 1000 / self.plant.dt
+        delay_array = np.array([2000, 500, 190, 170, 150, 130, 110, 90, 70, 50, 30, 10, -90]) / 1000 / self.network.plant.dt
         targets = np.tile(center, (batch_size, n_timesteps, 1))
         inputs = np.zeros(shape=(batch_size, n_timesteps, 4))
         for i in range(batch_size):
             input_1 = np.zeros(shape=n_timesteps)
             input_2 = np.zeros(shape=n_timesteps)
             perturbation = np.tile([0, -2], (n_timesteps, 1))  # background load
-            target_delay = generate_delay_time(300 / 1000 / self.plant.dt, 700 / 1000 / self.plant.dt, 'random')
+            target_delay = generate_delay_time(300 / 1000 / self.network.plant.dt, 700 / 1000 / self.network.plant.dt, 'random')
             delay_time = int(delay_array[np.random.randint(0, 13)])
             pert_time = target_delay + delay_time
             if np.greater_equal(np.random.rand(),  0.5):

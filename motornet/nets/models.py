@@ -58,7 +58,7 @@ class MotorNetModel(tf.keras.Model, ABC):
     def save_model(self, path, **kwargs):
         cfg = {'Task': self.task.get_save_config()}
         cfg.update({'Network': self.task.network.get_save_config()})
-        cfg.update({'Plant': self.task.plant.get_save_config()})
+        cfg.update({'Plant': self.task.network.plant.get_save_config()})
         if os.path.isfile(path + '.json'):
             raise ValueError('Configuration file already exists')
         else:
