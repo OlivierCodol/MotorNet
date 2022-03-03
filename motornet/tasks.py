@@ -5,7 +5,7 @@ import tensorflow as tf
 import random
 from abc import abstractmethod
 from scipy.signal import butter, lfilter
-from MotorNet.nets.losses import PositionLoss, ActivationSquaredLoss, ActivationVelocitySquaredLoss, \
+from motornet.nets.losses import PositionLoss, ActivationSquaredLoss, ActivationVelocitySquaredLoss, \
     ActivationDiffSquaredLoss, L2Regularizer, RecurrentActivityRegularizer
 # TODO: check that "generate" methods do not feed the memory leak
 
@@ -14,19 +14,19 @@ class Task(tf.keras.utils.Sequence):
     """
     Base class for tasks.
     """
-    def __init__(self, controller, initial_joint_state=None, **kwargs):
+    def __init__(self, network, initial_joint_state=None, **kwargs):
         self.__name__ = 'Generic Task'
-        self.controller = controller
-        self.plant = controller.plant
+        self.network = network
+        self.plant = network.plant
         self.training_iterations = 1000
         self.training_batch_size = 32
         self.training_n_timesteps = 100
         self.delay_range = [0, 0]
         self.do_recompute_targets = False
         self.kwargs = kwargs
-        self.losses = {name: None for name in self.controller.output_names}
-        self.loss_names = {name: name for name in self.controller.output_names}
-        self.loss_weights = {name: 0. for name in self.controller.output_names}
+        self.losses = {name: None for name in self.network.output_names}
+        self.loss_names = {name: name for name in self.network.output_names}
+        self.loss_weights = {name: 0. for name in self.network.output_names}
 
         if initial_joint_state is not None:
             initial_joint_state = np.array(initial_joint_state)
@@ -55,7 +55,7 @@ class Task(tf.keras.utils.Sequence):
         else:
             i = np.random.randint(0, self.n_initial_joint_states, batch_size)
             inputs = self.initial_joint_state[i, :]
-        return self.controller.get_initial_state(batch_size=batch_size, inputs=inputs)
+        return self.network.get_initial_state(batch_size=batch_size, inputs=inputs)
 
     def get_input_dim(self):
         [inputs, _, _] = self.generate(batch_size=1, n_timesteps=self.delay_range[-1]+1)
@@ -99,8 +99,8 @@ class Task(tf.keras.utils.Sequence):
 
 
 class TaskStaticTarget(Task):
-    def __init__(self, controller, **kwargs):
-        super().__init__(controller, **kwargs)
+    def __init__(self, network, **kwargs):
+        super().__init__(network, **kwargs)
         self.__name__ = 'TaskStaticTarget'
         max_iso_force = self.plant.Muscle.max_iso_force
         self.add_loss('muscle state', loss=ActivationSquaredLoss(max_iso_force=max_iso_force), loss_weight=.2)
@@ -115,8 +115,8 @@ class TaskStaticTarget(Task):
 
 
 class TaskStaticTargetWithPerturbations(Task):
-    def __init__(self, controller, endpoint_load: float, **kwargs):
-        super().__init__(controller, **kwargs)
+    def __init__(self, network, endpoint_load: float, **kwargs):
+        super().__init__(network, **kwargs)
         self.__name__ = 'TaskStaticTargetWithPerturbations'
         max_iso_force = self.plant.Muscle.max_iso_force
         self.add_loss('muscle state', loss=ActivationSquaredLoss(max_iso_force=max_iso_force), loss_weight=.2)
@@ -140,8 +140,8 @@ class TaskDelayedReach(Task):
       delay_range: Two-items list or numpy.array that indicate the minimum and maximum value of the delay timer.
         The delay is randomly drawn from a uniform distribution bounded by these values.
     """
-    def __init__(self, controller, **kwargs):
-        super().__init__(controller, **kwargs)
+    def __init__(self, network, **kwargs):
+        super().__init__(network, **kwargs)
         self.__name__ = 'TaskDelayedReach'
         max_iso_force = self.plant.Muscle.max_iso_force
         self.add_loss('muscle state', loss=ActivationSquaredLoss(max_iso_force=max_iso_force), loss_weight=.2)
@@ -168,8 +168,8 @@ class TaskDelayedReach(Task):
 
 
 class TaskDelayedMultiReach(Task):
-    def __init__(self, controller, initial_joint_state=None, **kwargs):
-        super().__init__(controller, initial_joint_state=initial_joint_state)
+    def __init__(self, network, initial_joint_state=None, **kwargs):
+        super().__init__(network, initial_joint_state=initial_joint_state)
         self.__name__ = 'TaskDelayedMultiReach'
         max_iso_force = self.plant.Muscle.max_iso_force
         self.add_loss('muscle state', loss=ActivationSquaredLoss(max_iso_force=max_iso_force), loss_weight=.2)
@@ -237,8 +237,8 @@ class TaskDelayedMultiReach(Task):
 
 
 class SequenceHorizon(Task):
-    def __init__(self, controller, initial_joint_state=None, **kwargs):
-        super().__init__(controller, initial_joint_state=initial_joint_state)
+    def __init__(self, network, initial_joint_state=None, **kwargs):
+        super().__init__(network, initial_joint_state=initial_joint_state)
         self.__name__ = 'TaskDelayedMultiReach'
         max_iso_force = self.plant.Muscle.max_iso_force
         self.add_loss('muscle state', loss=ActivationSquaredLoss(max_iso_force=max_iso_force), loss_weight=.2)
@@ -305,8 +305,8 @@ class SequenceHorizon(Task):
 
 
 class TaskLoadProbabilityDistributed(Task):
-    def __init__(self, controller, **kwargs):
-        super().__init__(controller, **kwargs)
+    def __init__(self, network, **kwargs):
+        super().__init__(network, **kwargs)
         self.__name__ = 'TaskLoadProbabilityDistributed'
         self.cartesian_loss = kwargs.get('cartesian_loss', 1.)
         self.muscle_loss = kwargs.get('muscle_loss', 0.)
@@ -321,7 +321,7 @@ class TaskLoadProbabilityDistributed(Task):
                                                          vel_weight=self.vel_weight),
                       loss_weight=1.)
         self.add_loss(assigned_output='gru_hidden0',
-                      loss=RecurrentActivityRegularizer(self.controller,
+                      loss=RecurrentActivityRegularizer(self.network,
                                                         activity_weight=self.activity_weight,
                                                         recurrent_weight=self.recurrent_weight),
                       loss_weight=1.)
@@ -338,8 +338,8 @@ class TaskLoadProbabilityDistributed(Task):
         self.do_recompute_targets = kwargs.get('do_recompute_targets', False)
         self.do_recompute_inputs = kwargs.get('do_recompute_inputs', False)
         if self.do_recompute_inputs:
-            self.controller.do_recompute_inputs = True
-            self.controller.recompute_inputs = self.recompute_inputs
+            self.network.do_recompute_inputs = True
+            self.network.recompute_inputs = self.recompute_inputs
         self.delay_range = [500, 500]  # this has to exist to get the size of the inputs
 
     def generate(self, batch_size, n_timesteps, **kwargs):
@@ -438,7 +438,7 @@ class TaskLoadProbabilityDistributed(Task):
             # let's tell the network how big the target is
             inputs[i, targ_time + visual_delay:, 32] = target_size
 
-            #inputs[i, :, :] = inputs[i, :, :] + np.random.normal(loc=0., scale=self.controller.visual_noise_sd,
+            #inputs[i, :, :] = inputs[i, :, :] + np.random.normal(loc=0., scale=self.network.visual_noise_sd,
             #                                                     size=(n_timesteps, 33))
             perturbations[i, :, :] = perturbation
 
@@ -473,14 +473,14 @@ class TaskLoadProbabilityDistributed(Task):
 
 
 class TaskYangetal2011(Task):
-    def __init__(self, controller, **kwargs):
-        super().__init__(controller, **kwargs)
+    def __init__(self, network, **kwargs):
+        super().__init__(network, **kwargs)
         self.__name__ = 'TaskYangetal2011'
         max_iso_force = self.plant.Muscle.max_iso_force
         self.add_loss('muscle state', loss=ActivationSquaredLoss(max_iso_force=max_iso_force), loss_weight=0.5)
         self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)  # 2-10 best
         self.do_recompute_targets = True
-        self.controller.perturbation_dim_start = 2
+        self.network.perturbation_dim_start = 2
 
     def generate(self, batch_size, n_timesteps, **kwargs):
         init_states = self.get_initial_state(batch_size=batch_size)

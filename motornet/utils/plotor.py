@@ -1,9 +1,9 @@
 import numpy as np
 import scipy.io
 import matplotlib.pyplot as plt
-from matplotlib.collections import LineCollection
 import tensorflow as tf
 from matplotlib import animation
+from matplotlib.collections import LineCollection
 
 
 def compute_limits(data):

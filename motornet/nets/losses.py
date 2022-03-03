@@ -9,9 +9,9 @@ class L2Regularizer(LossFunctionWrapper):
 
 
 class RecurrentActivityRegularizer(LossFunctionWrapper):
-    def __init__(self, controller, recurrent_weight, activity_weight,
+    def __init__(self, network, recurrent_weight, activity_weight,
                  name='recurrent_activity', reduction=losses_utils.ReductionV2.AUTO):
-        super().__init__(recurrent_activity_loss, controller=controller, recurrent_weight=recurrent_weight,
+        super().__init__(recurrent_activity_loss, network=network, recurrent_weight=recurrent_weight,
                          activity_weight=activity_weight, name=name, reduction=reduction)
 
 
@@ -70,8 +70,8 @@ def activation_diff_squared_loss(y_true, y_pred, max_iso_force, muscle_loss, vel
     return muscle_loss * tf.reduce_mean(tf.square(activation_scaled)) + vel_weight * d_activation
 
 
-def recurrent_activity_loss(y_true, y_pred, controller, recurrent_weight, activity_weight):
-    w = controller.layers.weights[1]
+def recurrent_activity_loss(y_true, y_pred, network, recurrent_weight, activity_weight):
+    w = network.layers.weights[1]
     z, r, h = tf.split(w, 3, axis=1)
     r_shaped = tf.reshape(tf.transpose(y_pred, perm=[2, 1, 0]), [y_pred.shape[2], -1])
     d_r = tf.transpose(tf.reduce_sum(tf.square(d_tanh(r_shaped)), axis=1))

@@ -1,14 +1,14 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.layers import Lambda
-from MotorNet.plants.skeletons import TwoDofArm
-from MotorNet.plants.muscles import CompliantTendonHillMuscle
+from motornet.plants.skeletons import TwoDofArm, PointMass
+from motornet.plants.muscles import CompliantTendonHillMuscle, ReluMuscle
 
 
 # TODO check all values for input_dim and output_dim attributes
 
 
-class PlantWrapper:
+class Plant:
 
     def __init__(self, skeleton, muscle_type, timestep: float = 0.01, integration_method: str = 'euler', **kwargs):
 
@@ -202,7 +202,7 @@ class PlantWrapper:
         xy, dxy_dt, dxy_ddof = self.Skeleton.path2cartesian(self.path_coordinates, self.path_fixation_body, joint_state)
         diff_pos = xy[:, :, 1:] - xy[:, :, :-1]
         diff_vel = dxy_dt[:, :, 1:] - dxy_dt[:, :, :-1]
-        diff_ddof = dxy_ddof[:, :, :, 1:] - dxy_ddof[:, :, :, :-1]
+        diff_ddof = dxy_ddof[:, :, :, 1:] - dxy_ddof[:, :, :, :-1]  # TODO this line only works in 2D
 
         # length, velocity and moment of each path segment
         # -----------------------
@@ -214,6 +214,7 @@ class PlantWrapper:
         # muscle segment will never flip backward, so the velocity can only be positive afterwards anyway.
         # segment_vel = tf.where(segment_len == 0, tf.zeros(1), segment_vel)
         segment_vel = tf.reduce_sum(diff_pos * diff_vel / segment_len, axis=1, keepdims=True)
+        # for moment arm calculation, see Sherman, Seth, Delp (2013) -- DOI:10.1115/DETC2013-13633
         segment_moments = tf.reduce_sum(diff_ddof * diff_pos[:, :, tf.newaxis], axis=1) / segment_len
 
         # remove differences between points that don't belong to the same muscle
@@ -344,7 +345,7 @@ class PlantWrapper:
         self.__setattr__(name, value)
 
 
-class RigidTendonArm(PlantWrapper):
+class RigidTendonArm26(Plant):
     """
     This pre-built plant class is an implementation of a "lumped-muscle" model from Kistemaker et al. (2010),
     J. Neurophysiol. Because lumped-muscle models are functional approximations of biological reality, this class'
@@ -399,9 +400,9 @@ class RigidTendonArm(PlantWrapper):
         return tf.concat([musculotendon_len, musculotendon_vel, moment_arm], axis=1)
 
 
-class CompliantTendonArm(RigidTendonArm):
+class CompliantTendonArm26(RigidTendonArm26):
     """
-    This is the compliant-tendon version of the "RigidTendonArm" class above
+    This is the compliant-tendon version of the "RigidTendonArm26" class above
     """
 
     def __init__(self, timestep=0.0002, skeleton=None, **kwargs):
@@ -426,3 +427,21 @@ class CompliantTendonArm(RigidTendonArm):
 
         a0 = [0.182, 0.2362, 0.2859, 0.2355, 0.3329, 0.2989]
         self.a0 = tf.constant(a0, shape=(1, 1, 6), dtype=tf.float32)
+
+
+class ReluPointMass24(Plant):
+    def __init__(self, timestep=0.01, **kwargs):
+        f = kwargs.pop('max_isometric_force', 500)
+        skeleton = PointMass(space_dim=2)
+        super().__init__(skeleton=skeleton, muscle_type=ReluMuscle(), timestep=timestep, **kwargs)
+
+        # path coordinates for each muscle
+        pc_ur = [[2, 2], [0, 0]]
+        pc_ul = [[-2, 2], [0, 0]]
+        pc_lr = [[2, -2], [0, 0]]
+        pc_ll = [[-2, -2], [0, 0]]
+
+        self.add_muscle(path_fixation_body=[0, 1], path_coordinates=pc_ur, name='UpperRight', max_isometric_force=f)
+        self.add_muscle(path_fixation_body=[0, 1], path_coordinates=pc_ul, name='UpperLeft', max_isometric_force=f)
+        self.add_muscle(path_fixation_body=[0, 1], path_coordinates=pc_lr, name='LowerRight', max_isometric_force=f)
+        self.add_muscle(path_fixation_body=[0, 1], path_coordinates=pc_ll, name='LowerLeft', max_isometric_force=f)

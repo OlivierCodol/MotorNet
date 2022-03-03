@@ -3,7 +3,7 @@ import tensorflow as tf
 from tensorflow.keras.layers import Layer, GRUCell, Dense, Lambda
 
 
-class GRUController(Layer):
+class GRUNetwork(Layer):
     def __init__(self, plant, n_units=20, n_hidden_layers=1, activation='tanh', kernel_regularizer=0.,
                  recurrent_regularizer=0., proprioceptive_noise_sd=0., visual_noise_sd=0.,
                  hidden_noise_sd=0., n_ministeps=1, output_bias_initializer=tf.initializers.Constant(value=-5),

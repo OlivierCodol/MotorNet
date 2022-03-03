@@ -34,10 +34,10 @@ def f(run_iter):
     import tensorflow as tf
     import scipy.io
     from tensorflow.keras.layers import Input
-    from MotorNet.plants import RigidTendonArm
-    from MotorNet.nets.layers import GRUController
-    from MotorNet.nets.callbacks import TensorflowFix, BatchLogger
-    from MotorNet.nets.models import MotorNetModel
+    from motornet.plants import RigidTendonArm26
+    from motornet.nets.layers import GRUNetwork
+    from motornet.nets.callbacks import TensorflowFix, BatchLogger
+    from motornet.nets.models import MotorNetModel
     print('tensorflow version: ' + tf.__version__)
     os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
@@ -47,26 +47,26 @@ def f(run_iter):
 
     muscle_type = cfg['Plant']['Muscle']['name']
     task_type = cfg['Task']['name']
-    exec('from MotorNet.plants.muscles import ' + muscle_type)
-    exec('from MotorNet.tasks import ' + task_type)
+    exec('from motornet.plants.muscles import ' + muscle_type)
+    exec('from motornet.tasks import ' + task_type)
 
     #cfg['Plant']['excitation_noise_sd'] = 0.
-    #cfg['Controller']['proprioceptive_noise_sd'] = 0.
-    #cfg['Controller']['visual_noise_sd'] = 0.
-    #cfg['Controller']['hidden_noise_sd'] = 0.
+    #cfg['Network']['proprioceptive_noise_sd'] = 0.
+    #cfg['Network']['visual_noise_sd'] = 0.
+    #cfg['Network']['hidden_noise_sd'] = 0.
 
-    arm = RigidTendonArm(muscle_type=eval(muscle_type + '()'), timestep=float(cfg['Plant']['Skeleton']['dt']),
-                         proprioceptive_delay=cfg['Plant']['proprioceptive_delay'] *
+    arm = RigidTendonArm26(muscle_type=eval(muscle_type + '()'), timestep=float(cfg['Plant']['Skeleton']['dt']),
+                           proprioceptive_delay=cfg['Plant']['proprioceptive_delay'] *
                                               float(cfg['Plant']['Skeleton']['dt']),
-                         visual_delay=cfg['Plant']['visual_delay'] * float(cfg['Plant']['Skeleton']['dt']),
-                         excitation_noise_sd=cfg['Plant']['excitation_noise_sd'])
-    cell = GRUController(plant=arm, n_units=cfg['Controller']['n_units'],
-                         kernel_regularizer=cfg['Controller']['kernel_regularizer_weight'],
-                         recurrent_regularizer=cfg['Controller']['recurrent_regularizer_weight'],
-                         proprioceptive_noise_sd=cfg['Controller']['proprioceptive_noise_sd'],
-                         visual_noise_sd=cfg['Controller']['visual_noise_sd'],
-                         hidden_noise_sd=cfg['Controller']['hidden_noise_sd'],
-                         activation=cfg['Controller']['activation'])
+                           visual_delay=cfg['Plant']['visual_delay'] * float(cfg['Plant']['Skeleton']['dt']),
+                           excitation_noise_sd=cfg['Plant']['excitation_noise_sd'])
+    cell = GRUNetwork(plant=arm, n_units=cfg['Network']['n_units'],
+                      kernel_regularizer=cfg['Network']['kernel_regularizer_weight'],
+                      recurrent_regularizer=cfg['Network']['recurrent_regularizer_weight'],
+                      proprioceptive_noise_sd=cfg['Network']['proprioceptive_noise_sd'],
+                      visual_noise_sd=cfg['Network']['visual_noise_sd'],
+                      hidden_noise_sd=cfg['Network']['hidden_noise_sd'],
+                      activation=cfg['Network']['activation'])
     task_kwargs = cfg['Task']['task_kwargs']
     task_kwargs['run_mode'] = task_run_mode
     task = eval(task_type +
@@ -152,7 +152,7 @@ def f(run_iter):
                           'weights': control_rnn.get_weights(),
                           'training_log': training_log,
                           'task_config': cfg['Task']['task_kwargs'],
-                          'controller_config': cfg['Controller']})
+                          'controller_config': cfg['Network']})
 
 
 if __name__ == '__main__':
