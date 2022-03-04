@@ -5,9 +5,6 @@ from motornet.plants.skeletons import TwoDofArm, PointMass
 from motornet.plants.muscles import CompliantTendonHillMuscle, ReluMuscle
 
 
-# TODO check all values for input_dim and output_dim attributes
-
-
 class Plant:
 
     def __init__(self, skeleton, muscle_type, timestep: float = 0.01, integration_method: str = 'euler', **kwargs):
@@ -61,8 +58,7 @@ class Plant:
         self.tobuild__muscle = self.muscle.to_build_dict
         self.tobuild__default = self.muscle.to_build_dict_default
 
-        # these attributes will hold the numpy versions of the variables, which are easier to manipulate in the `build`
-        # mothod
+        # these attributes hold numpy versions of the variables, which are easier to manipulate in the `build` method
         self._path_fixation_body = np.empty((1, 1, 0)).astype('float32')
         self._path_coordinates = np.empty((1, self.skeleton.space_dim, 0)).astype('float32')
         self._muscle = np.empty(0).astype('float32')
@@ -199,10 +195,11 @@ class Plant:
         return state_derivative
 
     def _get_geometry(self, joint_state):
+        # dxy_ddof --> (n_batches, n_dof, n_dof, n_points)
         xy, dxy_dt, dxy_ddof = self.skeleton.path2cartesian(self.path_coordinates, self.path_fixation_body, joint_state)
         diff_pos = xy[:, :, 1:] - xy[:, :, :-1]
         diff_vel = dxy_dt[:, :, 1:] - dxy_dt[:, :, :-1]
-        diff_ddof = dxy_ddof[:, :, :, 1:] - dxy_ddof[:, :, :, :-1]  # TODO this line only works in 2D
+        diff_ddof = dxy_ddof[:, :, :, 1:] - dxy_ddof[:, :, :, :-1]
 
         # length, velocity and moment of each path segment
         # -----------------------
