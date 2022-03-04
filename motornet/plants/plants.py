@@ -13,11 +13,11 @@ class Plant:
     def __init__(self, skeleton, muscle_type, timestep: float = 0.01, integration_method: str = 'euler', **kwargs):
 
         self.__name__ = 'Plant'
-        self.Skeleton = skeleton
-        self.dof = self.Skeleton.dof
-        self.space_dim = self.Skeleton.space_dim
-        self.state_dim = self.Skeleton.state_dim
-        self.output_dim = self.Skeleton.output_dim
+        self.skeleton = skeleton
+        self.dof = self.skeleton.dof
+        self.space_dim = self.skeleton.space_dim
+        self.state_dim = self.skeleton.state_dim
+        self.output_dim = self.skeleton.output_dim
         self.excitation_noise_sd = kwargs.get('excitation_noise_sd', 0.)
         self.dt = timestep
         self.half_dt = self.dt / 2  # to reduce online calculations for RK4 integration
@@ -30,10 +30,10 @@ class Plant:
         self.visual_delay = int(visual_delay / self.dt)
 
         # handle position & velocity ranges
-        pos_lower_bound = kwargs.get('pos_lower_bound', self.Skeleton.pos_lower_bound)
-        pos_upper_bound = kwargs.get('pos_upper_bound', self.Skeleton.pos_upper_bound)
-        vel_lower_bound = kwargs.get('vel_lower_bound', self.Skeleton.vel_lower_bound)
-        vel_upper_bound = kwargs.get('vel_upper_bound', self.Skeleton.vel_upper_bound)
+        pos_lower_bound = kwargs.get('pos_lower_bound', self.skeleton.pos_lower_bound)
+        pos_upper_bound = kwargs.get('pos_upper_bound', self.skeleton.pos_upper_bound)
+        vel_lower_bound = kwargs.get('vel_lower_bound', self.skeleton.vel_lower_bound)
+        vel_upper_bound = kwargs.get('vel_upper_bound', self.skeleton.vel_upper_bound)
         pos_bounds = self._set_state_limit_bounds(lb=pos_lower_bound, ub=pos_upper_bound)
         vel_bounds = self._set_state_limit_bounds(lb=vel_lower_bound, ub=vel_upper_bound)
         self.pos_upper_bound = tf.constant(pos_bounds[:, 1], dtype=tf.float32)
@@ -41,7 +41,7 @@ class Plant:
         self.vel_upper_bound = tf.constant(vel_bounds[:, 1], dtype=tf.float32)
         self.vel_lower_bound = tf.constant(vel_bounds[:, 0], dtype=tf.float32)
 
-        self.Skeleton.build(
+        self.skeleton.build(
             timestep=self.dt,
             pos_upper_bound=self.pos_upper_bound,
             pos_lower_bound=self.pos_lower_bound,
@@ -50,21 +50,21 @@ class Plant:
             integration_method=self.integration_method)
 
         # initialize muscle system
-        self.Muscle = muscle_type
-        self.force_index = self.Muscle.state_name.index('force')  # column index of muscle state containing output force
+        self.muscle = muscle_type
+        self.force_index = self.muscle.state_name.index('force')  # column index of muscle state containing output force
         self.MusclePaths = []  # a list of all the muscle paths
         self.n_muscles = 0
         self.input_dim = 0
         self.muscle_name = []
-        self.muscle_state_dim = self.Muscle.state_dim
-        self.geometry_state_dim = 2 + self.Skeleton.dof  # musculotendon length & velocity + as many moments as dofs
-        self.tobuild__muscle = self.Muscle.to_build_dict
-        self.tobuild__default = self.Muscle.to_build_dict_default
+        self.muscle_state_dim = self.muscle.state_dim
+        self.geometry_state_dim = 2 + self.skeleton.dof  # musculotendon length & velocity + as many moments as dofs
+        self.tobuild__muscle = self.muscle.to_build_dict
+        self.tobuild__default = self.muscle.to_build_dict_default
 
         # these attributes will hold the numpy versions of the variables, which are easier to manipulate in the `build`
         # mothod
         self._path_fixation_body = np.empty((1, 1, 0)).astype('float32')
-        self._path_coordinates = np.empty((1, self.Skeleton.space_dim, 0)).astype('float32')
+        self._path_coordinates = np.empty((1, self.skeleton.space_dim, 0)).astype('float32')
         self._muscle = np.empty(0).astype('float32')
         self._muscle_transitions = None
         self._row_splits = None
@@ -77,10 +77,10 @@ class Plant:
         self.row_splits = None
 
         self.default_endpoint_load = tf.constant(
-            value=tf.zeros((1, self.Skeleton.space_dim), dtype=tf.float32),
+            value=tf.zeros((1, self.skeleton.space_dim), dtype=tf.float32),
             name='default_endpoint_load')
         self.default_joint_load = tf.constant(
-            value=tf.zeros((1, self.Skeleton.dof), dtype=tf.float32),
+            value=tf.zeros((1, self.skeleton.dof), dtype=tf.float32),
             name='default_joint_load')
 
         # Lambda wraps to avoid memory leaks
@@ -110,10 +110,10 @@ class Plant:
         path_fixation_body = np.array(path_fixation_body).astype('float32').reshape((1, 1, -1))
         n_points = path_fixation_body.size
         path_coordinates = np.array(path_coordinates).astype('float32').T[np.newaxis, :, :]
-        assert path_coordinates.shape[1] == self.Skeleton.space_dim
+        assert path_coordinates.shape[1] == self.skeleton.space_dim
         assert path_coordinates.shape[2] == n_points
         self.n_muscles += 1
-        self.input_dim += self.Muscle.input_dim
+        self.input_dim += self.muscle.input_dim
 
         # path segments & coordinates should be a (batch_size * n_coordinates  * n_segments * (n_muscles * n_points)
         self._path_fixation_body = np.concatenate([self._path_fixation_body, path_fixation_body], axis=-1)
@@ -143,7 +143,7 @@ class Plant:
                     self.tobuild__muscle[key].append(self.tobuild__default[key])
                 else:
                     raise ValueError('Missing keyword argument ' + key + '.')
-        self.Muscle.build(timestep=self.dt, integration_method=self.integration_method, **self.tobuild__muscle)
+        self.muscle.build(timestep=self.dt, integration_method=self.integration_method, **self.tobuild__muscle)
 
         if name == '':
             name = 'muscle_' + str(self.n_muscles)
@@ -157,7 +157,7 @@ class Plant:
         new_joint_state, new_muscle_state, new_geometry_state = self.integrate(
             muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load)
 
-        new_cartesian_state = self.Skeleton.joint2cartesian(joint_state=new_joint_state)
+        new_cartesian_state = self.skeleton.joint2cartesian(joint_state=new_joint_state)
         return new_joint_state, new_cartesian_state, new_muscle_state, new_geometry_state
 
     def integrate(self, muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load):
@@ -184,8 +184,8 @@ class Plant:
 
     def integration_step(self, dt, state_derivative, states):
         new_states = {
-            "muscle": self.Muscle.integrate(dt, state_derivative["muscle"], states["muscle"], states["geometry"]),
-            "joint": self.Skeleton.integrate(dt, state_derivative["joint"], states["joint"])}
+            "muscle": self.muscle.integrate(dt, state_derivative["muscle"], states["muscle"], states["geometry"]),
+            "joint": self.skeleton.integrate(dt, state_derivative["joint"], states["joint"])}
         new_states["geometry"] = self.get_geometry(new_states["joint"])
         return new_states
 
@@ -194,12 +194,12 @@ class Plant:
         forces = tf.slice(states["muscle"], [0, self.force_index, 0], [-1, 1, -1])
         generalized_forces = - tf.reduce_sum(forces * moments, axis=-1) + joint_load
         state_derivative = {
-            "muscle": self.Muscle.update_ode(excitation, states["muscle"]),
-            "joint": self.Skeleton.update_ode(generalized_forces, states["joint"], endpoint_load=endpoint_load)}
+            "muscle": self.muscle.update_ode(excitation, states["muscle"]),
+            "joint": self.skeleton.update_ode(generalized_forces, states["joint"], endpoint_load=endpoint_load)}
         return state_derivative
 
     def _get_geometry(self, joint_state):
-        xy, dxy_dt, dxy_ddof = self.Skeleton.path2cartesian(self.path_coordinates, self.path_fixation_body, joint_state)
+        xy, dxy_dt, dxy_ddof = self.skeleton.path2cartesian(self.path_coordinates, self.path_fixation_body, joint_state)
         diff_pos = xy[:, :, 1:] - xy[:, :, :-1]
         diff_vel = dxy_dt[:, :, 1:] - dxy_dt[:, :, :-1]
         diff_ddof = dxy_ddof[:, :, :, 1:] - dxy_ddof[:, :, :, :-1]  # TODO this line only works in 2D
@@ -248,9 +248,9 @@ class Plant:
             batch_size = tf.shape(joint_state)[0]
 
         joint0 = self.parse_initial_joint_state(joint_state=joint_state, batch_size=batch_size)
-        cartesian0 = self.Skeleton.joint2cartesian(joint_state=joint0)
+        cartesian0 = self.skeleton.joint2cartesian(joint_state=joint0)
         geometry0 = self.get_geometry(joint0)
-        muscle0 = self.Muscle.get_initial_muscle_state(batch_size=batch_size, geometry_state=geometry0)
+        muscle0 = self.muscle.get_initial_muscle_state(batch_size=batch_size, geometry_state=geometry0)
         return [joint0, cartesian0, muscle0, geometry0]
 
     def _draw_random_uniform_states(self, batch_size):
@@ -311,8 +311,8 @@ class Plant:
         return bounds
 
     def get_save_config(self):
-        muscle_cfg = self.Muscle.get_save_config()
-        skeleton_cfg = self.Skeleton.get_save_config()
+        muscle_cfg = self.muscle.get_save_config()
+        skeleton_cfg = self.skeleton.get_save_config()
         cfg = {'Muscle': muscle_cfg,
                'Skeleton': skeleton_cfg,
                'dt': self.dt, 'muscle_names': self.muscle_name,
@@ -339,7 +339,7 @@ class Plant:
         return self._draw_fixed_states_fn((position, velocity, batch_size))
 
     def joint2cartesian(self, joint_state):
-        return self.Skeleton.joint2cartesian(joint_state=joint_state)
+        return self.skeleton.joint2cartesian(joint_state=joint_state)
 
     def setattr(self, name: str, value):
         self.__setattr__(name, value)
@@ -370,12 +370,12 @@ class RigidTendonArm26(Plant):
             **kwargs)
 
         # build muscle system
-        self.muscle_state_dim = self.Muscle.state_dim
-        self.geometry_state_dim = 2 + self.Skeleton.dof  # musculotendon length & velocity + as many moments as dofs
+        self.muscle_state_dim = self.muscle.state_dim
+        self.geometry_state_dim = 2 + self.skeleton.dof  # musculotendon length & velocity + as many moments as dofs
         self.n_muscles = 6
         self.input_dim = self.n_muscles
         self.muscle_name = ['pectoralis', 'deltoid', 'brachioradialis', 'tricepslat', 'biceps', 'tricepslong']
-        self.Muscle.build(
+        self.muscle.build(
             timestep=self.dt,
             max_isometric_force=[838, 1207, 1422, 1549, 414, 603],
             tendon_length=[0.039, 0.066, 0.172, 0.187, 0.204, 0.217],
@@ -418,7 +418,7 @@ class CompliantTendonArm26(RigidTendonArm26):
             **kwargs)
 
         # build muscle system
-        self.Muscle.build(
+        self.muscle.build(
             timestep=timestep,
             max_isometric_force=[838, 1207, 1422, 1549, 414, 603],
             tendon_length=[0.070, 0.070, 0.172, 0.187, 0.204, 0.217],

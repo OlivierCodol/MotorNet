@@ -98,7 +98,7 @@ class RandomTargetReach(Task):
     def __init__(self, network, **kwargs):
         super().__init__(network, **kwargs)
         self.__name__ = 'RandomTargetReach'
-        max_iso_force = self.network.plant.Muscle.max_iso_force
+        max_iso_force = self.network.plant.muscle.max_iso_force
         self.add_loss('muscle state', loss=L2ActivationLoss(max_iso_force=max_iso_force), loss_weight=.2)
         self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)
 
@@ -115,7 +115,7 @@ class RandomTargetReachWithLoads(Task):
     def __init__(self, network, endpoint_load: float, **kwargs):
         super().__init__(network, **kwargs)
         self.__name__ = 'RandomTargetReachWithLoads'
-        max_iso_force = self.network.plant.Muscle.max_iso_force
+        max_iso_force = self.network.plant.muscle.max_iso_force
         self.add_loss('muscle state', loss=L2ActivationLoss(max_iso_force=max_iso_force), loss_weight=.2)
         self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)
         self.endpoint_load = endpoint_load
@@ -141,7 +141,7 @@ class DelayedReach(Task):
     def __init__(self, network, **kwargs):
         super().__init__(network, **kwargs)
         self.__name__ = 'DelayedReach'
-        max_iso_force = self.network.plant.Muscle.max_iso_force
+        max_iso_force = self.network.plant.muscle.max_iso_force
         self.add_loss('muscle state', loss=L2ActivationLoss(max_iso_force=max_iso_force), loss_weight=.2)
         self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)
         delay_range = np.array(kwargs.get('delay_range', [0.3, 0.6])) / self.network.plant.dt
@@ -183,7 +183,7 @@ class CentreOutReach(Task):
         self.start_position = np.array(self.start_position).reshape(1, -1)
 
         deriv_weight = kwargs.get('deriv_weight', 0.05)
-        max_iso_force = self.network.plant.Muscle.max_iso_force
+        max_iso_force = self.network.plant.muscle.max_iso_force
         dt = self.network.plant.dt
         muscle_loss = L2xDxActivationLoss(max_iso_force=max_iso_force, dt=dt, deriv_weight=deriv_weight)
         gru_loss = L2xDxRegularizer(deriv_weight=.01, dt=self.network.plant.dt)

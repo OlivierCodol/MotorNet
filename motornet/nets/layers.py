@@ -61,8 +61,8 @@ class GRUNetwork(Layer):
         # create Lambda-wrapped functions (to prevent memory leaks)
         def get_new_proprio_feedback(mstate):
             # normalise by muscle characteristics
-            muscle_len = tf.slice(mstate, [0, 1, 0], [-1, 1, -1]) / self.plant.Muscle.l0_ce
-            muscle_vel = tf.slice(mstate, [0, 2, 0], [-1, 1, -1]) / self.plant.Muscle.vmax
+            muscle_len = tf.slice(mstate, [0, 1, 0], [-1, 1, -1]) / self.plant.muscle.l0_ce
+            muscle_vel = tf.slice(mstate, [0, 2, 0], [-1, 1, -1]) / self.plant.muscle.vmax
             # flatten muscle length and velocity
             proprio_true = tf.reshape(tf.concat([muscle_len, muscle_vel], axis=1), shape=(-1, self.n_muscles * 2))
             return proprio_true

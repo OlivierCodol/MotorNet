@@ -101,7 +101,7 @@ def animate_arm_trajectory(joint_position, plant, path_name='./Arm_animation.mp4
     assert joint_position.shape[0] == 1
     joint_position = tf.reshape(joint_position, (-1, plant.state_dim))
 
-    plant = plant.Skeleton
+    plant = plant.skeleton
 
     fig = plt.figure()
     ax = plt.axes(xlim=(-1, 1), ylim=(-1, 1))
