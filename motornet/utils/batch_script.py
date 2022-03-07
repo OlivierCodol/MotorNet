@@ -1,6 +1,8 @@
-import os, sys, json
+import json
+import os
+import sys
+
 from joblib import Parallel, delayed
-import numpy as np
 
 # input 1 - directory to use
 active_directory = sys.argv[1]
