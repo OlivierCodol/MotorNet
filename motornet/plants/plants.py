@@ -61,14 +61,14 @@ class Plant:
         # these attributes hold numpy versions of the variables, which are easier to manipulate in the `build` method
         self._path_fixation_body = np.empty((1, 1, 0)).astype('float32')
         self._path_coordinates = np.empty((1, self.skeleton.space_dim, 0)).astype('float32')
-        self._muscle = np.empty(0).astype('float32')
+        self._muscle_index = np.empty(0).astype('float32')
         self._muscle_transitions = None
         self._row_splits = None
 
         # these attributes will hold the `tf.constant` version of the above
         self.path_fixation_body = None
         self.path_coordinates = None
-        self.muscle = None
+        self.muscle_index = None
         self.muscle_transitions = None
         self.row_splits = None
 
@@ -114,16 +114,16 @@ class Plant:
         # path segments & coordinates should be a (batch_size * n_coordinates  * n_segments * (n_muscles * n_points)
         self._path_fixation_body = np.concatenate([self._path_fixation_body, path_fixation_body], axis=-1)
         self._path_coordinates = np.concatenate([self._path_coordinates, path_coordinates], axis=-1)
-        self._muscle = np.hstack([self._muscle, np.tile(np.max(self.n_muscles), [n_points])])
+        self._muscle_index = np.hstack([self._muscle_index, np.tile(np.max(self.n_muscles), [n_points])])
         # indexes where the next item is from a different muscle, to indicate when their difference is meaningless
-        self._muscle_transitions = np.diff(self._muscle.reshape((1, 1, -1))) == 1.
+        self._muscle_transitions = np.diff(self._muscle_index.reshape((1, 1, -1))) == 1.
         # to create the ragged tensors when collapsing each muscle's segment values
-        n_total_points = np.array([len(self._muscle)])
-        self._row_splits = np.concatenate([np.zeros(1), np.diff(self._muscle).nonzero()[0] + 1, n_total_points - 1])
+        n_total_points = np.array([len(self._muscle_index)])
+        self._row_splits = np.concatenate([np.zeros(1), np.diff(self._muscle_index).nonzero()[0] + 1, n_total_points-1])
 
         self.path_fixation_body = tf.constant(self._path_fixation_body, name='path_fixation_body')
         self.path_coordinates = tf.constant(self._path_coordinates, name='path_coordinates')
-        self.muscle = tf.constant(self._muscle, name='muscle')
+        self.muscle_index = tf.constant(self._muscle_index, name='muscle')
         self.muscle_transitions = tf.constant(self._muscle_transitions, name='muscle_transitions')
         self.row_splits = tf.constant(self._row_splits, name='row_splits', dtype=tf.int32)
 
