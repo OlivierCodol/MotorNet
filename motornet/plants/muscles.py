@@ -92,7 +92,7 @@ class ReluMuscle(Muscle):
         super().__init__(**kwargs)
         self.__name__ = 'ReluMuscle'
 
-        self.state_name = ['excitation',
+        self.state_name = ['excitation/activation',
                            'muscle length',
                            'muscle velocity',
                            'force']
@@ -153,7 +153,7 @@ class RigidTendonHillMuscle(Muscle):
                               'tendon_length': [],
                               'optimal_muscle_length': [],
                               'normalized_slack_muscle_length': []}
-        self.to_build_dict_default = {'normalized_slack_muscle_length': 1.4}
+        self.to_build_dict_default = {'normalized_slack_muscle_length': 1.}
 
         self.built = False
 
@@ -192,7 +192,8 @@ class RigidTendonHillMuscle(Muscle):
         muscle_vel_n = muscle_vel / self.vmax
 
         # muscle forces
-        flpe = tf.minimum(self.k_pe * (muscle_strain ** 2), 3.)
+        # flpe = tf.minimum(self.k_pe * (muscle_strain ** 2), 3.)
+        flpe = self.k_pe * (muscle_strain ** 2)
         flce = tf.maximum(1 + (- muscle_len_n ** 2 + 2 * muscle_len_n - 1) / self.f_iso_n_den, self.min_flce)
 
         a_rel_st = tf.where(muscle_len_n > 1., .41 * flce, .41)
@@ -224,7 +225,7 @@ class RigidTendonHillMuscle(Muscle):
 
 class RigidTendonHillMuscleThelen(Muscle):
     """
-    This is based on Thelen et al 2003
+    This is based on Thelen et al., 2003
     """
 
     def __init__(self, min_activation=0.001, **kwargs):
@@ -356,7 +357,8 @@ class CompliantTendonHillMuscle(RigidTendonHillMuscle):
 
         # Compute forces
         flse = tf.minimum(self.k_se * (tendon_strain ** 2), 1.)
-        flpe = tf.minimum(self.k_pe * (muscle_strain ** 2), 1.)
+        # flpe = tf.minimum(self.k_pe * (muscle_strain ** 2), 1.)
+        flpe = self.k_pe * (muscle_strain ** 2)
         active_force = tf.maximum(flse - flpe, 0.)
 
         # Integrate
