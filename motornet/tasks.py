@@ -1,6 +1,7 @@
 import copy
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras.layers import Input
 from abc import abstractmethod
 from motornet.nets.losses import PositionLoss, L2ActivationLoss, L2xDxActivationLoss, L2xDxRegularizer
 
@@ -42,16 +43,20 @@ class Task(tf.keras.utils.Sequence):
             self.loss_names[assigned_output] = loss.name
 
     @abstractmethod
-    def generate(self, batch_size, n_timesteps, **kwargs):
+    def generate(self, batch_size, n_timesteps):
         return
 
-    def get_initial_state(self, batch_size):
-        if self.initial_joint_state is None:
-            inputs = None
+    def get_initial_state(self, batch_size, joint_state=None):
+        if joint_state is None:
+            if self.initial_joint_state is None:
+                inputs = None
+            else:
+                i = np.random.randint(0, self.n_initial_joint_states, batch_size)
+                inputs = self.initial_joint_state[i, :]
+            initial_states = self.network.get_initial_state(batch_size=batch_size, inputs=inputs)
         else:
-            i = np.random.randint(0, self.n_initial_joint_states, batch_size)
-            inputs = self.initial_joint_state[i, :]
-        return self.network.get_initial_state(batch_size=batch_size, inputs=inputs)
+            initial_states = self.network.get_initial_state(batch_size=batch_size, inputs=joint_state)
+        return initial_states
 
     def get_input_dim(self):
         [inputs, _, _] = self.generate(batch_size=1, n_timesteps=self.delay_range[-1]+1)
@@ -93,6 +98,22 @@ class Task(tf.keras.utils.Sequence):
     def __len__(self):
         return self.training_iterations
 
+    def get_input_dict_layers(self):
+        return {key: Input((None, val,), name=key) for key, val in self.get_input_dim().items()}
+
+    def get_initial_state_layers(self):
+        n_muscles = self.network.plant.n_muscles
+        state0 = [
+            Input((self.network.plant.output_dim,), name='joint0'),
+            Input((self.network.plant.output_dim,), name='cartesian0'),
+            Input((self.network.plant.muscle_state_dim, n_muscles,), name='muscle0'),
+            Input((self.network.plant.geometry_state_dim, n_muscles,), name='geometry0'),
+            Input((n_muscles * 2, self.network.plant.proprioceptive_delay,), name='proprio_feedback0'),
+            Input((self.network.plant.space_dim, self.network.plant.visual_delay,), name='visual_feedback0')
+        ]
+        state0.extend([Input((n,), name='gru' + str(k) + '_hidden0') for k, n in enumerate(self.network.n_units)])
+        return state0
+
 
 class RandomTargetReach(Task):
     def __init__(self, network, **kwargs):
@@ -102,7 +123,7 @@ class RandomTargetReach(Task):
         self.add_loss('muscle state', loss=L2ActivationLoss(max_iso_force=max_iso_force), loss_weight=.2)
         self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)
 
-    def generate(self, batch_size, n_timesteps, **kwargs):
+    def generate(self, batch_size, n_timesteps):
         init_states = self.get_initial_state(batch_size=batch_size)
         goal_states_j = self.network.plant.draw_random_uniform_states(batch_size=batch_size)
         goal_states = self.network.plant.joint2cartesian(goal_states_j)
@@ -120,7 +141,7 @@ class RandomTargetReachWithLoads(Task):
         self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)
         self.endpoint_load = endpoint_load
 
-    def generate(self, batch_size, n_timesteps, **kwargs):
+    def generate(self, batch_size, n_timesteps):
         init_states = self.get_initial_state(batch_size=batch_size)
         goal_states_j = self.network.plant.draw_random_uniform_states(batch_size=batch_size)
         goal_states = self.network.plant.joint2cartesian(goal_states_j)
@@ -148,7 +169,7 @@ class DelayedReach(Task):
         self.delay_range = [int(delay_range[0]), int(delay_range[1])]
         self.convert_to_tensor = tf.keras.layers.Lambda(lambda x: tf.convert_to_tensor(x))
 
-    def generate(self, batch_size, n_timesteps, **kwargs):
+    def generate(self, batch_size, n_timesteps):
         goal_states_j = self.network.plant.draw_random_uniform_states(batch_size=batch_size)
         goal_states = self.network.plant.joint2cartesian(goal_states_j)
         init_states = self.get_initial_state(batch_size=batch_size)
