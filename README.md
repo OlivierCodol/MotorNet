@@ -1,6 +1,6 @@
 # MotorNet
 
-This repository contains MotorNet, a python package that allows training Recurrent Neural Networks to control for
+This repository contains `motornet`, a python package that allows training recurrent neural networks to control for
 biomechanically realistic effectors. This toolbox is designed to meet several goals:
 
 - No hard dependencies beyond typically available python packages. This should make it easier to run this package on remote computing units.
@@ -9,7 +9,7 @@ biomechanically realistic effectors. This toolbox is designed to meet several go
 different potential effectors and how to control them. The moment arm are calculated online according to the 
 geometry of the skeleton and the (user-defined) paths of the muscles.
 - User-friendly API, to allow for easier familiarization and intuitive usage. We want to enable a focus on ideas, not implementation.
-Currently, we focus on subclassing to allow users to implement their custom task designs, custom plants, and custom controller networks.
+The toolbox focuses on subclassing to allow users to implement their custom task designs, custom plants, and custom controller networks.
 
 ## State of the project
 
@@ -27,6 +27,6 @@ There are no dependencies outside of Python 3. The packages required for MotorNe
 
 ## Tutorials
 
-There are a couple of tutorials available to get you started (see <em>tutorials</em> folder). Hopefully they will give a sense of how the 
-API is supposed to work. As indicated above, more furnished documentation is on the way, hopefully very soon!
+There are several tutorials available to get you started (see <em>tutorials</em> folder). Hopefully they will give a sense of how the 
+API is supposed to work. As indicated above, more furnished documentation is on the way, hopefully very soon.
 
