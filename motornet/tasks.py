@@ -209,7 +209,7 @@ class CentreOutReach(Task):
         muscle_loss = L2xDxActivationLoss(max_iso_force=max_iso_force, dt=dt, deriv_weight=deriv_weight)
         gru_loss = L2xDxRegularizer(deriv_weight=0.05, dt=self.network.plant.dt)
         self.add_loss('gru_hidden0', loss_weight=0.1, loss=gru_loss)
-        self.add_loss('muscle state', loss_weight=10, loss=muscle_loss)
+        self.add_loss('muscle state', loss_weight=5, loss=muscle_loss)
         self.add_loss('cartesian position', loss_weight=1., loss=PositionLoss())
 
         go_cue_range = np.array(kwargs.get('go_cue_range', [0.05, 0.25])) / dt
@@ -253,6 +253,7 @@ class CentreOutReach(Task):
                 targets[i, :, :] = center[i, np.newaxis, :]
             else:
                 targets[i, :go_cue_time, :] = center[i, np.newaxis, :]
+                inputs_start[i, go_cue_time + self.network.visual_delay:, :] = 0.
                 go_cue[i, go_cue_time + self.network.visual_delay:, 0] = 0.
 
         return [{"inputs": np.concatenate([inputs_start, inputs_targ, go_cue], axis=-1)},
