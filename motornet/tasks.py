@@ -193,7 +193,7 @@ class CentreOutReach(Task):
         self.__name__ = 'CentreOutReach'
 
         self.angle_step = kwargs.get('reach_angle_step_deg', 15)
-        self.catch_trial_perc = kwargs.get('catch_trial_perc', 33)
+        self.catch_trial_perc = kwargs.get('catch_trial_perc', 50)
         self.reaching_distance = kwargs.get('reaching_distance', 0.1)
         self.start_position = kwargs.get('start_joint_position', None)
         if not self.start_position:
@@ -203,13 +203,13 @@ class CentreOutReach(Task):
             self.start_position = lb + (ub - lb) / 2
         self.start_position = np.array(self.start_position).reshape(1, -1)
 
-        deriv_weight = kwargs.get('deriv_weight', 0.05)
+        deriv_weight = kwargs.get('deriv_weight', 0.)
         max_iso_force = self.network.plant.muscle.max_iso_force
         dt = self.network.plant.dt
         muscle_loss = L2xDxActivationLoss(max_iso_force=max_iso_force, dt=dt, deriv_weight=deriv_weight)
-        gru_loss = L2xDxRegularizer(deriv_weight=.01, dt=self.network.plant.dt)
-        self.add_loss('gru_hidden0', loss_weight=0.75, loss=gru_loss)
-        self.add_loss('muscle state', loss_weight=.2, loss=muscle_loss)
+        gru_loss = L2xDxRegularizer(deriv_weight=0.05, dt=self.network.plant.dt)
+        self.add_loss('gru_hidden0', loss_weight=0.1, loss=gru_loss)
+        self.add_loss('muscle state', loss_weight=10, loss=muscle_loss)
         self.add_loss('cartesian position', loss_weight=1., loss=PositionLoss())
 
         go_cue_range = np.array(kwargs.get('go_cue_range', [0.05, 0.25])) / dt
@@ -239,10 +239,10 @@ class CentreOutReach(Task):
             goal_states = start_cpv + np.concatenate([end_cp, np.zeros_like(end_cp)], axis=-1)
 
         center = self.network.plant.joint2cartesian(init_states[0][:, :])
-        go_cue = np.zeros([batch_size, n_timesteps, 1])
+        go_cue = np.ones([batch_size, n_timesteps, 1])
         targets = self.network.plant.state2target(state=goal_states, n_timesteps=n_timesteps).numpy()
-        inputs = copy.deepcopy(targets[:, :, :self.network.plant.space_dim])
-
+        inputs_targ = copy.deepcopy(targets[:, :, :self.network.plant.space_dim])
+        inputs_start = copy.deepcopy(np.repeat(center[:, np.newaxis, :self.network.plant.space_dim], n_timesteps, axis=1))
         for i in range(batch_size):
             if not validation:
                 go_cue_time = int(np.random.uniform(self.go_cue_range[0], self.go_cue_range[1]))
@@ -253,7 +253,7 @@ class CentreOutReach(Task):
                 targets[i, :, :] = center[i, np.newaxis, :]
             else:
                 targets[i, :go_cue_time, :] = center[i, np.newaxis, :]
-                go_cue[i, go_cue_time:, 0] = 1.
+                go_cue[i, go_cue_time + self.network.visual_delay:, 0] = 0.
 
-        inputs = {"inputs": np.concatenate([inputs, go_cue], axis=-1)}
-        return [inputs, self.convert_to_tensor(targets), init_states]
+        return [{"inputs": np.concatenate([inputs_start, inputs_targ, go_cue], axis=-1)},
+                self.convert_to_tensor(targets), init_states]
