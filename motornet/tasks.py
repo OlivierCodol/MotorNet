@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.layers import Input
 from abc import abstractmethod
-from motornet.nets.losses import PositionLoss, L2ActivationLoss, L2xDxActivationLoss, L2xDxRegularizer
+from motornet.nets.losses import PositionLoss, L2xDxActivationLoss, L2xDxRegularizer
 
 
 class Task(tf.keras.utils.Sequence):
@@ -120,8 +120,13 @@ class RandomTargetReach(Task):
         super().__init__(network, **kwargs)
         self.__name__ = 'RandomTargetReach'
         max_iso_force = self.network.plant.muscle.max_iso_force
-        self.add_loss('muscle state', loss=L2ActivationLoss(max_iso_force=max_iso_force), loss_weight=.2)
-        self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)
+        deriv_weight = kwargs.get('deriv_weight', 0.)
+        dt = self.network.plant.dt
+        muscle_loss = L2xDxActivationLoss(max_iso_force=max_iso_force, dt=dt, deriv_weight=deriv_weight)
+        gru_loss = L2xDxRegularizer(deriv_weight=0.05, dt=self.network.plant.dt)
+        self.add_loss('gru_hidden0', loss_weight=0.1, loss=gru_loss)
+        self.add_loss('muscle state', loss_weight=5, loss=muscle_loss)
+        self.add_loss('cartesian position', loss_weight=1., loss=PositionLoss())
 
     def generate(self, batch_size, n_timesteps):
         init_states = self.get_initial_state(batch_size=batch_size)
@@ -137,8 +142,13 @@ class RandomTargetReachWithLoads(Task):
         super().__init__(network, **kwargs)
         self.__name__ = 'RandomTargetReachWithLoads'
         max_iso_force = self.network.plant.muscle.max_iso_force
-        self.add_loss('muscle state', loss=L2ActivationLoss(max_iso_force=max_iso_force), loss_weight=.2)
-        self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)
+        deriv_weight = kwargs.get('deriv_weight', 0.)
+        dt = self.network.plant.dt
+        muscle_loss = L2xDxActivationLoss(max_iso_force=max_iso_force, dt=dt, deriv_weight=deriv_weight)
+        gru_loss = L2xDxRegularizer(deriv_weight=0.05, dt=self.network.plant.dt)
+        self.add_loss('gru_hidden0', loss_weight=0.1, loss=gru_loss)
+        self.add_loss('muscle state', loss_weight=5, loss=muscle_loss)
+        self.add_loss('cartesian position', loss_weight=1., loss=PositionLoss())
         self.endpoint_load = endpoint_load
 
     def generate(self, batch_size, n_timesteps):
@@ -163,8 +173,13 @@ class DelayedReach(Task):
         super().__init__(network, **kwargs)
         self.__name__ = 'DelayedReach'
         max_iso_force = self.network.plant.muscle.max_iso_force
-        self.add_loss('muscle state', loss=L2ActivationLoss(max_iso_force=max_iso_force), loss_weight=.2)
-        self.add_loss('cartesian position', loss=PositionLoss(), loss_weight=1.)
+        deriv_weight = kwargs.get('deriv_weight', 0.)
+        dt = self.network.plant.dt
+        muscle_loss = L2xDxActivationLoss(max_iso_force=max_iso_force, dt=dt, deriv_weight=deriv_weight)
+        gru_loss = L2xDxRegularizer(deriv_weight=0.05, dt=self.network.plant.dt)
+        self.add_loss('gru_hidden0', loss_weight=0.1, loss=gru_loss)
+        self.add_loss('muscle state', loss_weight=5, loss=muscle_loss)
+        self.add_loss('cartesian position', loss_weight=1., loss=PositionLoss())
         delay_range = np.array(kwargs.get('delay_range', [0.3, 0.6])) / self.network.plant.dt
         self.delay_range = [int(delay_range[0]), int(delay_range[1])]
         self.convert_to_tensor = tf.keras.layers.Lambda(lambda x: tf.convert_to_tensor(x))
