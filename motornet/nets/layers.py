@@ -30,7 +30,9 @@ class GRUNetwork(Layer):
                            tf.TensorShape([plant.muscle_state_dim, self.n_muscles]),
                            tf.TensorShape([plant.geometry_state_dim, self.n_muscles]),
                            tf.TensorShape([self.n_muscles * 2, self.proprioceptive_delay]),  # muscle length & velocity
-                           tf.TensorShape([plant.space_dim, self.visual_delay])]
+                           tf.TensorShape([plant.space_dim, self.visual_delay]),
+                           tf.TensorShape([plant.input_dim]),
+                           ]
         # hidden states for GRU layer(s)
         for n in n_units:
             self.state_size.append(tf.TensorShape([n]))
@@ -84,6 +86,7 @@ class GRUNetwork(Layer):
         self.get_new_visual_feedback = Lambda(lambda x: get_new_visual_feedback(x), name="get_new_visual_feedback")
         self.get_new_hidden_state =\
             Lambda(lambda x: [tf.zeros((x[0], n_u), dtype=x[1]) for n_u in self.n_units], name="get_new_hidden_state")
+        self.get_new_excitation_state = Lambda(lambda x: tf.zeros((x[0], self.plant.input_dim), dtype=x[1]))
         self.built = False
 
         output_names = [
@@ -92,7 +95,9 @@ class GRUNetwork(Layer):
             'muscle state',
             'geometry state',
             'proprioceptive feedback',
-            'visual feedback']
+            'visual feedback',
+            'excitation'
+        ]
         output_names.extend(['gru_hidden' + str(k) for k in range(self.n_hidden_layers)])
         self.output_names = output_names
         super().__init__(**kwargs)
@@ -134,7 +139,6 @@ class GRUNetwork(Layer):
         return cls(**config)
 
     def call(self, inputs, states=None, **kwargs):
-        # unpack states
         new_hidden_states_dict = {}
         new_hidden_states = []
 
@@ -153,7 +157,7 @@ class GRUNetwork(Layer):
 
         # net forward pass
         for k in range(self.n_hidden_layers):
-            x, new_hidden_state = self.layers[k](x, states[6+k])
+            x, new_hidden_state = self.layers[k](x, states[- self.n_hidden_layers + k])
             new_hidden_state_noisy = self.add_noise((new_hidden_state, self.hidden_noise_sd))
             new_hidden_states_dict['gru_hidden' + str(k)] = new_hidden_state_noisy
             new_hidden_states.append(new_hidden_state_noisy)
@@ -172,7 +176,7 @@ class GRUNetwork(Layer):
         new_visual_feedback = self.lambda_cat2((visual_backlog, visual_noisy[:, :, tf.newaxis]))
 
         # pack new states
-        new_states = [jstate, cstate, mstate, gstate, new_proprio_feedback, new_visual_feedback]
+        new_states = [jstate, cstate, mstate, gstate, new_proprio_feedback, new_visual_feedback, u]
         new_states.extend(new_hidden_states)
 
         # pack output
@@ -182,6 +186,7 @@ class GRUNetwork(Layer):
                   'geometry state': gstate,
                   'proprioceptive feedback': new_proprio_feedback,
                   'visual feedback': new_visual_feedback,
+                  'excitation': u,
                   **new_hidden_states_dict}
 
         return output, new_states
@@ -192,6 +197,8 @@ class GRUNetwork(Layer):
         else:
             states = self.plant.get_initial_state(batch_size=batch_size)
         hidden_states = self.get_new_hidden_state((batch_size, dtype))
+        # no need to add noise as this is just a placeholder for initialization purposes (i.e. not used in first pass)
+        excitation = self.get_new_excitation_state((batch_size, dtype))
 
         proprio_true = self.get_new_proprio_feedback(states[2])
         visual_true = self.get_new_visual_feedback(states[1])
@@ -202,6 +209,7 @@ class GRUNetwork(Layer):
 
         states.append(proprio_noisy)
         states.append(visual_noisy)
+        states.append(excitation)
         states.extend(hidden_states)
         return states
 

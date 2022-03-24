@@ -109,7 +109,8 @@ class Task(tf.keras.utils.Sequence):
             Input((self.network.plant.muscle_state_dim, n_muscles,), name='muscle0'),
             Input((self.network.plant.geometry_state_dim, n_muscles,), name='geometry0'),
             Input((n_muscles * 2, self.network.plant.proprioceptive_delay,), name='proprio_feedback0'),
-            Input((self.network.plant.space_dim, self.network.plant.visual_delay,), name='visual_feedback0')
+            Input((self.network.plant.space_dim, self.network.plant.visual_delay,), name='visual_feedback0'),
+            Input((self.network.plant.input_dim,), name='excitation'),
         ]
         state0.extend([Input((n,), name='gru' + str(k) + '_hidden0') for k, n in enumerate(self.network.n_units)])
         return state0
