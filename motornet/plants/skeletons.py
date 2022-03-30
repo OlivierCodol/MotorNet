@@ -224,8 +224,8 @@ class TwoDofArm(Skeleton):
 
         end_pos_x = self.L1 * c1 + self.L2 * c12
         end_pos_y = self.L1 * s1 + self.L2 * s12
-        end_vel_x = - (self.L1 * s1 + self.L2 * s12) * vel0
-        end_vel_y = (self.L1 * c1 + self.L2 * c12) * vel1
+        end_vel_x = - (self.L1 * s1 + self.L2 * s12) * vel0 - self.L2 * s12 * vel1
+        end_vel_y = (self.L1 * c1 + self.L2 * c12) * vel0 + self.L2 * c12 * vel1
         return tf.stack([end_pos_x, end_pos_y, end_vel_x, end_vel_y], axis=1)
 
     def _path2cartesian(self, path_coordinates, path_fixation_body, joint_state):
