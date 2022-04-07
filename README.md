@@ -19,6 +19,9 @@ commenting, and cleaning the code. For now, the package is available "as-is" but
 alpha and beta stage. Please feel free to log an issue if you think you found a bug, we appreciate any contribution. 
 Stay tuned for more!
 
+An online documentation is currently being built. It is available here:
+https://oliviercodol.github.io/MotorNet/build/html/index.html
+
 ## Dependencies
 
 There are no dependencies outside of Python 3. The packages required for MotorNet to function are:
