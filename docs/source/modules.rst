@@ -1,5 +1,3 @@
-motornet
-========
 
 .. toctree::
    :maxdepth: 4
