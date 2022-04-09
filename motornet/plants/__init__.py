@@ -1,3 +1,7 @@
+"""
+Description of the module comes here.
+"""
+
 from . import muscles
 from . import skeletons
 from .plants import Plant

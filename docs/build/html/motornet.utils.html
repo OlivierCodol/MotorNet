@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="How to do foo" href="tutorial1.html" /><link rel="prev" title="motornet.plants package" href="motornet.plants.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="motornet.utils.plotor" href="motornet.utils.plotor.html" /><link rel="prev" title="motornet.plants.skeletons" href="motornet.plants.skeletons.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
-        <title>motornet.utils package - motornet 1.0.0 documentation</title>
+        <title>motornet.utils - MotorNet 1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">motornet 1.0.0 documentation</div></a>
+      <a href="index.html"><div class="brand">MotorNet 1.0.0 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -146,7 +146,7 @@
       <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
   
-  <span class="sidebar-brand-text">motornet 1.0.0 documentation</span>
+  <span class="sidebar-brand-text">MotorNet 1.0.0 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -156,10 +156,24 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Reference Manual</span></p>
 <ul class="current">
-<li class="toctree-l1 current has-children"><a class="reference internal" href="motornet.html">motornet package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="motornet.nets.html">motornet.nets package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="motornet.plants.html">motornet.plants package</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">motornet.utils package</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="motornet.html">MotorNet</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="motornet.nets.html">motornet.nets</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="motornet.nets.callbacks.html">motornet.nets.callbacks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.nets.layers.html">motornet.nets.layers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.nets.losses.html">motornet.nets.losses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.nets.models.html">motornet.nets.models</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="motornet.plants.html">motornet.plants</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="motornet.plants.muscles.html">motornet.plants.muscles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.plants.skeletons.html">motornet.plants.skeletons</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current has-children current-page"><a class="current reference internal" href="#">motornet.utils</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="motornet.utils.plotor.html">motornet.utils.plotor</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="motornet.task.html">motornet.task</a></li>
 </ul>
 </li>
 </ul>
@@ -203,54 +217,22 @@
           </label>
         </div>
         <article role="main">
-          <section id="motornet-utils-package">
-<h1>motornet.utils package<a class="headerlink" href="#motornet-utils-package" title="Permalink to this headline">#</a></h1>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">#</a></h2>
-</section>
-<section id="motornet-utils-batch-script-module">
-<h2>motornet.utils.batch_script module<a class="headerlink" href="#motornet-utils-batch-script-module" title="Permalink to this headline">#</a></h2>
-</section>
-<section id="module-motornet.utils.net_utils">
-<span id="motornet-utils-net-utils-module"></span><h2>motornet.utils.net_utils module<a class="headerlink" href="#module-motornet.utils.net_utils" title="Permalink to this headline">#</a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="motornet.utils.net_utils.grad">
-<span class="sig-prename descclassname"><span class="pre">motornet.utils.net_utils.</span></span><span class="sig-name descname"><span class="pre">grad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_true</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.net_utils.grad" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-</section>
-<section id="module-motornet.utils.plotor">
-<span id="motornet-utils-plotor-module"></span><h2>motornet.utils.plotor module<a class="headerlink" href="#module-motornet.utils.plotor" title="Permalink to this headline">#</a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="motornet.utils.plotor.animate_arm_trajectory">
-<span class="sig-prename descclassname"><span class="pre">motornet.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">animate_arm_trajectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_position</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plant</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./Arm_animation.mp4'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.plotor.animate_arm_trajectory" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py function">
-<dt class="sig sig-object py" id="motornet.utils.plotor.compute_limits">
-<span class="sig-prename descclassname"><span class="pre">motornet.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">compute_limits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.plotor.compute_limits" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py function">
-<dt class="sig sig-object py" id="motornet.utils.plotor.plot_arm_over_time">
-<span class="sig-prename descclassname"><span class="pre">motornet.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">plot_arm_over_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_results</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.plotor.plot_arm_over_time" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py function">
-<dt class="sig sig-object py" id="motornet.utils.plotor.plot_line_collection">
-<span class="sig-prename descclassname"><span class="pre">motornet.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">plot_line_collection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">segments</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.plotor.plot_line_collection" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py function">
-<dt class="sig sig-object py" id="motornet.utils.plotor.plot_opensim">
-<span class="sig-prename descclassname"><span class="pre">motornet.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">plot_opensim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.plotor.plot_opensim" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py function">
-<dt class="sig sig-object py" id="motornet.utils.plotor.plot_pos_over_time">
-<span class="sig-prename descclassname"><span class="pre">motornet.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">plot_pos_over_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cart_results</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.plotor.plot_pos_over_time" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py function">
-<dt class="sig sig-object py" id="motornet.utils.plotor.results_to_line_collection">
-<span class="sig-prename descclassname"><span class="pre">motornet.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">results_to_line_collection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.plotor.results_to_line_collection" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-</section>
+          <section id="motornet-utils">
+<h1>motornet.utils<a class="headerlink" href="#motornet-utils" title="Permalink to this headline">#</a></h1>
 <section id="module-motornet.utils">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-motornet.utils" title="Permalink to this headline">#</a></h2>
+</section>
+<section id="module-motornet.utils.batch_script">
+<span id="motornet-utils-batch-script"></span><h2>motornet.utils.batch_script<a class="headerlink" href="#module-motornet.utils.batch_script" title="Permalink to this headline">#</a></h2>
+<p>Placeholder for future description.</p>
+</section>
+<section id="motornet-utils-plotor">
+<h2>motornet.utils.plotor<a class="headerlink" href="#motornet-utils-plotor" title="Permalink to this headline">#</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="motornet.utils.plotor.html">motornet.utils.plotor</a></li>
+</ul>
+</div>
 </section>
 </section>
 
@@ -259,23 +241,23 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="tutorial1.html">
+          <a class="next-page" href="motornet.utils.plotor.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">How to do foo</div>
+                <div class="title">motornet.utils.plotor</div>
               </div>
               <svg><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="motornet.plants.html">
+          <a class="prev-page" href="motornet.plants.skeletons.html">
               <svg><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">motornet.plants package</div>
+                <div class="title">motornet.plants.skeletons</div>
                 
               </div>
             </a>
@@ -311,12 +293,10 @@
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">motornet.utils package</a><ul>
-<li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#motornet-utils-batch-script-module">motornet.utils.batch_script module</a></li>
-<li><a class="reference internal" href="#module-motornet.utils.net_utils">motornet.utils.net_utils module</a></li>
-<li><a class="reference internal" href="#module-motornet.utils.plotor">motornet.utils.plotor module</a></li>
+<li><a class="reference internal" href="#">motornet.utils</a><ul>
 <li><a class="reference internal" href="#module-motornet.utils">Module contents</a></li>
+<li><a class="reference internal" href="#module-motornet.utils.batch_script">motornet.utils.batch_script</a></li>
+<li><a class="reference internal" href="#motornet-utils-plotor">motornet.utils.plotor</a></li>
 </ul>
 </li>
 </ul>

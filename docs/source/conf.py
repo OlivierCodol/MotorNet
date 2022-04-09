@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath(os.path.join('..', '..', '..', 'motornet')))
 
 # -- Project information -----------------------------------------------------
 
-project = 'motornet'
+project = 'MotorNet'
 copyright = '2022, Olivier Codol'
 author = 'Olivier Codol'
 

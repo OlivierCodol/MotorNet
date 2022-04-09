@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 
-def grad(model, model_inputs, y_true, loss):
+def _grad(model, model_inputs, y_true, loss):
     with tf.GradientTape() as tape:
         model_pred = model(model_inputs, training=False)
         # y_pred = model_pred['cartesian position']

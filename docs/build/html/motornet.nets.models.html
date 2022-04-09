@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="motornet.plants" href="motornet.plants.html" /><link rel="prev" title="motornet.nets.losses" href="motornet.nets.losses.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
-        <title>&lt;no title&gt; - motornet 1.0.0 documentation</title>
+        <title>motornet.nets.models - MotorNet 1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">motornet 1.0.0 documentation</div></a>
+      <a href="index.html"><div class="brand">MotorNet 1.0.0 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -146,7 +146,7 @@
       <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
   
-  <span class="sidebar-brand-text">motornet 1.0.0 documentation</span>
+  <span class="sidebar-brand-text">MotorNet 1.0.0 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -155,11 +155,25 @@
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Reference Manual</span></p>
-<ul>
-<li class="toctree-l1 has-children"><a class="reference internal" href="motornet.html">motornet package</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="motornet.nets.html">motornet.nets package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="motornet.plants.html">motornet.plants package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="motornet.utils.html">motornet.utils package</a></li>
+<ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="motornet.html">MotorNet</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="motornet.nets.html">motornet.nets</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="motornet.nets.callbacks.html">motornet.nets.callbacks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.nets.layers.html">motornet.nets.layers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.nets.losses.html">motornet.nets.losses</a></li>
+<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">motornet.nets.models</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="motornet.plants.html">motornet.plants</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="motornet.plants.muscles.html">motornet.plants.muscles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.plants.skeletons.html">motornet.plants.skeletons</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="motornet.utils.html">motornet.utils</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="motornet.utils.plotor.html">motornet.utils.plotor</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="motornet.task.html">motornet.task</a></li>
 </ul>
 </li>
 </ul>
@@ -203,28 +217,90 @@
           </label>
         </div>
         <article role="main">
-          <div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial1.html">How to do foo</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="tutorial1.html#lorem">LOREM</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial1.html#ipsum">IPSUM</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial2.html">How to do bar</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="tutorial2.html#ipsum">IPSUM</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial2.html#lorem">LOREM</a></li>
-</ul>
-</li>
-</ul>
-</div>
+          <section id="module-motornet.nets.models">
+<span id="motornet-nets-models"></span><h1>motornet.nets.models<a class="headerlink" href="#module-motornet.nets.models" title="Permalink to this headline">#</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="motornet.nets.models.MotorNetModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.models.</span></span><span class="sig-name descname"><span class="pre">MotorNetModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.models.MotorNetModel" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">keras.engine.training.Model</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="motornet.nets.models.MotorNetModel.from_config">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_objects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.models.MotorNetModel.from_config" title="Permalink to this definition">#</a></dt>
+<dd><p>Creates a layer from its config.</p>
+<p>This method is the reverse of <cite>get_config</cite>,
+capable of instantiating the same layer from the config
+dictionary. It does not handle layer connectivity
+(handled by Network), nor weights (handled by <cite>set_weights</cite>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config</strong> – A Python dictionary, typically the
+output of get_config.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A layer instance.</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="motornet.nets.models.MotorNetModel.get_config">
+<span class="sig-name descname"><span class="pre">get_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.models.MotorNetModel.get_config" title="Permalink to this definition">#</a></dt>
+<dd><p>Returns the config of the layer.</p>
+<p>A layer config is a Python dictionary (serializable)
+containing the configuration of a layer.
+The same layer can be reinstantiated later
+(without its trained weights) from this configuration.</p>
+<p>The config of a layer does not include connectivity
+information, nor the layer class name. These are handled
+by <cite>Network</cite> (one layer of abstraction above).</p>
+<p>Note that <cite>get_config()</cite> does not guarantee to return a fresh copy of dict
+every time it is called. The callers should make a copy of the returned dict
+if they want to modify it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Python dictionary.</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="motornet.nets.models.MotorNetModel.save_model">
+<span class="sig-name descname"><span class="pre">save_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.models.MotorNetModel.save_model" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="motornet.nets.models.MotorNetModel.train_step">
+<span class="sig-name descname"><span class="pre">train_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.models.MotorNetModel.train_step" title="Permalink to this definition">#</a></dt>
+<dd><p>Unpack the data. Its structure depends on your model and
+on what you pass to <cite>fit()</cite>.
+:param data:
+:return:</p>
+</dd></dl>
+</dd></dl>
+</section>
 
         </article>
       </div>
       <footer>
         
         <div class="related-pages">
-          
-          
+          <a class="next-page" href="motornet.plants.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">motornet.plants</div>
+              </div>
+              <svg><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="motornet.nets.losses.html">
+              <svg><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">motornet.nets.losses</div>
+                
+              </div>
+            </a>
         </div>
         <div class="bottom-of-page">
           <div class="left-details">

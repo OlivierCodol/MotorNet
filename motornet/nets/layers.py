@@ -139,6 +139,14 @@ class GRUNetwork(Layer):
         return cls(**config)
 
     def call(self, inputs, states=None, **kwargs):
+        """
+        Description here
+        :param inputs:
+        :param states:
+        :param kwargs:
+        :return:
+        """
+
         new_hidden_states_dict = {}
         new_hidden_states = []
 

@@ -1,5 +1,13 @@
-motornet package
-================
+MotorNet
+========
+
+Module contents
+---------------
+
+.. automodule:: motornet
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Subpackages
 -----------
@@ -11,21 +19,10 @@ Subpackages
    motornet.plants
    motornet.utils
 
-Submodules
-----------
+motornet.tasks
+--------------
 
-motornet.tasks module
----------------------
+.. toctree::
+   :maxdepth: 1
 
-.. automodule:: motornet.tasks
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: motornet
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   motornet.task

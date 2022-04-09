@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="motornet.utils package" href="motornet.utils.html" /><link rel="prev" title="motornet.nets package" href="motornet.nets.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="motornet.plants.muscles" href="motornet.plants.muscles.html" /><link rel="prev" title="motornet.nets.models" href="motornet.nets.models.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
-        <title>motornet.plants package - motornet 1.0.0 documentation</title>
+        <title>motornet.plants - MotorNet 1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">motornet 1.0.0 documentation</div></a>
+      <a href="index.html"><div class="brand">MotorNet 1.0.0 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -146,7 +146,7 @@
       <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
   
-  <span class="sidebar-brand-text">motornet 1.0.0 documentation</span>
+  <span class="sidebar-brand-text">MotorNet 1.0.0 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
@@ -156,10 +156,24 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Reference Manual</span></p>
 <ul class="current">
-<li class="toctree-l1 current has-children"><a class="reference internal" href="motornet.html">motornet package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="motornet.nets.html">motornet.nets package</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">motornet.plants package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="motornet.utils.html">motornet.utils package</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="motornet.html">MotorNet</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="motornet.nets.html">motornet.nets</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="motornet.nets.callbacks.html">motornet.nets.callbacks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.nets.layers.html">motornet.nets.layers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.nets.losses.html">motornet.nets.losses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.nets.models.html">motornet.nets.models</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current has-children current-page"><a class="current reference internal" href="#">motornet.plants</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="motornet.plants.muscles.html">motornet.plants.muscles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.plants.skeletons.html">motornet.plants.skeletons</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="motornet.utils.html">motornet.utils</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="motornet.utils.plotor.html">motornet.utils.plotor</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="motornet.task.html">motornet.task</a></li>
 </ul>
 </li>
 </ul>
@@ -203,87 +217,31 @@
           </label>
         </div>
         <article role="main">
-          <section id="motornet-plants-package">
-<h1>motornet.plants package<a class="headerlink" href="#motornet-plants-package" title="Permalink to this headline">#</a></h1>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">#</a></h2>
+          <section id="motornet-plants">
+<h1>motornet.plants<a class="headerlink" href="#motornet-plants" title="Permalink to this headline">#</a></h1>
+<section id="module-motornet.plants">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-motornet.plants" title="Permalink to this headline">#</a></h2>
+<p>Description of the module comes here.</p>
 </section>
-<section id="module-motornet.plants.muscles">
-<span id="motornet-plants-muscles-module"></span><h2>motornet.plants.muscles module<a class="headerlink" href="#module-motornet.plants.muscles" title="Permalink to this headline">#</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="motornet.plants.muscles.CompliantTendonHillMuscle">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">CompliantTendonHillMuscle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_activation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.CompliantTendonHillMuscle" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#motornet.plants.muscles.RigidTendonHillMuscle" title="motornet.plants.muscles.RigidTendonHillMuscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.muscles.RigidTendonHillMuscle</span></code></a></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.muscles.CompliantTendonHillMuscle.muscle_ode">
-<span class="sig-name descname"><span class="pre">muscle_ode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">muscle_len_n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_force</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.CompliantTendonHillMuscle.muscle_ode" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-</dd></dl>
-<dl class="py class">
-<dt class="sig sig-object py" id="motornet.plants.muscles.Muscle">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">Muscle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_activation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_activation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.015</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_deactivation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.Muscle" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Base class for muscles.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.muscles.Muscle.activation_ode">
-<span class="sig-name descname"><span class="pre">activation_ode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">excitation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">muscle_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.Muscle.activation_ode" title="Permalink to this definition">#</a></dt>
-<dd><p>This wrap allows inspecting the argument names when the function is called.</p>
-</dd></dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.muscles.Muscle.build">
-<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_isometric_force</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.Muscle.build" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.muscles.Muscle.get_initial_muscle_state">
-<span class="sig-name descname"><span class="pre">get_initial_muscle_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geometry_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.Muscle.get_initial_muscle_state" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.muscles.Muscle.get_save_config">
-<span class="sig-name descname"><span class="pre">get_save_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.Muscle.get_save_config" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.muscles.Muscle.integrate">
-<span class="sig-name descname"><span class="pre">integrate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_derivative</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">muscle_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geometry_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.Muscle.integrate" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.muscles.Muscle.setattr">
-<span class="sig-name descname"><span class="pre">setattr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.Muscle.setattr" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.muscles.Muscle.update_ode">
-<span class="sig-name descname"><span class="pre">update_ode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">excitation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">muscle_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.Muscle.update_ode" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-</dd></dl>
-<dl class="py class">
-<dt class="sig sig-object py" id="motornet.plants.muscles.ReluMuscle">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">ReluMuscle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.ReluMuscle" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.muscles.Muscle</span></code></a></p>
-<p>A rectified linear muscle that outputs the input directly, but can only have a positive activation value.</p>
-</dd></dl>
-<dl class="py class">
-<dt class="sig sig-object py" id="motornet.plants.muscles.RigidTendonHillMuscle">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">RigidTendonHillMuscle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_activation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.RigidTendonHillMuscle" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.muscles.Muscle</span></code></a></p>
-<p>This Hill-type muscle implementation is based on Kistemaker et al. (2006)</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.muscles.RigidTendonHillMuscle.build">
-<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_isometric_force</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.RigidTendonHillMuscle.build" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-</dd></dl>
-<dl class="py class">
-<dt class="sig sig-object py" id="motornet.plants.muscles.RigidTendonHillMuscleThelen">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">RigidTendonHillMuscleThelen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_activation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.RigidTendonHillMuscleThelen" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.muscles.Muscle</span></code></a></p>
-<p>This is based on Thelen et al., 2003</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.muscles.RigidTendonHillMuscleThelen.build">
-<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_isometric_force</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.RigidTendonHillMuscleThelen.build" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-</dd></dl>
+<section id="motornet-plants-muscles">
+<h2>motornet.plants.muscles<a class="headerlink" href="#motornet-plants-muscles" title="Permalink to this headline">#</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="motornet.plants.muscles.html">motornet.plants.muscles</a></li>
+</ul>
+</div>
 </section>
-<section id="module-motornet.plants.plants">
-<span id="motornet-plants-plants-module"></span><h2>motornet.plants.plants module<a class="headerlink" href="#module-motornet.plants.plants" title="Permalink to this headline">#</a></h2>
-<dl class="py class">
+<section id="motornet-plants-skeletons">
+<h2>motornet.plants.skeletons<a class="headerlink" href="#motornet-plants-skeletons" title="Permalink to this headline">#</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="motornet.plants.skeletons.html">motornet.plants.skeletons</a></li>
+</ul>
+</div>
+</section>
+<section id="id1">
+<h2>motornet.plants<a class="headerlink" href="#id1" title="Permalink to this headline">#</a></h2>
+<span class="target" id="module-motornet.plants.plants"></span><dl class="py class">
 <dt class="sig sig-object py" id="motornet.plants.plants.CompliantTendonArm26">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.plants.plants.</span></span><span class="sig-name descname"><span class="pre">CompliantTendonArm26</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0002</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skeleton</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.plants.CompliantTendonArm26" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#motornet.plants.plants.RigidTendonArm26" title="motornet.plants.plants.RigidTendonArm26"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants.RigidTendonArm26</span></code></a></p>
@@ -360,72 +318,6 @@ J. Neurophysiol. Because lumped-muscle models are functional approximations of b
 geometry does not rely on the default geometry methods, but on its own, custom-made geometry.</p>
 </dd></dl>
 </section>
-<section id="module-motornet.plants.skeletons">
-<span id="motornet-plants-skeletons-module"></span><h2>motornet.plants.skeletons module<a class="headerlink" href="#module-motornet.plants.skeletons" title="Permalink to this headline">#</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="motornet.plants.skeletons.PointMass">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.plants.skeletons.</span></span><span class="sig-name descname"><span class="pre">PointMass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">space_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.PointMass" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#motornet.plants.skeletons.Skeleton" title="motornet.plants.skeletons.Skeleton"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.skeletons.Skeleton</span></code></a></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.skeletons.PointMass.get_save_config">
-<span class="sig-name descname"><span class="pre">get_save_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.PointMass.get_save_config" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-</dd></dl>
-<dl class="py class">
-<dt class="sig sig-object py" id="motornet.plants.skeletons.Skeleton">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.plants.skeletons.</span></span><span class="sig-name descname"><span class="pre">Skeleton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dof</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space_dim</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.Skeleton" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Base class for skeletons.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.skeletons.Skeleton.build">
-<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos_upper_bound</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos_lower_bound</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vel_upper_bound</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vel_lower_bound</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'euler'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.Skeleton.build" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.skeletons.Skeleton.clip_velocity">
-<span class="sig-name descname"><span class="pre">clip_velocity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.Skeleton.clip_velocity" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.skeletons.Skeleton.get_base_config">
-<span class="sig-name descname"><span class="pre">get_base_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.Skeleton.get_base_config" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.skeletons.Skeleton.get_save_config">
-<span class="sig-name descname"><span class="pre">get_save_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.Skeleton.get_save_config" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.skeletons.Skeleton.integrate">
-<span class="sig-name descname"><span class="pre">integrate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_derivative</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.Skeleton.integrate" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.skeletons.Skeleton.joint2cartesian">
-<span class="sig-name descname"><span class="pre">joint2cartesian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.Skeleton.joint2cartesian" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.skeletons.Skeleton.path2cartesian">
-<span class="sig-name descname"><span class="pre">path2cartesian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_coordinates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_fixation_body</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.Skeleton.path2cartesian" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.skeletons.Skeleton.setattr">
-<span class="sig-name descname"><span class="pre">setattr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.Skeleton.setattr" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.skeletons.Skeleton.update_ode">
-<span class="sig-name descname"><span class="pre">update_ode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint_load</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.Skeleton.update_ode" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-</dd></dl>
-<dl class="py class">
-<dt class="sig sig-object py" id="motornet.plants.skeletons.TwoDofArm">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.plants.skeletons.</span></span><span class="sig-name descname"><span class="pre">TwoDofArm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.TwoDofArm" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#motornet.plants.skeletons.Skeleton" title="motornet.plants.skeletons.Skeleton"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.skeletons.Skeleton</span></code></a></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.plants.skeletons.TwoDofArm.get_save_config">
-<span class="sig-name descname"><span class="pre">get_save_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.TwoDofArm.get_save_config" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-</dd></dl>
-</section>
-<section id="module-motornet.plants">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-motornet.plants" title="Permalink to this headline">#</a></h2>
-</section>
 </section>
 
         </article>
@@ -433,23 +325,23 @@ geometry does not rely on the default geometry methods, but on its own, custom-m
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="motornet.utils.html">
+          <a class="next-page" href="motornet.plants.muscles.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">motornet.utils package</div>
+                <div class="title">motornet.plants.muscles</div>
               </div>
               <svg><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="motornet.nets.html">
+          <a class="prev-page" href="motornet.nets.models.html">
               <svg><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">motornet.nets package</div>
+                <div class="title">motornet.nets.models</div>
                 
               </div>
             </a>
@@ -485,12 +377,11 @@ geometry does not rely on the default geometry methods, but on its own, custom-m
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">motornet.plants package</a><ul>
-<li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-motornet.plants.muscles">motornet.plants.muscles module</a></li>
-<li><a class="reference internal" href="#module-motornet.plants.plants">motornet.plants.plants module</a></li>
-<li><a class="reference internal" href="#module-motornet.plants.skeletons">motornet.plants.skeletons module</a></li>
+<li><a class="reference internal" href="#">motornet.plants</a><ul>
 <li><a class="reference internal" href="#module-motornet.plants">Module contents</a></li>
+<li><a class="reference internal" href="#motornet-plants-muscles">motornet.plants.muscles</a></li>
+<li><a class="reference internal" href="#motornet-plants-skeletons">motornet.plants.skeletons</a></li>
+<li><a class="reference internal" href="#id1">motornet.plants</a></li>
 </ul>
 </li>
 </ul>
