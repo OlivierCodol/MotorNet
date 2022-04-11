@@ -219,27 +219,25 @@
         <article role="main">
           <section id="module-motornet.nets.callbacks">
 <span id="motornet-nets-callbacks"></span><h1>motornet.nets.callbacks<a class="headerlink" href="#module-motornet.nets.callbacks" title="Permalink to this headline">#</a></h1>
+<p>This module implements tensorflow.keras.callbacks.Callback subclasses.
+For more information from the tensorflow package on what callbacks are and what they can achieve, feel free to refer to
+<a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/Callback">https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/Callback</a>.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.BatchLogger">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">BatchLogger</span></span><a class="headerlink" href="#motornet.nets.callbacks.BatchLogger" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">keras.callbacks.Callback</span></code></p>
-<p>A Logger that logs metrics per batch steps instead of per epoch step.</p>
+<p>In tensorflow, the default callbacks log performance metrics at the end of each epoch step.
+This callback logs performance metrics at the end of each batch step instead.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.BatchLogger.on_batch_end">
 <span class="sig-name descname"><span class="pre">on_batch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.BatchLogger.on_batch_end" title="Permalink to this definition">#</a></dt>
-<dd><p>A backwards compatibility alias for <cite>on_train_batch_end</cite>.</p>
+<dd><p>Called at the end of each batch. This saves all metrics in <cite>logs</cite>, as well as the model weights.</p>
 </dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.BatchLogger.on_train_begin">
 <span class="sig-name descname"><span class="pre">on_train_begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.BatchLogger.on_train_begin" title="Permalink to this definition">#</a></dt>
-<dd><p>Called at the beginning of training.</p>
-<p>Subclasses should override for any actions to run.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>logs</strong> – Dict. Currently no data is passed to this argument for this method
-but that may change in the future.</p>
-</dd>
-</dl>
+<dd><p>Called at the start of training. This should only be called on train mode.
+Logs the initial model weights.</p>
 </dd></dl>
 </dd></dl>
 <dl class="py class">

@@ -1,3 +1,9 @@
+"""
+This module implements tensorflow.keras.callbacks.Callback subclasses.
+For more information from the tensorflow package on what callbacks are and what they can achieve, feel free to refer to
+https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/Callback.
+"""
+
 import copy
 from tensorflow.keras.callbacks import Callback, LearningRateScheduler
 import matplotlib.pyplot as plt
@@ -8,17 +14,28 @@ from tensorflow.python.keras import backend
 
 
 class BatchLogger(Callback):
-    """A Logger that logs metrics per batch steps instead of per epoch step."""
+    """
+    In tensorflow, the default callbacks log performance metrics at the end of each epoch step.
+    This callback logs performance metrics at the end of each batch step instead.
+    """
     def __init__(self):
+        """
+        No inputs.
+        """
         super().__init__()
         self.history = {}
         self.weights_log = []
 
     def on_train_begin(self, logs=None):
+        """Called at the start of training. This should only be called on train mode.
+        Logs the initial model weights.
+        """
         # log initial weights
         self.weights_log.append(copy.deepcopy(self.model.weights))
 
     def on_batch_end(self, batch, logs=None):
+        """Called at the end of each batch. This saves all metrics in `logs`, as well as the model weights.
+        """
         logs = logs or {}
         for metric, v in logs.items():
             self.history.setdefault(metric, []).append(v)
