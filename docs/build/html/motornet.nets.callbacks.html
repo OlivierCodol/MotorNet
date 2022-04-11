@@ -231,58 +231,75 @@ This callback logs performance metrics at the end of each batch step instead.</p
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.BatchLogger.on_batch_end">
 <span class="sig-name descname"><span class="pre">on_batch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.BatchLogger.on_batch_end" title="Permalink to this definition">#</a></dt>
-<dd><p>Called at the end of each batch. This saves all metrics in <cite>logs</cite>, as well as the model weights.</p>
+<dd><p>Called at the end of each batch. This saves the performance metrics contained in <cite>logs</cite>, as well as the model
+weights.</p>
 </dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.BatchLogger.on_train_begin">
 <span class="sig-name descname"><span class="pre">on_train_begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.BatchLogger.on_train_begin" title="Permalink to this definition">#</a></dt>
-<dd><p>Called at the start of training. This should only be called on train mode.
+<dd><p>Called at the beginning of training. This should only be called on train mode.
 Logs the initial model weights.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>logs</strong> – Dict. Currently no data is passed to this argument for this method.</p>
+</dd>
+</dl>
 </dd></dl>
 </dd></dl>
 <dl class="py class">
-<dt class="sig sig-object py" id="motornet.nets.callbacks.CustomLearningRateScheduler">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">CustomLearningRateScheduler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scheduler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.CustomLearningRateScheduler" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="motornet.nets.callbacks.BatchwiseLearningRateScheduler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">BatchwiseLearningRateScheduler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scheduler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.BatchwiseLearningRateScheduler" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">keras.callbacks.LearningRateScheduler</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.nets.callbacks.CustomLearningRateScheduler.on_batch_end">
-<span class="sig-name descname"><span class="pre">on_batch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.CustomLearningRateScheduler.on_batch_end" title="Permalink to this definition">#</a></dt>
-<dd><p>A backwards compatibility alias for <cite>on_train_batch_end</cite>.</p>
-</dd></dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="motornet.nets.callbacks.CustomLearningRateScheduler.on_epoch_begin">
-<span class="sig-name descname"><span class="pre">on_epoch_begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.CustomLearningRateScheduler.on_epoch_begin" title="Permalink to this definition">#</a></dt>
-<dd><p>Called at the start of an epoch.</p>
-<p>Subclasses should override for any actions to run. This function should only
-be called during TRAIN mode.</p>
+<p>The parent class adjusts the learning rate at the start of each epoch. This subclass instead applies the learning
+rate adjustement routine to the end of each batch.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>epoch</strong> – Integer, index of epoch.</p></li>
-<li><p><strong>logs</strong> – Dict. Currently no data is passed to this argument for this method
-but that may change in the future.</p></li>
+<li><p><strong>scheduler</strong> – a function that takes a batch index (integer, indexed from 0)
+and current learning rate (float) as inputs and returns a new learning rate as output (float).</p></li>
+<li><p><strong>verbose</strong> – int. 0: quiet, 1: update messages.</p></li>
 </ul>
 </dd>
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="motornet.nets.callbacks.BatchwiseLearningRateScheduler.on_batch_end">
+<span class="sig-name descname"><span class="pre">on_batch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.BatchwiseLearningRateScheduler.on_batch_end" title="Permalink to this definition">#</a></dt>
+<dd><p>Called at the end of a batch.
+The learning rate adjustement routine implemented in the <cite>on_epoch_begin</cite> method for the parent class is now
+implemented here instead.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> – Integer, index of batch.</p></li>
+<li><p><strong>logs</strong> – Dict. Currently no data is passed to this argument for this method.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="motornet.nets.callbacks.BatchwiseLearningRateScheduler.on_epoch_begin">
+<span class="sig-name descname"><span class="pre">on_epoch_begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.BatchwiseLearningRateScheduler.on_epoch_begin" title="Permalink to this definition">#</a></dt>
+<dd><p>Called at the start of an epoch.
+This method is empty to overwrite the learning rate adjustement routine at the beginning of each epoch.</p>
 </dd></dl>
 </dd></dl>
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.TensorflowFix">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">TensorflowFix</span></span><a class="headerlink" href="#motornet.nets.callbacks.TensorflowFix" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">keras.callbacks.Callback</span></code></p>
+<p>This callback implements a fix for saving some tensorflow objects.
+See this github issue for more details.
+<a class="reference external" href="https://github.com/tensorflow/tensorflow/issues/42872">https://github.com/tensorflow/tensorflow/issues/42872</a></p>
+<p>Note that as tensorflow nightly 2.6, this issue has been fixed. This callback is kept for backward compatibility.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.TensorflowFix.on_train_batch_end">
 <span class="sig-name descname"><span class="pre">on_train_batch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.TensorflowFix.on_train_batch_end" title="Permalink to this definition">#</a></dt>
-<dd><p>Called at the end of a training batch in <cite>fit</cite> methods.</p>
-<p>Subclasses should override for any actions to run.</p>
-<p>Note that if the <cite>steps_per_execution</cite> argument to <cite>compile</cite> in
-<cite>tf.keras.Model</cite> is set to <cite>N</cite>, this method will only be called every <cite>N</cite>
-batches.</p>
+<dd><p>Called at the end a batch during training. This should only be called on train mode.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>batch</strong> – Integer, index of batch within the current epoch.</p></li>
-<li><p><strong>logs</strong> – Dict. Aggregated metric results up until this batch.</p></li>
+<li><p><strong>batch</strong> – Integer, index of batch.</p></li>
+<li><p><strong>logs</strong> – Dict. Currently no data is passed to this argument for this method.</p></li>
 </ul>
 </dd>
 </dl>
@@ -290,12 +307,10 @@ batches.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.TensorflowFix.on_train_begin">
 <span class="sig-name descname"><span class="pre">on_train_begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.TensorflowFix.on_train_begin" title="Permalink to this definition">#</a></dt>
-<dd><p>Called at the beginning of training.</p>
-<p>Subclasses should override for any actions to run.</p>
+<dd><p>Called at the beginning of training. This should only be called on train mode.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>logs</strong> – Dict. Currently no data is passed to this argument for this method
-but that may change in the future.</p>
+<dd class="field-odd"><p><strong>logs</strong> – Dict. Currently no data is passed to this argument for this method.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -304,20 +319,47 @@ but that may change in the future.</p>
 <dt class="sig sig-object py" id="motornet.nets.callbacks.TrainingPlotter">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">TrainingPlotter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_n_t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_loss</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_trials</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.TrainingPlotter" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">keras.callbacks.Callback</span></code></p>
+<p>This callback plots the loss history and/or some test trials every <cite>plot_freq</cite> batches, to help monitor the
+model’s behaviour during the training sessions itself.</p>
+<p>If <cite>plot_loss</cite> is toggled on, all the losses, including the total loss and contributing losses will be displayed.</p>
+<p>If test trials are toggled on (<cite>plot_trials &gt; 0</cite>), cartesian position, muscle activation, muscle velocity and
+network unit activity will be displayed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>task</strong> – <cite>motornet.tasks.Task</cite> object, corresponding to the Task object that the Network controller is given.</p></li>
+<li><p><strong>plot_freq</strong> – Integer, indicating the number of batches after which plotting wil occur (default: <cite>20</cite>).</p></li>
+<li><p><strong>plot_n_t</strong> – Integer, indicating the number of timesteps used for plotting test trials (default: <cite>100</cite>). This
+argument is ignored if <cite>plot_trials</cite> is set to 0.</p></li>
+<li><p><strong>plot_loss</strong> – Bool. Whether or not to plot loss values (default: <cite>True</cite>).</p></li>
+<li><p><strong>plot_trials</strong> – Integer, how many trials to simulate and plot each time (default: <cite>3</cite>).</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.TrainingPlotter.on_batch_end">
 <span class="sig-name descname"><span class="pre">on_batch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.TrainingPlotter.on_batch_end" title="Permalink to this definition">#</a></dt>
-<dd><p>A backwards compatibility alias for <cite>on_train_batch_end</cite>.</p>
+<dd><p>Plot losses, as well as test trials if toggled on in the <cite>__init__</cite> method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> – Integer, index of batch.</p></li>
+<li><p><strong>logs</strong> – Dict. Currently no data is passed to this argument for this method.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.TrainingPlotter.on_train_begin">
 <span class="sig-name descname"><span class="pre">on_train_begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.TrainingPlotter.on_train_begin" title="Permalink to this definition">#</a></dt>
-<dd><p>Called at the beginning of training.</p>
-<p>Subclasses should override for any actions to run.</p>
+<dd><p>Called at the beginning of training. This should only be called on train mode.
+This method keeps track of which batch was last visited (if there was a previous training session).
+This allows plotting training information of previous training sessions even on subsequent training sessions.</p>
+<p>This routine is implemented here instead of in the <cite>on_training_end</cite> method to ensure logging occurs even if the
+user interrupts an ongoing training session.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>logs</strong> – Dict. Currently no data is passed to this argument for this method
-but that may change in the future.</p>
+<dd class="field-odd"><p><strong>logs</strong> – Dict. Currently no data is passed to this argument for this method.</p>
 </dd>
 </dl>
 </dd></dl>

@@ -1,5 +1,5 @@
 """
-This module implements tensorflow.keras.callbacks.Callback subclasses.
+This module implements `tensorflow.keras.callbacks.Callback` subclasses.
 For more information from the tensorflow package on what callbacks are and what they can achieve, feel free to refer to
 https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/Callback.
 """
@@ -14,27 +14,26 @@ from tensorflow.python.keras import backend
 
 
 class BatchLogger(Callback):
-    """
-    In tensorflow, the default callbacks log performance metrics at the end of each epoch step.
+    """In tensorflow, the default callbacks log performance metrics at the end of each epoch step.
     This callback logs performance metrics at the end of each batch step instead.
     """
     def __init__(self):
-        """
-        No inputs.
-        """
         super().__init__()
         self.history = {}
         self.weights_log = []
 
     def on_train_begin(self, logs=None):
-        """Called at the start of training. This should only be called on train mode.
+        """Called at the beginning of training. This should only be called on train mode.
         Logs the initial model weights.
+
+        Args:
+            logs: Dict. Currently no data is passed to this argument for this method.
         """
-        # log initial weights
         self.weights_log.append(copy.deepcopy(self.model.weights))
 
     def on_batch_end(self, batch, logs=None):
-        """Called at the end of each batch. This saves all metrics in `logs`, as well as the model weights.
+        """Called at the end of each batch. This saves the performance metrics contained in `logs`, as well as the model
+        weights.
         """
         logs = logs or {}
         for metric, v in logs.items():
@@ -43,6 +42,23 @@ class BatchLogger(Callback):
 
 
 class TrainingPlotter(Callback):
+    """This callback plots the loss history and/or some test trials every `plot_freq` batches, to help monitor the
+    model's behaviour during the training sessions itself.
+
+    If `plot_loss` is toggled on, all the losses, including the total loss and contributing losses will be displayed.
+
+    If test trials are toggled on (`plot_trials > 0`), cartesian position, muscle activation, muscle velocity and
+    network unit activity will be displayed.
+
+    Args:
+        task: `motornet.tasks.Task` object, corresponding to the Task object that the Network controller is given.
+        plot_freq: Integer, indicating the number of batches after which plotting wil occur (default: `20`).
+        plot_n_t: Integer, indicating the number of timesteps used for plotting test trials (default: `100`). This
+            argument is ignored if `plot_trials` is set to 0.
+        plot_loss: Bool. Whether or not to plot loss values (default: `True`).
+        plot_trials: Integer, how many trials to simulate and plot each time (default: `3`).
+    """
+
     def __init__(self, task, plot_freq=20, plot_n_t=100, plot_loss=True, plot_trials=3):
         super().__init__()
         self.task = task
@@ -57,13 +73,30 @@ class TrainingPlotter(Callback):
         self.training_stop_history = []
 
     def on_train_begin(self, logs=None):
-        # not in `on_training_end` to allow logging even after user interruption of training
+        """Called at the beginning of training. This should only be called on train mode.
+        This method keeps track of which batch was last visited (if there was a previous training session).
+        This allows plotting training information of previous training sessions even on subsequent training sessions.
+
+        This routine is implemented here instead of in the `on_training_end` method to ensure logging occurs even if the
+        user interrupts an ongoing training session.
+
+        Args:
+            logs: Dict. Currently no data is passed to this argument for this method.
+        """
+        #
         if self.last_visited_batch is not None:
             if len(self.training_stop_history) > 0:
                 self.last_visited_batch += self.training_stop_history[-1]
             self.training_stop_history.append(self.last_visited_batch)
 
     def on_batch_end(self, batch, logs=None):
+        """
+        Plot losses, as well as test trials if toggled on in the `__init__` method.
+
+        Args:
+            batch: Integer, index of batch.
+            logs: Dict. Currently no data is passed to this argument for this method.
+        """
 
         if self.losses == {}:  # initialize the losses dictionary if needed
             self.losses = {name.replace('_', ' '): [] for name in logs.keys() if name.__contains__('loss')}
@@ -138,14 +171,34 @@ class TrainingPlotter(Callback):
                 plt.show()
 
 
-class CustomLearningRateScheduler(LearningRateScheduler):
+class BatchwiseLearningRateScheduler(LearningRateScheduler):
+    """The parent class adjusts the learning rate at the start of each epoch. This subclass instead applies the learning
+    rate adjustement routine to the end of each batch.
+
+    Args:
+        scheduler: a function that takes a batch index (integer, indexed from 0)
+            and current learning rate (float) as inputs and returns a new learning rate as output (float).
+        verbose: int. 0: quiet, 1: update messages.
+    """
+
     def __init__(self, scheduler, verbose=0):
         super().__init__(scheduler, verbose)
 
     def on_epoch_begin(self, epoch, logs=None):
+        """Called at the start of an epoch.
+        This method is empty to overwrite the learning rate adjustement routine at the beginning of each epoch.
+        """
         return None
     
     def on_batch_end(self, batch, logs=None):
+        """Called at the end of a batch.
+        The learning rate adjustement routine implemented in the `on_epoch_begin` method for the parent class is now
+        implemented here instead.
+
+        Args:
+            batch: Integer, index of batch.
+            logs: Dict. Currently no data is passed to this argument for this method.
+        """
         if not hasattr(self.model.optimizer, 'lr'):
             raise ValueError('Optimizer must have a "lr" attribute.')
         try:  # new API
@@ -164,15 +217,31 @@ class CustomLearningRateScheduler(LearningRateScheduler):
                   'rate to %s.' % (batch + 1, lr))
 
 
-# See https://github.com/tensorflow/tensorflow/issues/42872
 class TensorflowFix(Callback):
+    """This callback implements a fix for saving some tensorflow objects.
+    See this github issue for more details.
+    https://github.com/tensorflow/tensorflow/issues/42872
+
+    Note that as tensorflow nightly 2.6, this issue has been fixed. This callback is kept for backward compatibility.
+    """
     def __init__(self):
         super(TensorflowFix, self).__init__()
         self._supports_tf_logs = True
         self._backup_loss = None
 
     def on_train_begin(self, logs=None):
+        """Called at the beginning of training. This should only be called on train mode.
+
+         Args:
+             logs: Dict. Currently no data is passed to this argument for this method.
+         """
         self._backup_loss = {**self.model.loss}
 
     def on_train_batch_end(self, batch, logs=None):
+        """Called at the end a batch during training. This should only be called on train mode.
+
+         Args:
+             batch: Integer, index of batch.
+             logs: Dict. Currently no data is passed to this argument for this method.
+         """
         self.model.loss = self._backup_loss
