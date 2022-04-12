@@ -31,11 +31,8 @@ class MotorNetModel(tf.keras.Model, ABC):
                 self.output_names[k] = None
 
     def train_step(self, data):
-        """
-        Unpack the data. Its structure depends on your model and
+        """Unpack the data. Its structure depends on your model and
         on what you pass to `fit()`.
-        :param data:
-        :return:
         """
 
         x, y = data

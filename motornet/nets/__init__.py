@@ -1,7 +1,7 @@
 """
-This module contains four sub-modules, with each sub-module implementing a series of subclasses based off typical
+This module contains four submodules, with each submodule implementing a series of subclasses based off typical
 tensorflow objects. In other words, this module can be conceptualized as an extension of tensorflow for the purpose of
-bridging motornet.plants classes and tensorflow itself.
+bridging `motornet.plants` classes and tensorflow itself.
 """
 
 from . import callbacks

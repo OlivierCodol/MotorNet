@@ -1,32 +1,14 @@
+"""
+Placeholder for future description.
+"""
+
 import json
 import os
 import sys
-
 from joblib import Parallel, delayed
 
-# input 1 - directory to use
-active_directory = sys.argv[1]
-# input 2 - run in train or test mode
-run_mode = str(sys.argv[2])
-if run_mode != 'train' and run_mode != 'test':
-    raise ValueError('the run mode must be train or test')
-# input 3 - run mode to be passed to task object
-task_run_mode = str(sys.argv[3])
-# input 4 - total training iterations
-total_training_iterations = int(sys.argv[4])
 
-iters_per_batch = 200
-total_repeats = int(total_training_iterations / iters_per_batch)
-
-run_list = []
-for file in os.listdir(active_directory):
-    if file.endswith("_config.json"):
-        run_list.append(os.path.join(active_directory, file))
-if not run_list:
-    raise ValueError('No configuration files found')
-
-
-def f(run_iter):
+def _f(run_iter):
     # find root directory and add to path
     root_index = os.getcwd().rfind('utils')
     root_directory = os.path.dirname(os.getcwd()[:root_index])
@@ -158,6 +140,28 @@ def f(run_iter):
 
 
 if __name__ == '__main__':
+
+    # input 1 - directory to use
+    active_directory = sys.argv[1]
+    # input 2 - run in train or test mode
+    run_mode = str(sys.argv[2])
+    if run_mode != 'train' and run_mode != 'test':
+        raise ValueError('the run mode must be train or test')
+    # input 3 - run mode to be passed to task object
+    task_run_mode = str(sys.argv[3])
+    # input 4 - total training iterations
+    total_training_iterations = int(sys.argv[4])
+
+    iters_per_batch = 200
+    total_repeats = int(total_training_iterations / iters_per_batch)
+
+    run_list = []
+    for file in os.listdir(active_directory):
+        if file.endswith("_config.json"):
+            run_list.append(os.path.join(active_directory, file))
+    if not run_list:
+        raise ValueError('No configuration files found')
+
     iter_list = range(len(run_list))
     n_jobs = 16
     while len(iter_list) > 0:
@@ -169,4 +173,4 @@ if __name__ == '__main__':
             repeats = 1
         for i in range(repeats):
             print('repeat#' + str(i))
-            result = Parallel(n_jobs=len(these_iters))(delayed(f)(iteration) for iteration in these_iters)
+            result = Parallel(n_jobs=len(these_iters))(delayed(_f)(iteration) for iteration in these_iters)

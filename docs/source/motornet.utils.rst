@@ -12,7 +12,7 @@ Module contents
 motornet.utils.batch\_script
 -----------------------------------
 
-.. automodule:: motornet.utils.batch_script
+.. automodule:: motornet.utils.parallelizer
    :members:
    :undoc-members:
    :show-inheritance:
