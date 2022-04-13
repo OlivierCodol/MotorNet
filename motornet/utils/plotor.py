@@ -1,3 +1,6 @@
+"""This module contains various functions for plotting data from `MotorNet` training and simulation sessions.
+"""
+
 import numpy as np
 import scipy.io
 import matplotlib.pyplot as plt
@@ -6,19 +9,28 @@ from matplotlib import animation
 from matplotlib.collections import LineCollection
 
 
-def compute_limits(data):
+def compute_limits(data, margin=0.1):
+    """This small function computes the limits to use for plotting data, given the range of the dataset and a margin
+    size around that range.
+
+    Args:
+        data: A `numpy.ndarray` object containing the data to plot.
+        margin: Float, the proportion of the data's range to add as margin for plotting. For instance, if the data
+            value range from `0` to `10`, and the margin is set to `0.2`, then the limits would become `[-2, 12]` since
+            the range is `10`.
+
+    Returns:
+        A list of two `float` values, representing the lower and upper limits to use on the plot, in that order.
+    """
     data_range = data.ptp()
-    margin = data_range * 0.1
-    minval = np.min(data) - margin
-    maxval = np.max(data) + margin
+    m = data_range * margin
+    minval = np.min(data) - m
+    maxval = np.max(data) + m
     return minval, maxval
 
 
-def plot_line_collection(segments, **kwargs):
+def _plot_line_collection(segments, cmap: str = 'viridis', linewidth: int = 1, figure=plt.gcf(), **kwargs):
     n_gradient = kwargs.get('n_gradient', segments.shape[0])
-    cmap = kwargs.get('cmap', 'viridis')
-    figure = kwargs.get('figure', plt.gcf())
-    linewidth = kwargs.get('linewidth', 1)
 
     norm = plt.Normalize(0, n_gradient)  # Create a continuous norm to map from data points to colors
     lc = LineCollection(segments, cmap=cmap, norm=norm)
@@ -34,16 +46,25 @@ def plot_line_collection(segments, **kwargs):
 
 
 def plot_pos_over_time(cart_results):
+    """Plot position results over time, giving a darker color to the early part of a trajectory, and a lighter color to
+    the later part of the trajectory.
+
+    Args:
+        cart_results: A `numpy.ndarray` object containing the trajectories. Its dimensionality should be
+            `n_batches * n_timesteps * (2 . n_dim)`, with `n_dim` being the trajectory's dimensionality. For instance,
+            for a planar reach, since the movement is in 2D space, we have`n_dim = 2`, meaning the third dimension of
+            the array is `4` (x position, y position, x velocity, y velocity).
+    """
     n_timesteps = cart_results.shape[1]
-    segments, points = results_to_line_collection(cart_results)
-    axes = plot_line_collection(segments, n_gradient=n_timesteps - 1)
+    segments, points = _results_to_line_collection(cart_results)
+    axes = _plot_line_collection(segments, n_gradient=n_timesteps - 1)
     axes.set_xlabel('cartesian x')
     axes.set_ylabel('cartesian y')
     axes.set_aspect('equal', adjustable='box')
-    plt.scatter(0., 0., label='shoulder fixation', zorder=np.inf, marker='+')
+    # plt.scatter(0., 0., label='shoulder fixation', zorder=np.inf, marker='+')
 
 
-def results_to_line_collection(results):
+def _results_to_line_collection(results):
     # each line is a segment of the trajectory (a sample), and it will have its own colour from the gradent
     # each line has two values (per dimension): start point and end point
     # n_samples * 1 * space_dim * batch_size
@@ -58,10 +79,24 @@ def results_to_line_collection(results):
     return segments_all_batches, points
 
 
-def plot_arm_over_time(arm, joint_results, **kwargs):
-    assert joint_results.shape[0] == 1  # can only take one simulation at a time
-    n_timesteps = joint_results.shape[1]
-    joint_pos = np.moveaxis(joint_results, 0, -1).squeeze()
+def plot_arm26_over_time(arm, joint_state, cmap: str = 'viridis', linewidth: int = 1, figure=plt.gcf(), **kwargs):
+    """Plot an arm26 over time, with earlier and later arm configuration in the movement being represented as darker and
+    brighter colors, respectively.
+
+    Args:
+        arm: `motornet.plants.skeletons.Arm26` object to plot.
+        joint_state: A `numpy.ndarray` object containing the trajectory. Its dimensionality should be
+            `1 * n_timesteps * (2 . n_dim)`, with `n_dim` being the trajectory's dimensionality. For an `arm26`,
+            since the arm has 2 degrees of freedom, we have`n_dim = 2`, meaning the third dimension of
+            the array is `4` (shoulder position, elbow position, shoulder velocity, elbow velocity).
+        cmap: String, colormap supported by `matplotlib`.
+        figure: `matplotlib.figure.Figure` handle.
+        linewidth: Integer, line width of the arm segments being plotted.
+    """
+
+    assert joint_state.shape[0] == 1  # can only take one simulation at a time
+    n_timesteps = joint_state.shape[1]
+    joint_pos = np.moveaxis(joint_state, 0, -1).squeeze()
 
     joint_angle_sum = joint_pos[:, 0] + joint_pos[:, 1]
     elb_pos_x = arm.L1 * np.cos(joint_pos[:, 0])
@@ -78,7 +113,10 @@ def plot_arm_over_time(arm, joint_results, **kwargs):
     lower_arm = np.stack([lower_arm_x, lower_arm_y], axis=2)
 
     segments = np.squeeze(np.concatenate([upper_arm, lower_arm], axis=0))
-    _, axes, clb = plot_line_collection(segments, n_gradient=n_timesteps, **kwargs)
+    _, axes, clb = _plot_line_collection(
+        segments, cmap=cmap, linewidth=linewidth, figure=figure,
+        n_gradient=n_timesteps, **kwargs)
+
     axes.set_xlim(compute_limits(segments[:, :, 0]))
     axes.set_ylim(compute_limits(segments[:, :, 1]))
     axes.set_xlabel('cartesian x')

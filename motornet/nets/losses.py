@@ -1,7 +1,6 @@
-"""
-This module implements custom ``Loss`` objects that are useful for motor control.
+"""This module implements custom ``Loss`` objects that are useful for motor control.
 
-Please note a couple notation conventions that this module makes use of:
+Please note a couple notation conventions that this module employs:
 
 - ``Regularizer`` indicates the penalization is applied to the *value* of the model's output, not the error between the
   model's output and a user-fed label.

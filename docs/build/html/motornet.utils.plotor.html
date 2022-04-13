@@ -219,22 +219,50 @@
         <article role="main">
           <section id="module-motornet.utils.plotor">
 <span id="motornet-utils-plotor"></span><h1>motornet.utils.plotor<a class="headerlink" href="#module-motornet.utils.plotor" title="Permalink to this headline">#</a></h1>
+<p>This module contains various functions for plotting data from <cite>MotorNet</cite> training and simulation sessions.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="motornet.utils.plotor.animate_arm_trajectory">
 <span class="sig-prename descclassname"><span class="pre">motornet.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">animate_arm_trajectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_position</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plant</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./Arm_animation.mp4'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.plotor.animate_arm_trajectory" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="motornet.utils.plotor.compute_limits">
-<span class="sig-prename descclassname"><span class="pre">motornet.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">compute_limits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.plotor.compute_limits" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">motornet.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">compute_limits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.plotor.compute_limits" title="Permalink to this definition">#</a></dt>
+<dd><p>This small function computes the limits to use for plotting data, given the range of the dataset and a margin
+size around that range.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – A <cite>numpy.ndarray</cite> object containing the data to plot.</p></li>
+<li><p><strong>margin</strong> – Float, the proportion of the data’s range to add as margin for plotting. For instance, if the data
+value range from <cite>0</cite> to <cite>10</cite>, and the margin is set to <cite>0.2</cite>, then the limits would become <cite>[-2, 12]</cite> since
+the range is <cite>10</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of two <cite>float</cite> values, representing the lower and upper limits to use on the plot, in that order.</p>
+</dd>
+</dl>
+</dd></dl>
 <dl class="py function">
-<dt class="sig sig-object py" id="motornet.utils.plotor.plot_arm_over_time">
-<span class="sig-prename descclassname"><span class="pre">motornet.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">plot_arm_over_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_results</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.plotor.plot_arm_over_time" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py function">
-<dt class="sig sig-object py" id="motornet.utils.plotor.plot_line_collection">
-<span class="sig-prename descclassname"><span class="pre">motornet.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">plot_line_collection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">segments</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.plotor.plot_line_collection" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="motornet.utils.plotor.plot_arm26_over_time">
+<span class="sig-prename descclassname"><span class="pre">motornet.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">plot_arm26_over_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'viridis'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linewidth:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure=&lt;Figure</span> <span class="pre">size</span> <span class="pre">640x480</span> <span class="pre">with</span> <span class="pre">0</span> <span class="pre">Axes&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.plotor.plot_arm26_over_time" title="Permalink to this definition">#</a></dt>
+<dd><p>Plot an arm26 over time, with earlier and later arm configuration in the movement being represented as darker and
+brighter colors, respectively.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arm</strong> – <cite>motornet.plants.skeletons.Arm26</cite> object to plot.</p></li>
+<li><p><strong>joint_state</strong> – A <cite>numpy.ndarray</cite> object containing the trajectory. Its dimensionality should be
+<cite>1 * n_timesteps * (2 . n_dim)</cite>, with <cite>n_dim</cite> being the trajectory’s dimensionality. For an <cite>arm26</cite>,
+since the arm has 2 degrees of freedom, we have`n_dim = 2`, meaning the third dimension of
+the array is <cite>4</cite> (shoulder position, elbow position, shoulder velocity, elbow velocity).</p></li>
+<li><p><strong>cmap</strong> – String, colormap supported by <cite>matplotlib</cite>.</p></li>
+<li><p><strong>figure</strong> – <cite>matplotlib.figure.Figure</cite> handle.</p></li>
+<li><p><strong>linewidth</strong> – Integer, line width of the arm segments being plotted.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="motornet.utils.plotor.plot_opensim">
 <span class="sig-prename descclassname"><span class="pre">motornet.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">plot_opensim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.plotor.plot_opensim" title="Permalink to this definition">#</a></dt>
@@ -242,11 +270,17 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="motornet.utils.plotor.plot_pos_over_time">
 <span class="sig-prename descclassname"><span class="pre">motornet.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">plot_pos_over_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cart_results</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.plotor.plot_pos_over_time" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-<dl class="py function">
-<dt class="sig sig-object py" id="motornet.utils.plotor.results_to_line_collection">
-<span class="sig-prename descclassname"><span class="pre">motornet.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">results_to_line_collection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.plotor.results_to_line_collection" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Plot position results over time, giving a darker color to the early part of a trajectory, and a lighter color to
+the later part of the trajectory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cart_results</strong> – A <cite>numpy.ndarray</cite> object containing the trajectories. Its dimensionality should be
+<cite>n_batches * n_timesteps * (2 . n_dim)</cite>, with <cite>n_dim</cite> being the trajectory’s dimensionality. For instance,
+for a planar reach, since the movement is in 2D space, we have`n_dim = 2`, meaning the third dimension of
+the array is <cite>4</cite> (x position, y position, x velocity, y velocity).</p>
+</dd>
+</dl>
+</dd></dl>
 </section>
 
         </article>

@@ -1,5 +1,20 @@
-"""
-Placeholder for future description.
+"""This python script allows training `MotorNet` models in parallel on the CPU. This is particularly useful for CPUs
+with a large amount of cores, and should significantly improve training speed over many model iterations.
+
+This script should be called from a terminal console, and takes up to four parameter inputs.
+
+Args:
+    1: Directory to use. The declared directory should contain the model configurations saved as a JSON file.
+        See :meth:`motornet.nets.models.MotorNetModel.save_model` for more information on how to produce one such file.
+    2: String, whether run this script in `train` or `test` mode.
+    3: Run mode to be passed to task object. The type and content of this input will likely depend on the task
+        object being used.
+    4: Integer, total number of training iterations.
+
+Raises:
+    ValueError: If the first input's directory does not contain a model's JSON configuration file.
+    ValueError: If the second input is not a `train` or `test` string.
+
 """
 
 import json

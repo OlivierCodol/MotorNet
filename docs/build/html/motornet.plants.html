@@ -221,7 +221,12 @@
 <h1>motornet.plants<a class="headerlink" href="#motornet-plants" title="Permalink to this headline">#</a></h1>
 <section id="module-motornet.plants">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-motornet.plants" title="Permalink to this headline">#</a></h2>
-<p>Description of the module comes here.</p>
+<p>This module contains the classes and subclasses used to create the plants that a model will be trained to control.
+Plants are implemented as subclasses of the <code class="docutils literal notranslate"><span class="pre">motornet.plant.Plant</span></code> object. They all contain a single
+<code class="docutils literal notranslate"><span class="pre">motornet.plant.skeletons.Skeleton</span></code> and <code class="docutils literal notranslate"><span class="pre">motornet.plant.muscles.Muscle</span></code> subclass defining the biomechanical
+properties of that <cite>Plant</cite> object. The <cite>Plant</cite> object itself implements the numerical integration routines, some of the
+geometry state calculation routines (in conjunction with the <cite>Skeleton</cite> object), applies moment arms to produce
+generalized forces, and generally handles communication between the <cite>Skeleton</cite> and <cite>Muscle</cite> objects.</p>
 </section>
 <section id="motornet-plants-muscles">
 <h2>motornet.plants.muscles<a class="headerlink" href="#motornet-plants-muscles" title="Permalink to this headline">#</a></h2>

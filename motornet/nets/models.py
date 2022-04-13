@@ -5,6 +5,21 @@ from abc import ABC
 
 
 class MotorNetModel(tf.keras.Model, ABC):
+    """This is a custom ``tensorflow.keras.Model`` object, whose purpose is to enable saving
+    ``motornet.plants`` object configuration when saving the model as well.
+
+    In Tensorflow, ``tensorflow.keras.Model`` objects group layers into an object with training and inference features.
+    See the Tensorflow documentation for more details on how to declare, compile and use use a
+    ``tensorflow.keras.Model`` object.
+
+    Args:
+        inputs: The input(s) of the model: a ``tensorflow.keras.layers.Input`` object or list of
+            ``tensorflow.keras.layers.Input`` objects.
+        outputs: The output(s) of the model. See Functional API example in the Tensorflow documentation.
+        task: A ``motornet.task.Task`` object or subclass.
+        name: String, the name of the model.
+    """
+
     def __init__(self, inputs, outputs, task, name='controller'):
         self.inputs = inputs
         self.outputs = outputs
@@ -31,8 +46,18 @@ class MotorNetModel(tf.keras.Model, ABC):
                 self.output_names[k] = None
 
     def train_step(self, data):
-        """Unpack the data. Its structure depends on your model and
-        on what you pass to `fit()`.
+        """The logic for one training step. Compared to the default method, this overriding method allows for
+        recomputation of targets online (during movement), in addition to essentially reproducing what the default
+        method does. Notable features missing from the original method include outputing metrics as a list instead of a
+        dictionary (since `motornet` always uses dictionaries) and the use of sample weighting, since data is usually
+        synthetic and not empirical, avoiding sampling bias altogether.
+
+        Args:
+            data: A nested structure of `Tensor` s.
+
+        Returns:
+            A `dict` containing values that will be passed to :meth:`tf.keras.callbacks.CallbackList.on_train_batch_end`.
+            Typically, the values of the `Model`'s metrics are returned. Example: `{'loss': 0.2, 'accuracy': 0.7}`.
         """
 
         x, y = data
@@ -58,6 +83,21 @@ class MotorNetModel(tf.keras.Model, ABC):
         return {m.name: m.result() for m in self.metrics}
 
     def save_model(self, path, **kwargs):
+        """Gets the model's configuration as a dictionary and then save it into a JSON file.
+
+        Args:
+            path: String, the absolute path to the JSON file that will be produced. The name of the JSON file itself
+                should be included, without the extension. For instance, if we want to create a JSON file called
+                `my_model_config.json` in `~/path/to/desired/directory`, we would call this method in the python console
+                like so:
+
+                .. code-block:: python
+
+                    model.save_model("~/path/to/desired/directory/my_model_config")
+
+            **kwargs: Additional keyword arguments. They are not used here, and are only present for subclassing
+                compatibility.
+        """
         cfg = {'Task': self.task.get_save_config()}
         cfg.update({'Network': self.task.network.get_save_config()})
         cfg.update({'Plant': self.task.network.plant.get_save_config()})
@@ -68,6 +108,12 @@ class MotorNetModel(tf.keras.Model, ABC):
                 json.dump(cfg, file)
 
     def get_config(self):
+        """Get the model's configuration.
+
+        Returns:
+            A dictionary containing the model's configuration. This includes the task object passed at initialization.
+        """
+
         cfg = super().get_config()
         cfg.update({'task': self.task, 'inputs': self.inputs, 'outputs': self.outputs})
         return cfg

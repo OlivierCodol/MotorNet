@@ -221,10 +221,36 @@
 <h1>motornet.utils<a class="headerlink" href="#motornet-utils" title="Permalink to this headline">#</a></h1>
 <section id="module-motornet.utils">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-motornet.utils" title="Permalink to this headline">#</a></h2>
+<p>This module contains various functions and scripts that can be useful to the general user for building, training, and
+analysing models from <cite>MotorNet</cite>.</p>
 </section>
 <section id="module-motornet.utils.parallelizer">
-<span id="motornet-utils-batch-script"></span><h2>motornet.utils.batch_script<a class="headerlink" href="#module-motornet.utils.parallelizer" title="Permalink to this headline">#</a></h2>
-<p>Placeholder for future description.</p>
+<span id="motornet-utils-parallelizer"></span><h2>motornet.utils.parallelizer<a class="headerlink" href="#module-motornet.utils.parallelizer" title="Permalink to this headline">#</a></h2>
+<p>This python script allows training <cite>MotorNet</cite> models in parallel on the CPU. This is particularly useful for CPUs
+with a large amount of cores, and should significantly improve training speed over many model iterations.</p>
+<p>This script should be called from a terminal console, and takes up to four parameter inputs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">param 1</dt>
+<dd class="field-odd"><p>Directory to use. The declared directory should contain the model configurations saved as a JSON file.
+See <a class="reference internal" href="motornet.nets.models.html#motornet.nets.models.MotorNetModel.save_model" title="motornet.nets.models.MotorNetModel.save_model"><code class="xref py py-meth docutils literal notranslate"><span class="pre">motornet.nets.models.MotorNetModel.save_model()</span></code></a> for more information on how to produce one such file.</p>
+</dd>
+<dt class="field-even">param 2</dt>
+<dd class="field-even"><p>String, whether run this script in <cite>train</cite> or <cite>test</cite> mode.</p>
+</dd>
+<dt class="field-odd">param 3</dt>
+<dd class="field-odd"><p>Run mode to be passed to task object. The type and content of this input will likely depend on the task
+object being used.</p>
+</dd>
+<dt class="field-even">param 4</dt>
+<dd class="field-even"><p>Integer, total number of training iterations.</p>
+</dd>
+<dt class="field-odd">raises ValueError</dt>
+<dd class="field-odd"><p>If the first input’s directory does not contain a model’s JSON configuration file.</p>
+</dd>
+<dt class="field-even">raises ValueError</dt>
+<dd class="field-even"><p>If the second input is not a <cite>train</cite> or <cite>test</cite> string.</p>
+</dd>
+</dl>
 </section>
 <section id="motornet-utils-plotor">
 <h2>motornet.utils.plotor<a class="headerlink" href="#motornet-utils-plotor" title="Permalink to this headline">#</a></h2>
@@ -295,7 +321,7 @@
             <ul>
 <li><a class="reference internal" href="#">motornet.utils</a><ul>
 <li><a class="reference internal" href="#module-motornet.utils">Module contents</a></li>
-<li><a class="reference internal" href="#module-motornet.utils.parallelizer">motornet.utils.batch_script</a></li>
+<li><a class="reference internal" href="#module-motornet.utils.parallelizer">motornet.utils.parallelizer</a></li>
 <li><a class="reference internal" href="#motornet-utils-plotor">motornet.utils.plotor</a></li>
 </ul>
 </li>

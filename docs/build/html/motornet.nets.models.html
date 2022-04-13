@@ -223,6 +223,22 @@
 <dt class="sig sig-object py" id="motornet.nets.models.MotorNetModel">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.models.</span></span><span class="sig-name descname"><span class="pre">MotorNetModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.models.MotorNetModel" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">keras.engine.training.Model</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>This is a custom <code class="docutils literal notranslate"><span class="pre">tensorflow.keras.Model</span></code> object, whose purpose is to enable saving
+<code class="docutils literal notranslate"><span class="pre">motornet.plants</span></code> object configuration when saving the model as well.</p>
+<p>In Tensorflow, <code class="docutils literal notranslate"><span class="pre">tensorflow.keras.Model</span></code> objects group layers into an object with training and inference features.
+See the Tensorflow documentation for more details on how to declare, compile and use use a
+<code class="docutils literal notranslate"><span class="pre">tensorflow.keras.Model</span></code> object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inputs</strong> – The input(s) of the model: a <code class="docutils literal notranslate"><span class="pre">tensorflow.keras.layers.Input</span></code> object or list of
+<code class="docutils literal notranslate"><span class="pre">tensorflow.keras.layers.Input</span></code> objects.</p></li>
+<li><p><strong>outputs</strong> – The output(s) of the model. See Functional API example in the Tensorflow documentation.</p></li>
+<li><p><strong>task</strong> – A <code class="docutils literal notranslate"><span class="pre">motornet.task.Task</span></code> object or subclass.</p></li>
+<li><p><strong>name</strong> – String, the name of the model.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.models.MotorNetModel.from_config">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_objects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.models.MotorNetModel.from_config" title="Permalink to this definition">#</a></dt>
@@ -244,32 +260,51 @@ output of get_config.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.models.MotorNetModel.get_config">
 <span class="sig-name descname"><span class="pre">get_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.models.MotorNetModel.get_config" title="Permalink to this definition">#</a></dt>
-<dd><p>Returns the config of the layer.</p>
-<p>A layer config is a Python dictionary (serializable)
-containing the configuration of a layer.
-The same layer can be reinstantiated later
-(without its trained weights) from this configuration.</p>
-<p>The config of a layer does not include connectivity
-information, nor the layer class name. These are handled
-by <cite>Network</cite> (one layer of abstraction above).</p>
-<p>Note that <cite>get_config()</cite> does not guarantee to return a fresh copy of dict
-every time it is called. The callers should make a copy of the returned dict
-if they want to modify it.</p>
+<dd><p>Get the model’s configuration.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Python dictionary.</p>
+<dd class="field-odd"><p>A dictionary containing the model’s configuration. This includes the task object passed at initialization.</p>
 </dd>
 </dl>
 </dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.models.MotorNetModel.save_model">
 <span class="sig-name descname"><span class="pre">save_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.models.MotorNetModel.save_model" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Gets the model’s configuration as a dictionary and then save it into a JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> – <p>String, the absolute path to the JSON file that will be produced. The name of the JSON file itself
+should be included, without the extension. For instance, if we want to create a JSON file called
+<cite>my_model_config.json</cite> in <cite>~/path/to/desired/directory</cite>, we would call this method in the python console
+like so:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span><span class="s2">"~/path/to/desired/directory/my_model_config"</span><span class="p">)</span>
+</pre></div>
+</div>
+</p></li>
+<li><p><strong>**kwargs</strong> – Additional keyword arguments. They are not used here, and are only present for subclassing
+compatibility.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.models.MotorNetModel.train_step">
 <span class="sig-name descname"><span class="pre">train_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.models.MotorNetModel.train_step" title="Permalink to this definition">#</a></dt>
-<dd><p>Unpack the data. Its structure depends on your model and
-on what you pass to <cite>fit()</cite>.</p>
+<dd><p>The logic for one training step. Compared to the default method, this overriding method allows for
+recomputation of targets online (during movement), in addition to essentially reproducing what the default
+method does. Notable features missing from the original method include outputing metrics as a list instead of a
+dictionary (since <cite>motornet</cite> always uses dictionaries) and the use of sample weighting, since data is usually
+synthetic and not empirical, avoiding sampling bias altogether.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> – A nested structure of <cite>Tensor</cite> s.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A <cite>dict</cite> containing values that will be passed to <code class="xref py py-meth docutils literal notranslate"><span class="pre">tf.keras.callbacks.CallbackList.on_train_batch_end()</span></code>.
+Typically, the values of the <cite>Model</cite>’s metrics are returned. Example: <cite>{‘loss’: 0.2, ‘accuracy’: 0.7}</cite>.</p>
+</dd>
+</dl>
 </dd></dl>
 </dd></dl>
 </section>

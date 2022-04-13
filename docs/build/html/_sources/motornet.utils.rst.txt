@@ -9,7 +9,7 @@ Module contents
    :undoc-members:
    :show-inheritance:
 
-motornet.utils.batch\_script
+motornet.utils.parallelizer
 -----------------------------------
 
 .. automodule:: motornet.utils.parallelizer
