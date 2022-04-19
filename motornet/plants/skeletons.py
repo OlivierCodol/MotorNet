@@ -2,43 +2,92 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.layers import Lambda
 from abc import abstractmethod
+from typing import Union
 
 
 class Skeleton:
-    """
-    Base class for skeletons.
+    """Base class for skeletons.
+
+    Args:
+        dof: `Integer`, number of degrees of freedom of the skeleton. Typically this is the number of joints.
+        space_dim: `Integer`, the dimensionality of the space in which the skeleton evolves. For instance, this would be
+            `2` for a cartesian, planar `xy` space.
+        name: `String`, the name of the object instance.
+        pos_upper_bound: `Float`, `List` or `Tuple`, indicating the upper boundary of joint position. Should be
+            a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance, for a two
+            degrees-of-freedom arm, we would have `n=2`.
+        pos_lower_bound: `Float`, `List` or `Tuple`, indicating the lower boundary of joint position. Should be
+            a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance, for a two
+            degrees-of-freedom arm, we would have `n=2`.
+        vel_upper_bound: `Float`, `List` or `Tuple`, indicating the upper boundary of joint velocity. Should be
+            a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance, for a two
+            degrees-of-freedom arm, we would have `n=2`.
+        vel_lower_bound: `Float`, `List` or `Tuple`, indicating the lower boundary of joint velocity. Should be
+            a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance, for a two
+            degrees-of-freedom arm, we would have `n=2`.
+
+    OPTIONAL ARGUMENTS
+        - **input_dim** -- `Integer`, dimensionality of the control input (*e.g.* torques). Default: `dof`.
+        - **state_dim** -- `Integer`, typically position and velocity for each degree of freedom. Default: `2 * dof`.
+        - **output_dim** -- `Integer`, dimensionality of the call output, usually the new state. Default: `state_dim`.
     """
 
-    def __init__(self, dof, space_dim, **kwargs):
-        self.__name__ = kwargs.get('name', "skeleton")
-        self.dof = dof  # degrees of freedom of the skeleton (eg number of joints)
-        self.space_dim = space_dim  # the dimensionality of the space (eg 2 for cartesian xy space)
-        self.input_dim = kwargs.get('input_dim', self.dof)  # dim of the control input (eg torques), usually >= dof
-        self.state_dim = kwargs.get('state_dim', self.dof * 2)  # usually position and velocity so twice the dof
-        self.output_dim = kwargs.get('output_dim', self.state_dim)  # usually the new state so same as state_dim
+    def __init__(self, dof: int, space_dim: int, name: str = "skeleton",
+                 pos_lower_bound: Union[float, list, tuple] = -1.,
+                 pos_upper_bound: Union[float, list, tuple] = +1.,
+                 vel_lower_bound: Union[float, list, tuple] = -1000.,
+                 vel_upper_bound: Union[float, list, tuple] = +1000.,
+                 **kwargs):
+        self.__name__ = name
+        self.dof = dof
+        self.space_dim = space_dim
+        self.input_dim = kwargs.get('input_dim', self.dof)
+        self.state_dim = kwargs.get('state_dim', self.dof * 2)
+        self.output_dim = kwargs.get('output_dim', self.state_dim)
         self.geometry_state_dim = 2 + self.dof  # two geometry variable per muscle: path_length, path_velocity
         self.default_endpoint_load = tf.zeros((1, self.space_dim), dtype=tf.float32)
         self.dt = None
         self.half_dt = None
         self.integration_method = None
 
-        self.pos_lower_bound = kwargs.get('pos_lower_bound', -1.)
-        self.pos_upper_bound = kwargs.get('pos_upper_bound', +1.)
-        self.vel_lower_bound = kwargs.get('vel_lower_bound', -1000.)  # cap as defensive code
-        self.vel_upper_bound = kwargs.get('vel_upper_bound', +1000.)
+        self.pos_lower_bound = pos_lower_bound
+        self.pos_upper_bound = pos_upper_bound
+        self.vel_lower_bound = vel_lower_bound  # cap as defensive code
+        self.vel_upper_bound = vel_upper_bound
 
         self._update_ode_fn = Lambda(lambda x: self._update_ode(*x), name='skeleton_update_ode')
         self._clip_velocity_fn = Lambda(lambda x: self._clip_velocity(*x), name='skeleton_clip_velocity')
         self._integrate_fn = Lambda(lambda x: self._integrate(*x), name='skeleton_integrate')
         self._path2cartesian_fn = Lambda(lambda x: self._path2cartesian(*x), name='path2cartesian')
-        self._joint2cartesian_fn = Lambda(lambda x: self._joint2cartesian(*x), name='joint2cartesian')
+        self._joint2cartesian_fn = Lambda(lambda x: self._joint2cartesian(x), name='joint2cartesian')
         self.clip_position = None
         self._call_fn = None
         self.init = False
         self.built = False
 
-    def build(self, timestep, pos_upper_bound, pos_lower_bound, vel_upper_bound, vel_lower_bound,
+    def build(self, timestep: float, pos_upper_bound, pos_lower_bound, vel_upper_bound, vel_lower_bound,
               integration_method: str = 'euler'):
+        """This method should be called by the initialization method of the parent ``motornet.plant.Plant`` object or
+        subclass.
+
+        Args:
+            timestep: Float, size of a single timestep (in sec).
+            pos_upper_bound: `Float`, `List` or `Tuple`, indicating the upper boundary of joint position. Should
+                be a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance, for a two
+                degrees-of-freedom arm, we would have `n=2`.
+            pos_lower_bound: `Float`, `List` or `Tuple`, indicating the lower boundary of joint position. Should
+                be a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance, for a two
+                degrees-of-freedom arm, we would have `n=2`.
+            vel_upper_bound: `Float`, `List` or `Tuple`, indicating the upper boundary of joint velocity. Should
+                be a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance, for a two
+                degrees-of-freedom arm, we would have `n=2`.
+            vel_lower_bound: `Float`, `List` or `Tuple`, indicating the lower boundary of joint velocity. Should
+                be a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance, for a two
+                degrees-of-freedom arm, we would have `n=2`.
+            integration_method: String, 'euler' to specify that numerical integration should take place using the Euler
+                method, or 'rk4', 'rungekutta4', 'runge-kutta4', or 'runge-kutta-4' to specify the Runge-Kutta 4 method
+                instead. This argument is case-insensitive.
+        """
         self.pos_upper_bound = tf.constant(pos_upper_bound, name='pos_upper_bound')
         self.pos_lower_bound = tf.constant(pos_lower_bound, name='pos_lower_bound')
         self.vel_upper_bound = tf.constant(vel_upper_bound, name='vel_upper_bound')
@@ -63,6 +112,12 @@ class Skeleton:
         return self._call_fn((inputs, joint_state, endpoint_load))
 
     def setattr(self, name: str, value):
+        """Changes the value of an attribute held by this object.
+
+        Args:
+            name: `String`, attribute to set to a new value.
+            value: Value that the attribute should take.
+        """
         self.__setattr__(name, value)
 
     def _euler(self, inputs, joint_state, endpoint_load):
@@ -81,18 +136,84 @@ class Skeleton:
         return self.integrate(self.dt, state_derivative=k, joint_state=joint_state)
 
     def integrate(self, dt, state_derivative, joint_state):
+        """Perform one integration step. This method is usually called by the parent``motornet.plant.Plant`` object or
+        subclass during numerical integration.
+
+        Args:
+            dt: Timestep (sec) of the plant. The skeleton object's ``self.dt`` attribute is not used here because for
+                the Runge-Kutta method, half-timesteps can occasionally be passed.
+            state_derivative: `Tensor`, derivative of joint state. This input and `joint_state` should have identical
+                dimensionality.
+            joint_state: `Tensor`, joint state that serves as the initial value. This input and `state_derivative`
+                should have identical dimensionality.
+
+        Returns:
+            - The new state following integration. The dimensionality is identical to that of the `joint_state` input.
+        """
         return self._integrate_fn((dt, state_derivative, joint_state))
 
-    def joint2cartesian(self, *args, **kwargs):
-        return self._joint2cartesian_fn((*args, *[v for v in kwargs.values()]))
+    def joint2cartesian(self, joint_state):
+        """Computes the cartesian state given the joint state.
+
+        Args:
+            joint_state: `Tensor`, the current joint configuration.
+
+        Returns:
+            - `Tensor`, the current cartesian configuration (position, velocity).
+        """
+        return self._joint2cartesian_fn(joint_state)
 
     def update_ode(self, inputs, joint_state, endpoint_load):
+        """Evaluate the Ordinary Differential Equation (ODE) function.
+
+        Args:
+            inputs: `Tensor`, the control input to the skeleton object (typically torques).
+            joint_state: `Tensor`, the current joint configuration.
+            endpoint_load: `Tensor`, the loads applied to the skeleton's endpoint. The dimensionality should match the
+                skeleton object or subclass' `space_dim` attribute.
+
+        Returns:
+            - The derivatives of the joint state. The dimensionality is identical to that of the `joint_state` input.
+        """
         return self._update_ode_fn((inputs, joint_state, endpoint_load))
 
     def path2cartesian(self, path_coordinates, path_fixation_body, joint_state):
+        """Transforms muscle paths into cartesian paths for each muscle's fixation points, given a joint configuration.
+        This method is used by the parent ``motornet.plant.Plant`` object or subclass to then calculate musculotendon
+        complex length and velocity, as well as moment arms. See `[1]` for more details.
+
+        Args:
+            path_coordinates: The coordinates of each muscle's fixation point. This is an attribute held by the parent
+                ``motornet.plant.Plant`` object or subclass.
+            path_fixation_body: The body part (bone) to which each muscle fixation point is attached to. This is an
+                attribute held by the parent ``motornet.plant.Plant`` object or subclass.
+            joint_state: `Tensor`, the current joint configuration.
+
+        Returns:
+            A `3`-elements `List` object:
+            - The position of each fixation point in cartesian space.
+            - The derivative with respect to time of each fixation point's position in cartesian space (velocity).
+            - The derivative with respect to joint angle of each fixation point's position in cartesian space.
+
+        `[1] Sherman MA, Seth A, Delp SL. What Is Moment Arm? Calculating Muscle Effectiveness in Biomechanical Models
+        Using Generalized Coordinates. Proc ASME Des Eng Tech Conf. 2013 Aug; DOI: 10.1115/DETC2013-13633. PMID:
+        25905111; PMCID: PMC4404026.`
+        """
         return self._path2cartesian_fn((path_coordinates, path_fixation_body, joint_state))
 
     def clip_velocity(self, pos, vel):
+        """Clips the joint velocities input based on the velocity boundaries as well as the joint positions.
+        Specifically, if a velocity is past the boundary values, it is set to the boundary value exactly. Then, if
+        the position is past or equal to the position boundary, and the clipped velocity would result in moving further
+        past that boundary, then the velocity is set to `0`.
+
+        Args:
+            pos: A `Tensor` containing positions of the plant in joint space.
+            vel: A `Tensor` containing velocities of the plant in joint space.
+
+        Returns:
+            - A `Tensor` containing the clipped velocities, with same dimensionality as the `vel` input argument.
+        """
         return self._clip_velocity_fn((pos, vel))
 
     @abstractmethod
@@ -104,7 +225,7 @@ class Skeleton:
         return
 
     @abstractmethod
-    def _joint2cartesian(self, *args, **kwargs):
+    def _joint2cartesian(self, joint_state):
         return
 
     @abstractmethod
@@ -118,31 +239,62 @@ class Skeleton:
         return vel
 
     def get_base_config(self):
+        """Get the object instance's base configuration. This is the set of configuration entries that will be useful
+        for any and all skeleton objects or subclasses. This method should be called by the :meth:`get_save_config`
+        method. Users wanting to save additional configuration entries specific to a skeleton subclass should then
+        do so in the :meth:`get_save_config` method, using this method's output `dictionary` as a base.
+
+        Returns:
+             - A `Dictionary` containing the skeleton's degrees of freedom, timestep size, and space dimensionality.
+        """
         cfg = {'dof': self.dof, 'dt': str(self.dt.numpy()), 'space_dim': self.space_dim}
         return cfg
 
     def get_save_config(self):
+        """Get the skeleton object's configuration as a `dictionary`. This method should be overwritten by subclasse
+        objects, and used to add configuration entries specific to that subclass.
+
+        Returns:
+            - By default, this method returns the output of the :meth:`get_base_config` method.
+        """
         return self.get_base_config()
 
 
 class TwoDofArm(Skeleton):
+    """A `2` degrees-of-freedom planar arm.
 
-    def __init__(self, **kwargs):
-        name = kwargs.get('name', "two_dof_arm")
+    Args:
+        name: `String`, the name of the skeleton.
+        m1: `Float`, mass (kg) of the first bone.
+        m2: `Float`, mass (kg) of the second bone.
+        l1g: `Float`, position of the center of gravity of the first bone (m).
+        l2g: `Float`, position of the center of gravity of the second bone (m).
+        i1: `Float`, inertia (kg.m ** 2) of the first bone.
+        i2: `Float`, inertia (kg.m ** 2) of the second bone.
+        l1: `Float`, length (m) of the first bone.
+        l2: `Float`, length (m) of the second bone.
+        **kwargs: All contents are passed to the parent ``motornet.plant.Skeleton`` base class. Also allows for some
+            backward compatibility.
+    """
+
+    def __init__(self, name: str = 'two_dof_arm', m1: float = 1.864572, m2: float = 1.534315, l1g: float = 0.180496,
+                 l2g: float = 0.181479, i1: float = 0.013193, i2: float = 0.020062, l1: float = 0.309,
+                 l2: float = 0.26, **kwargs):
+
         sho_limit = np.deg2rad([-0, 140])  # mechanical constraints - used to be -90 180
         elb_limit = np.deg2rad([0, 160])
         lb = (sho_limit[0], elb_limit[0])
         ub = (sho_limit[1], elb_limit[1])
         super().__init__(dof=2, space_dim=2, pos_lower_bound=lb, pos_upper_bound=ub, name=name, **kwargs)
 
-        self.m1 = tf.constant(kwargs.get('m1', 1.864572), name='skeleton_m1')  # masses of arm links
-        self.m2 = tf.constant(kwargs.get('m2', 1.534315), name='skeleton_m2')
-        self.L1g = tf.constant(kwargs.get('L1g', 0.180496), name='skeleton_L1g')  # center of mass of the links
-        self.L2g = tf.constant(kwargs.get('L2g', 0.181479), name='skeleton_L2g')
-        self.I1 = tf.constant(kwargs.get('I1', 0.013193), name='skeleton_I1')  # moment of inertia around center of mass
-        self.I2 = tf.constant(kwargs.get('I2', 0.020062), name='skeleton_I2')
-        self.L1 = tf.constant(kwargs.get('L1', 0.309), name='skeleton_L1')  # length of links
-        self.L2 = tf.constant(kwargs.get('L2', 0.26), name='skeleton_L2')
+        self.m1 = tf.constant(m1, name='skeleton_m1')  # masses of arm links
+        self.m2 = tf.constant(m2, name='skeleton_m2')
+        self.L1g = tf.constant(kwargs.get('L1g', l1g), name='skeleton_L1g')  # center of mass of the links
+        self.L2g = tf.constant(kwargs.get('L2g', l2g), name='skeleton_L2g')
+        self.I1 = tf.constant(kwargs.get('I1', i1), name='skeleton_I1')  # moment of inertia around center of mass
+        self.I2 = tf.constant(kwargs.get('I2', i2), name='skeleton_I2')
+        self.L1 = tf.constant(kwargs.get('L1', l1), name='skeleton_L1')  # length of links
+        self.L2 = tf.constant(kwargs.get('L2', l2), name='skeleton_L2')
 
         # pre-compute values for mass, coriolis, and gravity matrices
         inertia_11_c = self.m1 * self.L1g ** 2 + self.I1 + self.m2 * (self.L2g ** 2 + self.L1 ** 2) + self.I2
@@ -181,8 +333,8 @@ class TwoDofArm(Skeleton):
         # jacobian to distribute external loads (torques) applied at endpoint to the two rigid links
         jacobian_11 = -self.L1*s1 - self.L2*s12
         jacobian_12 = -self.L2*s12
-        jacobian_21 =  self.L1*c1 + self.L2*c12
-        jacobian_22 =  self.L2*c12
+        jacobian_21 = self.L1*c1 + self.L2*c12
+        jacobian_22 = self.L2*c12
 
         # apply external loads
         # torque = jacobian.T @ endpoint_load
@@ -280,6 +432,12 @@ class TwoDofArm(Skeleton):
         return xy, dxy_dt, dxy_da
 
     def get_save_config(self):
+        """Get the base configuration from the :meth:`get_base_config` method, and add the arm's properties to the
+        configuration: each bone length, mass, center of gravity, coriolis forces, and viscosity parameters.
+
+            Returns:
+                - a `Dictionary` containing the object instance's full configuration.
+            """
         cfg = self.get_base_config()
         cfg.update({'I1': str(self.I1.numpy()), 'I2': str(self.I2.numpy()), 'L1': str(self.L1.numpy()),
                     'L2': str(self.L2.numpy()), 'L1g': str(self.L1g.numpy()), 'L2g': str(self.L2g.numpy()),
@@ -289,9 +447,22 @@ class TwoDofArm(Skeleton):
 
 
 class PointMass(Skeleton):
+    """A simple point-mass skeleton. The point of the point-mass is considered as a bone at the implementation level, so
+    this can be conceptualized as a "one-bone" skeleton with a length of `0` and no joint. However, note that the number
+    of degrees of freedom is not `0` like the number of joints, but is equal to the `space_dim` input (see below for
+    details).
 
-    def __init__(self, space_dim, mass=1., **kwargs):
-        name = kwargs.get('name', "point_mass")
+    Args:
+        space_dim: `Integer`, the dimensionality of the space in which the point-mass evolves. For instance, this would
+            be `2` for a point-mass evolving in a cartesian, planar `xy` space.
+        mass: `Float`, the mass (kg) of the point-mass.
+        name: `String`, the name of the skeleton.
+        **kwargs: All contents are passed to the parent ``motornet.plant.Skeleton`` base class. Also allows for some
+            backward compatibility. Do not try to pass a `dof` input value as this is automatically taken by the
+            `space_dim` input.
+    """
+
+    def __init__(self, space_dim, mass=1., name: str = "point_mass", **kwargs):
         super().__init__(dof=space_dim, space_dim=space_dim, name=name, **kwargs)
         self.mass = tf.constant(mass, name='mass')
         self._mass_cfg = mass  # to avoid eager tensors for json serialization when saving models
@@ -316,11 +487,16 @@ class PointMass(Skeleton):
         dpos_ddof = tf.where(path_fixation_body == 0, 0., dpos_ddof)
         return pos, vel, dpos_ddof
 
-    @staticmethod
-    def _joint2cartesian(joint_state):
+    def _joint2cartesian(self, joint_state):
         return joint_state
 
     def get_save_config(self):
+        """Get the base configuration from the :meth:`get_base_config` method, and add the mass value to the
+        configuration.
+
+        Returns:
+            - a `Dictionary` containing the object instance's full configuration.
+        """
         cfg = self.get_base_config()
         cfg['mass'] = self._mass_cfg
         return cfg
