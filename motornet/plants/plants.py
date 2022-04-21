@@ -3,34 +3,85 @@ import tensorflow as tf
 from tensorflow.keras.layers import Lambda
 from motornet.plants.skeletons import TwoDofArm, PointMass
 from motornet.plants.muscles import CompliantTendonHillMuscle, ReluMuscle
+from typing import Union
 
 
 class Plant:
+    """Base class for `Plant` objects.
 
-    def __init__(self, skeleton, muscle_type, timestep: float = 0.01, integration_method: str = 'euler', **kwargs):
+    Args:
+        skeleton: A ``motornet.plants.skeletons.Skeleton`` object. This defines the type of skeleton that the muscles
+            will wrap around.
+        muscle_type: A ``motornet.plants.muscles.Muscle`` object. This defines the type of muscle that will be added
+            each time the :meth:`add_muscle` method is called.
+        name: `String`, the name of the object instance.
+        timestep: `Float`, size of a single timestep (in sec).
+        integration_method: `String`, 'euler' to specify that numerical integration should take place using the Euler
+            method, or 'rk4', 'rungekutta4', 'runge-kutta4', or 'runge-kutta-4' to specify the Runge-Kutta 4 method
+            instead. This argument is case-insensitive.
+        excitation_noise_sd: `Float`, defines the amount of stochastic noise that will be added to the excitation input
+            during the :meth:`call`. Specifically, this value represents the standard deviation of a gaussian
+            distribution centred around zero, from which a noise term is drawn randomly at every timestep.
+        proprioceptive_delay: `Float`, the delay between a proprioceptive signal being produced by the plant and the
+            network receiving it as input. If this is not a multiple of the timestep size, this will be rounded up to
+            match the closest multiple value. What qualifies as "proprioceptive feedback" is `de facto` defined at the
+            network level.
+        visual_delay: `Float`, the delay between a visual signal being produced by the plant and the
+            network receiving it as input. If this is not a multiple of the timestep size, this will be rounded up to
+            match the closest multiple value. What qualifies as "visual feedback" is `de facto` defined at the
+            network level.
+        pos_upper_bound: `Float`, `List` or `Tuple`, indicating the upper boundary of the skeleton's joint position.
+            This should be a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance,
+            for a two degrees-of-freedom arm, we would have `n=2`.
+        pos_lower_bound: `Float`, `List` or `Tuple`, indicating the lower boundary of the skeleton's joint position.
+            This should be a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance,
+            for a two degrees-of-freedom arm, we would have `n=2`.
+        vel_upper_bound: `Float`, `List` or `Tuple`, indicating the upper boundary of the skeleton's joint velocity.
+            This should be a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance,
+            for a two degrees-of-freedom arm, we would have `n=2`.
+        vel_lower_bound: `Float`, `List` or `Tuple`, indicating the lower boundary of the skeleton's joint velocity.
+            This should be a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance,
+            for a two degrees-of-freedom arm, we would have `n=2`.
+    """
 
-        self.__name__ = 'Plant'
+    def __init__(
+            self,
+            skeleton,
+            muscle_type,
+            timestep: float = 0.01,
+            integration_method: str = 'euler',
+            excitation_noise_sd: float = 0.,
+            proprioceptive_delay: float = None,
+            visual_delay: float = None,
+            pos_lower_bound: Union[float, list, tuple] = None,
+            pos_upper_bound: Union[float, list, tuple] = None,
+            vel_lower_bound: Union[float, list, tuple] = None,
+            vel_upper_bound: Union[float, list, tuple] = None,
+            name: str = 'Plant',
+    ):
+
+        self.__name__ = name
         self.skeleton = skeleton
         self.dof = self.skeleton.dof
         self.space_dim = self.skeleton.space_dim
         self.state_dim = self.skeleton.state_dim
         self.output_dim = self.skeleton.output_dim
-        self.excitation_noise_sd = kwargs.get('excitation_noise_sd', 0.)
+        self.excitation_noise_sd = excitation_noise_sd
         self.dt = timestep
         self.half_dt = self.dt / 2  # to reduce online calculations for RK4 integration
         self.integration_method = integration_method.casefold()  # make string fully in lower case
 
         # default is no delay
-        proprioceptive_delay = kwargs.get('proprioceptive_delay', self.dt)
-        visual_delay = kwargs.get('visual_delay', self.dt)
+        proprioceptive_delay = self.dt if proprioceptive_delay is None else proprioceptive_delay
+        visual_delay = self.dt if visual_delay is None else visual_delay
         self.proprioceptive_delay = int(proprioceptive_delay / self.dt)
         self.visual_delay = int(visual_delay / self.dt)
 
         # handle position & velocity ranges
-        pos_lower_bound = kwargs.get('pos_lower_bound', self.skeleton.pos_lower_bound)
-        pos_upper_bound = kwargs.get('pos_upper_bound', self.skeleton.pos_upper_bound)
-        vel_lower_bound = kwargs.get('vel_lower_bound', self.skeleton.vel_lower_bound)
-        vel_upper_bound = kwargs.get('vel_upper_bound', self.skeleton.vel_upper_bound)
+        pos_lower_bound = self.skeleton.pos_lower_bound if pos_lower_bound is None else pos_lower_bound
+        pos_upper_bound = self.skeleton.pos_upper_bound if pos_upper_bound is None else pos_upper_bound
+        vel_lower_bound = self.skeleton.vel_lower_bound if vel_lower_bound is None else vel_lower_bound
+        vel_upper_bound = self.skeleton.vel_upper_bound if vel_upper_bound is None else vel_upper_bound
         pos_bounds = self._set_state_limit_bounds(lb=pos_lower_bound, ub=pos_upper_bound)
         vel_bounds = self._set_state_limit_bounds(lb=vel_lower_bound, ub=vel_upper_bound)
         self.pos_upper_bound = tf.constant(pos_bounds[:, 1], dtype=tf.float32)
@@ -87,7 +138,7 @@ class Plant:
         self._draw_fixed_states_fn = Lambda(lambda x: self._draw_fixed_states(*x), name='draw_fixed_states')
 
         self._parse_initial_joint_state_fn = Lambda(
-            function=lambda x: self._parse_initial_joint_state(*x),
+            function=lambda x: self._parse_initial_joint_state_lambda(*x),
             name='parse_initial_joint_state')
 
         self._state2target = Lambda(
@@ -99,10 +150,41 @@ class Plant:
         elif self.integration_method in ('rk4', 'rungekutta4', 'runge-kutta4', 'runge-kutta-4'):  # tuple faster thn set
             self._integrate_fn = Lambda(lambda x: self._rungekutta4(*x), name='plant_rk4_integration')
 
-    def state2target(self, state, n_timesteps=1):
+    def state2target(self, state, n_timesteps: int = 1):
+        """Converts a `Tensor` formatted as a state to a `Tensor` formatted as a target that can be passed to a
+        :meth:`model.fit` call.
+
+        Args:
+            state: `Tensor`, the state to be converted.
+            n_timesteps: `Integer`, the number of timesteps desired for creating the target `Tensor`.
+
+        Returns:
+            A `Tensor` that can be used as a target input to the :meth:`model.fit` method.
+        """
         return self._state2target((state, n_timesteps))
 
-    def add_muscle(self, path_fixation_body: list, path_coordinates: list, name='', **kwargs):
+    def add_muscle(self, path_fixation_body: list, path_coordinates: list, name: str = None, **kwargs):
+        """Adds a muscle to the plant.
+
+        Args:
+            path_fixation_body: `List`, containing the index of the fixation body (or fixation bone) for each fixation
+                point in the muscle. The index `0` always stands for the worldspace, *i.e.* a fixation point outside of
+                the skeleton.
+            path_coordinates:  A `List` of `lists`. There should be as many lists in the main list as there are fixation
+                points for that muscle. Each list in the main list should contain a series of `n` coordinate `Float`
+                values, with `n` being the dimensionality of the worldspace. For instance, in a 2D environment,
+                we would need two coordinate values. The coordinate system of each bone is centered on that bone's
+                origin point. Its first dimension is always alongside the length of the bone, and the next dimension(s)
+                proceed(s) from there on orthogonally to that first dimension.
+            name: `String`, the name to give to the muscle being added. In ``None`` is given, the name defaults to
+                `"muscle_m"`, with `m` being a counter for the number of muscles.
+            **kwargs: This is used to pass the set of properties required to build the type of muscle specified at
+                initialization. What it should contain varies depending on the muscle type being used. A `TypeError`
+                will be raised by this method if a muscle property pertaining to the muscle type specified is missing.
+
+        Raises:
+            TypeError: if an argument is missing to build the type of muscle specified at initialization.
+        """
         path_fixation_body = np.array(path_fixation_body).astype('float32').reshape((1, 1, -1))
         n_points = path_fixation_body.size
         path_coordinates = np.array(path_coordinates).astype('float32').T[np.newaxis, :, :]
@@ -138,11 +220,10 @@ class Plant:
                 if key in self.tobuild__default:
                     self.tobuild__muscle[key].append(self.tobuild__default[key])
                 else:
-                    raise ValueError('Missing keyword argument ' + key + '.')
+                    raise TypeError('Missing keyword argument ' + key + '.')
         self.muscle.build(timestep=self.dt, integration_method=self.integration_method, **self.tobuild__muscle)
 
-        if name == '':
-            name = 'muscle_' + str(self.n_muscles)
+        name = name if name is not None else 'muscle_' + str(self.n_muscles)
         self.muscle_name.append(name)
 
     def __call__(self, muscle_input, joint_state, muscle_state, geometry_state, **kwargs):
@@ -157,6 +238,22 @@ class Plant:
         return new_joint_state, new_cartesian_state, new_muscle_state, new_geometry_state
 
     def integrate(self, muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load):
+        """Integrates the plant over one timestep. To do so, it first calls the :meth:`update_ode` method to obtain
+        state derivatives from evaluation of the Ordinary Differential Equations. Then it performs the numerical
+        integration over one timestep using the :meth:`integration_step` method.
+
+        Args:
+            muscle_input: `Tensor`, the input to the muscles (motor command). Typically, this should be the output of
+                the controller network's forward pass.
+            joint_state: `Tensor`, the initial state for joint configuration.
+            muscle_state: `Tensor`, the initial state for muscle configuration.
+            geometry_state: `Tensor`, the initial state for geometry configuration.
+            endpoint_load: `Tensor`, the load(s) to apply at the skeleton's endpoint.
+            joint_load: `Tensor`, the load(s) to apply at the joints.
+
+        Returns:
+            A list containing the new joint, muscle, and geometry states following integration, in that order.
+        """
         return self._integrate_fn((muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load))
 
     def _euler(self, excitation, joint_state, muscle_state, geometry_state, endpoint_load, joint_load):
@@ -179,6 +276,21 @@ class Plant:
         return states["joint"], states["muscle"], states["geometry"]
 
     def integration_step(self, dt, state_derivative, states):
+        """Performs one numerical integration step for the ``motornet.plants.skeletons.Muscle`` object, and then for the
+        ``motornet.plants.skeletons.Skeleton`` object.
+
+        Args:
+            dt: `Float`, size of a single timestep (in sec).
+            state_derivative: A `Dictionary` containing the derivatives of the joint, muscle, and geometry states as
+                `Tensor`, mapped to a "joint", "muscle", and "geometry" key, respectively. This is usually obtained
+                using the :meth:`update_ode` method.
+            states: A `Dictionary` containing the joint, muscle, and geometry states as `Tensor`, mapped to a "joint",
+                "muscle", and "geometry" key, respectively.
+
+        Returns:
+            A `Dictionary` containing the updated joint, muscle, and geometry states following integration.
+        """
+
         new_states = {
             "muscle": self.muscle.integrate(dt, state_derivative["muscle"], states["muscle"], states["geometry"]),
             "joint": self.skeleton.integrate(dt, state_derivative["joint"], states["joint"])}
@@ -244,7 +356,7 @@ class Plant:
         if joint_state is not None and tf.shape(joint_state)[0] > 1:
             batch_size = tf.shape(joint_state)[0]
 
-        joint0 = self.parse_initial_joint_state(joint_state=joint_state, batch_size=batch_size)
+        joint0 = self._parse_initial_joint_state(joint_state=joint_state, batch_size=batch_size)
         cartesian0 = self.skeleton.joint2cartesian(joint_state=joint0)
         geometry0 = self.get_geometry(joint0)
         muscle0 = self.muscle.get_initial_muscle_state(batch_size=batch_size, geometry_state=geometry0)
@@ -259,7 +371,7 @@ class Plant:
         vel = tf.zeros(sz)
         return tf.concat([pos, vel], axis=1)
 
-    def _parse_initial_joint_state(self, joint_state, batch_size):
+    def _parse_initial_joint_state_lambda(self, joint_state, batch_size):
         if joint_state is None:
             joint0 = self.draw_random_uniform_states(batch_size=batch_size)
         else:
@@ -308,6 +420,15 @@ class Plant:
         return bounds
 
     def get_save_config(self):
+        """Get the plant object's configuration as a `Dictionary`.
+
+        Returns:
+
+        A `Dictionary` containing the skeleton and muscle configurations as nested `Dictionaries`, and parameters
+        pertaining to the plant's configuration. Specifically, the size of the timestep (sec), the name of each
+        muscle added via the :meth:`add_muscle` method, the number of muscles, the visual and proprioceptive
+        delay, and the standard deviation of the excitation noise.
+        """
         muscle_cfg = self.muscle.get_save_config()
         skeleton_cfg = self.skeleton.get_save_config()
         cfg = {'Muscle': muscle_cfg,
@@ -318,35 +439,120 @@ class Plant:
         return cfg
 
     def get_geometry(self, joint_state):
+        """Compute the geometry state from the joint state.
+
+        Args:
+            joint_state: `Tensor`, the joint state from which to compute the geometry state.
+
+        Returns:
+            The geometry state corresponding to the joint state provided.
+        """
         return self._get_geometry_fn(joint_state)
 
     def update_ode(self, excitation, states, endpoint_load, joint_load):
+        """Computes state derivatives by evaluating the Ordinary Differential Equations of the
+        ``motornet.plants.skeletons.Muscle`` object, and then of the ``motornet.plants.skeletons.Skeleton``.
+
+        Args:
+            excitation: `Tensor`, the input to the muscles (motor command). Typically, this should be the output of the
+                controller network's forward pass.
+            states: A `Dictionary` containing the joint, muscle, and geometry states as `Tensor`, mapped to a "joint",
+                "muscle", and "geometry" key, respectively.
+            endpoint_load: `Tensor`, the load(s) to apply at the skeleton's endpoint.
+            joint_load: `Tensor`, the load(s) to apply at the joints.
+
+        Returns:
+            A list containing the new joint, muscle, and geometry states following integration, in that order.
+        """
         return self._update_ode_fn((excitation, states, endpoint_load, joint_load))
 
     def get_initial_state(self, batch_size=1, joint_state=None):
+        """Get the initial states (cartesian, muscle, geometry) corresponding to a specified set of `joint_state`
+        values.
+
+        Args:
+            batch_size: `Integer`, the desired batch size.
+            joint_state: The joint state from which the other state values are inferred.
+
+        Returns:
+             A list containing the (input) joint state, and cartesian, muscle, and geometry states, in that order.
+        """
         return self._get_initial_state(batch_size, joint_state)
 
-    def draw_random_uniform_states(self, batch_size=1):
+    def draw_random_uniform_states(self, batch_size: int = 1):
+        """Draws joint states according to a random uniform distribution, bounded by the position and velocity boundary
+        attributes defined during this object instance's initialization call.
+
+        Args:
+            batch_size: `Integer`, the desired batch size.
+
+        Returns:
+            A `Tensor` containing `batch_size` joint states.
+        """
         return self._draw_randu_states_fn(batch_size)
 
-    def parse_initial_joint_state(self, joint_state, batch_size=1):
+    def _parse_initial_joint_state(self, joint_state, batch_size=1):
         return self._parse_initial_joint_state_fn((joint_state, batch_size))
 
     def draw_fixed_states(self, position, velocity=None, batch_size=1):
+        """Creates a joint state `Tensor` corresponding to the specified position tiled `batch_size` times.
+
+        Args:
+            position: The position to tile in the state `Tensor`.
+            velocity: The velocity to tile in the state `Tensor`. If not provided, this will default to `0` (null
+                velocity).
+            batch_size: `Integer`, the desired batch size.
+
+        Returns:
+            A `Tensor` containing `batch_size` joint states.
+        """
         return self._draw_fixed_states_fn((position, velocity, batch_size))
 
     def joint2cartesian(self, joint_state):
+        """Computes the cartesian state given the joint state.
+
+        Args:
+            joint_state: `Tensor`, the current joint configuration.
+
+        Returns:
+            The current cartesian configuration (position, velocity) as a `Tensor`.
+        """
         return self.skeleton.joint2cartesian(joint_state=joint_state)
 
     def setattr(self, name: str, value):
+        """Changes the value of an attribute held by this object.
+
+        Args:
+            name: `String`, attribute to set to a new value.
+            value: Value that the attribute should take.
+        """
         self.__setattr__(name, value)
 
 
 class RigidTendonArm26(Plant):
-    """
-    This pre-built plant class is an implementation of a "lumped-muscle" model from Kistemaker et al. (2010),
-    J. Neurophysiol. Because lumped-muscle models are functional approximations of biological reality, this class'
-    geometry does not rely on the default geometry methods, but on its own, custom-made geometry.
+    """This pre-built plant class is an implementation of a 6-muscles, "lumped-muscle" model from `[1]`. Because
+    lumped-muscle models are functional approximations of biological reality, this class' geometry does not rely on the
+    default geometry methods, but on its own, custom-made geometry. The moment arm approximation is based on a set of
+    polynomial functions. The default integration method is Euler.
+
+    If no `skeleton` input is provided, this object will use a ``motornet.plants.skeletons.TwoDofArm`` skeleton, with
+    parameters:
+        - m1 = 1.82
+        - m2 = 1.43
+        - l1g = 0.135
+        - l2g = 0.165
+        - i1 = 0.051
+        - i2 = 0.057
+        - l1 = 0.309
+        - l2 = 0.333
+    The default shoulder and elbow lower limits are defined as `0`, and their default upper limits as `135` and `155`
+    degrees, respectively. These parameters come from `[1]`.
+
+    The `kwargs` inputs are passed as-is to the parent ``motornet.plants.Plant`` class.
+
+    Reference:
+    `Kistemaker DA, Wong JD, Gribble PL. The central nervous system does not minimize energy cost in arm movements.
+    J Neurophysiol. 2010 Dec;104(6):2985-94. doi: 10.1152/jn.00483.2010. Epub 2010 Sep 8. PMID: 20884757.`
     """
 
     def __init__(self, muscle_type, skeleton=None, timestep=0.01, **kwargs):
@@ -356,7 +562,7 @@ class RigidTendonArm26(Plant):
         pos_upper_bound = kwargs.pop('pos_upper_bound', (sho_limit[1], elb_limit[1]))
 
         if skeleton is None:
-            skeleton = TwoDofArm(m1=1.82, m2=1.43, L1g=.135, L2g=.165, I1=.051, I2=.057, L1=.309, L2=.333)
+            skeleton = TwoDofArm(m1=1.82, m2=1.43, l1g=.135, l2g=.165, i1=.051, i2=.057, l1=.309, l2=.333)
 
         super().__init__(
             skeleton=skeleton,
@@ -398,14 +604,17 @@ class RigidTendonArm26(Plant):
 
 
 class CompliantTendonArm26(RigidTendonArm26):
-    """
-    This is the compliant-tendon version of the "RigidTendonArm26" class above
+    """This is the compliant-tendon version of the ``RigidTendonArm26`` class. Note that the default integration
+    method for the current object is Runge-Kutta 4, instead of Euler.
+
+    The `**kwargs` inputs are passed as-is to the parent ``motornet.plants.RigidTendonArm26`` class.
     """
 
     def __init__(self, timestep=0.0002, skeleton=None, **kwargs):
         integration_method = kwargs.pop('integration_method', 'rk4')
         if skeleton is None:
-            skeleton = TwoDofArm(m1=2.10, m2=1.65, L1g=.146, L2g=.179, I1=.024, I2=.025, L1=.335, L2=.263)
+            skeleton = TwoDofArm(m1=1.82, m2=1.43, l1g=.135, l2g=.165, i1=.051, i2=.057, l1=.309, l2=.333)
+            # skeleton = TwoDofArm(m1=2.10, m2=1.65, L1g=.146, L2g=.179, I1=.024, I2=.025, L1=.335, L2=.263)
 
         super().__init__(
             muscle_type=CompliantTendonHillMuscle(),
@@ -422,23 +631,35 @@ class CompliantTendonArm26(RigidTendonArm26):
             optimal_muscle_length=[0.134, 0.140, 0.092, 0.093, 0.137, 0.127],
             normalized_slack_muscle_length=self.tobuild__default['normalized_slack_muscle_length'])
 
+        # adjust some parameters to relax overly stiff tendon values.
         a0 = [0.182, 0.2362, 0.2859, 0.2355, 0.3329, 0.2989]
         self.a0 = tf.constant(a0, shape=(1, 1, 6), dtype=tf.float32)
 
 
 class ReluPointMass24(Plant):
-    def __init__(self, timestep=0.01, **kwargs):
-        f = kwargs.pop('max_isometric_force', 500)
-        skeleton = PointMass(space_dim=2)
+    """This object implements a 2D point-mass skeleton attached to 4 ``motornet.plants.muscles.ReluMuscle`` muscles in
+    a "X" configuration. The outside attachement points are the corners of a `(2, 2) -> (2, -2) -> (-2, -2) -> (-2, 2)`
+    frame, and the point-mass is constrained to a `(1, 1) -> (1, -1) -> (-1, -1) -> (-1, 1)` space.
+
+    Args:
+        timestep: `Float`, size of a single timestep (in sec).
+        max_isometic_force: `Float`, the maximum force (N) that each muscle can produce.
+        mass: `Float`, the mass (kg) of the point-mass.
+        **kwargs: The `kwargs` inputs are passed as-is to the parent ``motornet.plants.Plant`` class.
+    """
+
+    def __init__(self, timestep: float = 0.01, max_isometric_force: float = 500, mass: float = 1, **kwargs):
+        skeleton = PointMass(space_dim=2, mass=mass)
         super().__init__(skeleton=skeleton, muscle_type=ReluMuscle(), timestep=timestep, **kwargs)
 
         # path coordinates for each muscle
-        pc_ur = [[2, 2], [0, 0]]
-        pc_ul = [[-2, 2], [0, 0]]
-        pc_lr = [[2, -2], [0, 0]]
-        pc_ll = [[-2, -2], [0, 0]]
+        ur = [[2, 2], [0, 0]]
+        ul = [[-2, 2], [0, 0]]
+        lr = [[2, -2], [0, 0]]
+        ll = [[-2, -2], [0, 0]]
 
-        self.add_muscle(path_fixation_body=[0, 1], path_coordinates=pc_ur, name='UpperRight', max_isometric_force=f)
-        self.add_muscle(path_fixation_body=[0, 1], path_coordinates=pc_ul, name='UpperLeft', max_isometric_force=f)
-        self.add_muscle(path_fixation_body=[0, 1], path_coordinates=pc_lr, name='LowerRight', max_isometric_force=f)
-        self.add_muscle(path_fixation_body=[0, 1], path_coordinates=pc_ll, name='LowerLeft', max_isometric_force=f)
+        f = max_isometric_force
+        self.add_muscle(path_fixation_body=[0, 1], path_coordinates=ur, name='UpperRight', max_isometric_force=f)
+        self.add_muscle(path_fixation_body=[0, 1], path_coordinates=ul, name='UpperLeft', max_isometric_force=f)
+        self.add_muscle(path_fixation_body=[0, 1], path_coordinates=lr, name='LowerRight', max_isometric_force=f)
+        self.add_muscle(path_fixation_body=[0, 1], path_coordinates=ll, name='LowerLeft', max_isometric_force=f)

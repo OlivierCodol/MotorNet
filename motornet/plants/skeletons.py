@@ -13,16 +13,16 @@ class Skeleton:
         space_dim: `Integer`, the dimensionality of the space in which the skeleton evolves. For instance, this would be
             `2` for a cartesian, planar `xy` space.
         name: `String`, the name of the object instance.
-        pos_upper_bound: `Float`, `List` or `Tuple`, indicating the upper boundary of joint position. Should be
+        pos_upper_bound: `Float`, `List` or `Tuple`, indicating the upper boundary of joint position. This should be
             a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance, for a two
             degrees-of-freedom arm, we would have `n=2`.
-        pos_lower_bound: `Float`, `List` or `Tuple`, indicating the lower boundary of joint position. Should be
+        pos_lower_bound: `Float`, `List` or `Tuple`, indicating the lower boundary of joint position. This should be
             a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance, for a two
             degrees-of-freedom arm, we would have `n=2`.
-        vel_upper_bound: `Float`, `List` or `Tuple`, indicating the upper boundary of joint velocity. Should be
+        vel_upper_bound: `Float`, `List` or `Tuple`, indicating the upper boundary of joint velocity. This should be
             a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance, for a two
             degrees-of-freedom arm, we would have `n=2`.
-        vel_lower_bound: `Float`, `List` or `Tuple`, indicating the lower boundary of joint velocity. Should be
+        vel_lower_bound: `Float`, `List` or `Tuple`, indicating the lower boundary of joint velocity. This should be
             a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance, for a two
             degrees-of-freedom arm, we would have `n=2`.
 
@@ -38,6 +38,7 @@ class Skeleton:
                  vel_lower_bound: Union[float, list, tuple] = -1000.,
                  vel_upper_bound: Union[float, list, tuple] = +1000.,
                  **kwargs):
+
         self.__name__ = name
         self.dof = dof
         self.space_dim = space_dim
@@ -251,7 +252,7 @@ class Skeleton:
         return cfg
 
     def get_save_config(self):
-        """Get the skeleton object's configuration as a `dictionary`. This method should be overwritten by subclasse
+        """Get the skeleton object's configuration as a `Dictionary`. This method should be overwritten by subclasse
         objects, and used to add configuration entries specific to that subclass.
 
         Returns:
@@ -457,9 +458,9 @@ class PointMass(Skeleton):
             be `2` for a point-mass evolving in a cartesian, planar `xy` space.
         mass: `Float`, the mass (kg) of the point-mass.
         name: `String`, the name of the skeleton.
-        **kwargs: All contents are passed to the parent ``motornet.plant.Skeleton`` base class. Also allows for some
-            backward compatibility. Do not try to pass a `dof` input value as this is automatically taken by the
-            `space_dim` input.
+        **kwargs: The kwargs inputs are passed as-is to the parent ``motornet.plant.Skeleton`` class. This also
+            allows for some backward compatibility. Do not try to pass a `dof` input value as this is automatically
+            taken by the `space_dim` input.
     """
 
     def __init__(self, space_dim, mass=1., name: str = "point_mass", **kwargs):

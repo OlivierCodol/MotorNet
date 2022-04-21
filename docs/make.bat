@@ -33,5 +33,3 @@ goto end
 
 :end
 popd
-
-echo.TESTME

@@ -234,9 +234,9 @@ details).</p>
 be <cite>2</cite> for a point-mass evolving in a cartesian, planar <cite>xy</cite> space.</p></li>
 <li><p><strong>mass</strong> – <cite>Float</cite>, the mass (kg) of the point-mass.</p></li>
 <li><p><strong>name</strong> – <cite>String</cite>, the name of the skeleton.</p></li>
-<li><p><strong>**kwargs</strong> – All contents are passed to the parent <code class="docutils literal notranslate"><span class="pre">motornet.plant.Skeleton</span></code> base class. Also allows for some
-backward compatibility. Do not try to pass a <cite>dof</cite> input value as this is automatically taken by the
-<cite>space_dim</cite> input.</p></li>
+<li><p><strong>**kwargs</strong> – The kwargs inputs are passed as-is to the parent <code class="docutils literal notranslate"><span class="pre">motornet.plant.Skeleton</span></code> class. This also
+allows for some backward compatibility. Do not try to pass a <cite>dof</cite> input value as this is automatically
+taken by the <cite>space_dim</cite> input.</p></li>
 </ul>
 </dd>
 </dl>
@@ -267,16 +267,16 @@ configuration.</p>
 <li><p><strong>space_dim</strong> – <cite>Integer</cite>, the dimensionality of the space in which the skeleton evolves. For instance, this would be
 <cite>2</cite> for a cartesian, planar <cite>xy</cite> space.</p></li>
 <li><p><strong>name</strong> – <cite>String</cite>, the name of the object instance.</p></li>
-<li><p><strong>pos_upper_bound</strong> – <cite>Float</cite>, <cite>List</cite> or <cite>Tuple</cite>, indicating the upper boundary of joint position. Should be
+<li><p><strong>pos_upper_bound</strong> – <cite>Float</cite>, <cite>List</cite> or <cite>Tuple</cite>, indicating the upper boundary of joint position. This should be
 a <cite>n</cite>-elements vector or list, with <cite>n</cite> the number of joints of the skeleton. For instance, for a two
 degrees-of-freedom arm, we would have <cite>n=2</cite>.</p></li>
-<li><p><strong>pos_lower_bound</strong> – <cite>Float</cite>, <cite>List</cite> or <cite>Tuple</cite>, indicating the lower boundary of joint position. Should be
+<li><p><strong>pos_lower_bound</strong> – <cite>Float</cite>, <cite>List</cite> or <cite>Tuple</cite>, indicating the lower boundary of joint position. This should be
 a <cite>n</cite>-elements vector or list, with <cite>n</cite> the number of joints of the skeleton. For instance, for a two
 degrees-of-freedom arm, we would have <cite>n=2</cite>.</p></li>
-<li><p><strong>vel_upper_bound</strong> – <cite>Float</cite>, <cite>List</cite> or <cite>Tuple</cite>, indicating the upper boundary of joint velocity. Should be
+<li><p><strong>vel_upper_bound</strong> – <cite>Float</cite>, <cite>List</cite> or <cite>Tuple</cite>, indicating the upper boundary of joint velocity. This should be
 a <cite>n</cite>-elements vector or list, with <cite>n</cite> the number of joints of the skeleton. For instance, for a two
 degrees-of-freedom arm, we would have <cite>n=2</cite>.</p></li>
-<li><p><strong>vel_lower_bound</strong> – <cite>Float</cite>, <cite>List</cite> or <cite>Tuple</cite>, indicating the lower boundary of joint velocity. Should be
+<li><p><strong>vel_lower_bound</strong> – <cite>Float</cite>, <cite>List</cite> or <cite>Tuple</cite>, indicating the lower boundary of joint velocity. This should be
 a <cite>n</cite>-elements vector or list, with <cite>n</cite> the number of joints of the skeleton. For instance, for a two
 degrees-of-freedom arm, we would have <cite>n=2</cite>.</p></li>
 </ul>
@@ -359,7 +359,7 @@ do so in the <a class="reference internal" href="#motornet.plants.skeletons.Skel
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.skeletons.Skeleton.get_save_config">
 <span class="sig-name descname"><span class="pre">get_save_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.Skeleton.get_save_config" title="Permalink to this definition">#</a></dt>
-<dd><p>Get the skeleton object’s configuration as a <cite>dictionary</cite>. This method should be overwritten by subclasse
+<dd><p>Get the skeleton object’s configuration as a <cite>Dictionary</cite>. This method should be overwritten by subclasse
 objects, and used to add configuration entries specific to that subclass.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
