@@ -93,8 +93,8 @@ class Skeleton:
         self.pos_lower_bound = tf.constant(pos_lower_bound, name='pos_lower_bound')
         self.vel_upper_bound = tf.constant(vel_upper_bound, name='vel_upper_bound')
         self.vel_lower_bound = tf.constant(vel_lower_bound, name='vel_lower_bound')
-        self.dt = tf.constant(timestep, name='dt')
-        self.half_dt = tf.constant(self.dt / 2, name='half_dt')
+        self.dt = tf.constant(timestep, name='dt', dtype=tf.float32)
+        self.half_dt = tf.constant(self.dt / 2, name='half_dt', dtype=tf.float32)
         self.integration_method = integration_method.casefold()  # make string fully in lower case
         self.clip_position = Lambda(
             function=lambda x: tf.clip_by_value(x, self.pos_lower_bound, self.pos_upper_bound), name='clip_position')
@@ -136,13 +136,13 @@ class Skeleton:
         k = (k1 + 2 * (k2 + k3) + k4) / 6
         return self.integrate(self.dt, state_derivative=k, joint_state=joint_state)
 
-    def integrate(self, dt, state_derivative, joint_state):
+    def integrate(self, dt: float, state_derivative, joint_state):
         """Perform one integration step. This method is usually called by the parent``motornet.plant.Plant`` object or
         subclass during numerical integration.
 
         Args:
-            dt: Timestep (sec) of the plant. The skeleton object's ``self.dt`` attribute is not used here because for
-                the Runge-Kutta method, half-timesteps can occasionally be passed.
+            dt: `Float`, timestep (sec) of the plant. The skeleton object's ``self.dt`` attribute is not used here
+                 because for the Runge-Kutta method, half-timesteps can occasionally be passed.
             state_derivative: `Tensor`, derivative of joint state. This input and `joint_state` should have identical
                 dimensionality.
             joint_state: `Tensor`, joint state that serves as the initial value. This input and `state_derivative`
@@ -222,7 +222,7 @@ class Skeleton:
         return
 
     @abstractmethod
-    def _integrate(self, dt, state_derivative, joint_state):
+    def _integrate(self, dt: float, state_derivative, joint_state):
         return
 
     @abstractmethod
@@ -463,9 +463,9 @@ class PointMass(Skeleton):
             taken by the `space_dim` input.
     """
 
-    def __init__(self, space_dim, mass=1., name: str = "point_mass", **kwargs):
+    def __init__(self, space_dim: int, mass: float = 1., name: str = "point_mass", **kwargs):
         super().__init__(dof=space_dim, space_dim=space_dim, name=name, **kwargs)
-        self.mass = tf.constant(mass, name='mass')
+        self.mass = tf.constant(mass, name='mass', dtype=tf.float32)
         self._mass_cfg = mass  # to avoid eager tensors for json serialization when saving models
 
     def _update_ode(self, inputs, joint_state, endpoint_load):
