@@ -124,17 +124,6 @@ def plot_arm26_over_time(arm, joint_state, cmap: str = 'viridis', linewidth: int
     axes.set_aspect('equal', adjustable='box')
 
 
-def plot_opensim(results, save_path):
-    j = results['joint position'].numpy().transpose(2, 1, 0).reshape((4, -1), order='F').transpose()
-    m = results['muscle state'].numpy().transpose(2, 3, 1, 0).reshape((5, 6, -1), order='F').transpose(2, 1, 0)
-    mdict = {'muscle': m[:, :, 0], 'joint': j[:, 0:2]}
-    scipy.io.savemat(save_path + '.mat', mdict)
-
-    variable = 'asd'
-    with open(save_path + '.sto', "w") as text_file:
-        print(f"Stuff: {variable}", file=text_file)
-
-
 def animate_arm_trajectory(joint_position, plant, path_name='./Arm_animation.mp4'):
     assert joint_position.shape[0] == 1
     joint_position = tf.reshape(joint_position, (-1, plant.state_dim))
