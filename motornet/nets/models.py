@@ -36,6 +36,7 @@ class MotorNetModel(tf.keras.Model, ABC):
         self.output_names = output_names
 
         # if a defined loss object has been attributed a name, then use that name instead of the default output_name
+        # TODO should use assigned loss name in "add_loss" method
         for k, name in enumerate(output_names):
             if hasattr(task.losses[name], 'name'):
                 self.output_names[k] = task.losses[name].name

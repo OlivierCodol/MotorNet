@@ -551,7 +551,7 @@ class RigidTendonArm26(Plant):
     The `kwargs` inputs are passed as-is to the parent ``motornet.plants.Plant`` class.
 
     Reference:
-    `Kistemaker DA, Wong JD, Gribble PL. The central nervous system does not minimize energy cost in arm movements.
+    `[1] Kistemaker DA, Wong JD, Gribble PL. The central nervous system does not minimize energy cost in arm movements.
     J Neurophysiol. 2010 Dec;104(6):2985-94. doi: 10.1152/jn.00483.2010. Epub 2010 Sep 8. PMID: 20884757.`
     """
 

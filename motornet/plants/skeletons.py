@@ -160,7 +160,7 @@ class Skeleton:
             joint_state: `Tensor`, the current joint configuration.
 
         Returns:
-            - `Tensor`, the current cartesian configuration (position, velocity).
+            - A `tensor` containing the current cartesian configuration (position, velocity).
         """
         return self._joint2cartesian_fn(joint_state)
 
@@ -209,11 +209,11 @@ class Skeleton:
         past that boundary, then the velocity is set to `0`.
 
         Args:
-            pos: A `Tensor` containing positions of the plant in joint space.
-            vel: A `Tensor` containing velocities of the plant in joint space.
+            pos: A `tensor` containing positions of the plant in joint space.
+            vel: A `tensor` containing velocities of the plant in joint space.
 
         Returns:
-            - A `Tensor` containing the clipped velocities, with same dimensionality as the `vel` input argument.
+            - A `tensor` containing the clipped velocities, with same dimensionality as the `vel` input argument.
         """
         return self._clip_velocity_fn((pos, vel))
 
@@ -241,12 +241,12 @@ class Skeleton:
 
     def get_base_config(self):
         """Get the object instance's base configuration. This is the set of configuration entries that will be useful
-        for any and all skeleton objects or subclasses. This method should be called by the :meth:`get_save_config`
+        for any skeleton objects or subclasses. This method should be called by the :meth:`get_save_config`
         method. Users wanting to save additional configuration entries specific to a skeleton subclass should then
         do so in the :meth:`get_save_config` method, using this method's output `dictionary` as a base.
 
         Returns:
-             - A `Dictionary` containing the skeleton's degrees of freedom, timestep size, and space dimensionality.
+             - A `dictionary` containing the skeleton's degrees of freedom, timestep size, and space dimensionality.
         """
         cfg = {'dof': self.dof, 'dt': str(self.dt.numpy()), 'space_dim': self.space_dim}
         return cfg
@@ -274,8 +274,8 @@ class TwoDofArm(Skeleton):
         i2: `Float`, inertia (kg.m ** 2) of the second bone.
         l1: `Float`, length (m) of the first bone.
         l2: `Float`, length (m) of the second bone.
-        **kwargs: All contents are passed to the parent ``motornet.plant.Skeleton`` base class. Also allows for some
-            backward compatibility.
+        **kwargs: All contents are passed to the parent ``motornet.plant.skeletons.Skeleton`` base class. Also allows
+            for some backward compatibility.
     """
 
     def __init__(self, name: str = 'two_dof_arm', m1: float = 1.864572, m2: float = 1.534315, l1g: float = 0.180496,
@@ -437,8 +437,8 @@ class TwoDofArm(Skeleton):
         configuration: each bone length, mass, center of gravity, coriolis forces, and viscosity parameters.
 
             Returns:
-                - a `Dictionary` containing the object instance's full configuration.
-            """
+                - A `dictionary` containing the object instance's full configuration.
+        """
         cfg = self.get_base_config()
         cfg.update({'I1': str(self.I1.numpy()), 'I2': str(self.I2.numpy()), 'L1': str(self.L1.numpy()),
                     'L2': str(self.L2.numpy()), 'L1g': str(self.L1g.numpy()), 'L2g': str(self.L2g.numpy()),

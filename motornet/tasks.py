@@ -36,11 +36,14 @@ class Task(tf.keras.utils.Sequence):
 
         self.convert_to_tensor = tf.keras.layers.Lambda(lambda x: tf.convert_to_tensor(x))
 
-    def add_loss(self, assigned_output, loss, loss_weight=1.):
+    def add_loss(self, assigned_output, loss, loss_weight=1., name=None):
+        # TODO raise error if assigned output is wrong
         self.losses[assigned_output] = loss
         self.loss_weights[assigned_output] = loss_weight
-        if hasattr(loss, 'name'):
-            self.loss_names[assigned_output] = loss.name
+
+        # if a name is given, overwrite the default name assigned at initialization
+        if name is not None:
+            self.loss_names[assigned_output] = name
 
     @abstractmethod
     def generate(self, batch_size, n_timesteps):
