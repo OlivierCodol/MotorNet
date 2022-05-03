@@ -16,8 +16,11 @@ Welcome to MotorNet's documentation!
 .. toctree::
    :maxdepth: 1
    :caption: Tutorials
+   :glob:
 
    tutorial1
+
+   nb/testnb
 
    tutorial2
 
