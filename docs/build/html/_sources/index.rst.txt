@@ -18,18 +18,18 @@ Welcome to MotorNet's documentation!
    :caption: Tutorials
    :glob:
 
-   tutorial1
+   md/tutorial1
 
    nb/testnb
 
-   tutorial2
+   md/tutorial2
 
 
 .. toctree::
    :maxdepth: 1
    :caption: Documentation
 
-   install
+   md/install
 
 
 
