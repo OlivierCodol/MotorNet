@@ -4,13 +4,21 @@ import os
 from abc import ABC
 
 
-class MotorNetModel(tf.keras.Model, ABC):
+class DistalTeacher(tf.keras.Model, ABC):
     """This is a custom ``tensorflow.keras.Model`` object, whose purpose is to enable saving
     ``motornet.plants`` object configuration when saving the model as well.
 
     In Tensorflow, ``tensorflow.keras.Model`` objects group layers into an object with training and inference features.
     See the Tensorflow documentation for more details on how to declare, compile and use use a
     ``tensorflow.keras.Model`` object.
+
+    Conceptually, as this model class performs backward propagation through the plant (which can be considered a perfect
+    forward model), this class essentially performs the training of the controller using a `distal teacher` algorithm,
+    as defined in `[1]`.
+
+    Reference:
+    `[1] Jordan MI, Rumelhart DE. Forward Models: Supervised Learning with a Distal Teacher.
+    Cognitive Science, 1992 Jul;16(3):307-354. doi: 10.1207/s15516709cog1603_1.`
 
     Args:
         inputs: The input(s) of the model: a ``tensorflow.keras.layers.Input`` object or list of
@@ -122,3 +130,11 @@ class MotorNetModel(tf.keras.Model, ABC):
     @classmethod
     def from_config(cls, config, custom_objects=None):
         return cls(**config)
+
+
+class MotorNetModel(DistalTeacher):
+    """This is an alias name for the `DistalTeacher` class for backward compatibility.
+    """
+
+    def __init__(self, inputs, outputs, task, name='controller'):
+        super().__init__(inputs=inputs, outputs=outputs, task=task, name=name)
