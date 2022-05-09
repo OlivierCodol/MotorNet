@@ -34,20 +34,20 @@ class DistalTeacher(tf.keras.Model, ABC):
         self.task = task
         super().__init__(inputs=inputs, outputs=outputs, name=name)
 
-        # ensure each loss is tagged with the correct loss name, since the loss order is reshuffled in parent class
+        # ensure each loss is tagged with the correct loss name, since the loss order is reshuffled in the parent
+        # `tensorflow.keras.Model` class.
         flat_losses = tf.nest.flatten(task.losses)
+        # names = list(task.losses.keys())
         names = list(task.losses.keys())
         losses = list(task.losses.values())
 
-        # all non-defined losses (=None) will share the output_name of the first model output with a non-defined loss
+        # all non-defined losses (=None) will share the output_name of the first model output with a non-defined loss,
+        # but we will remove those after anyway.
         output_names = [names[losses.index(loss)] for loss in flat_losses]
-        self.output_names = output_names
+        loss_names = [task.loss_names[name] for name in output_names]
 
-        # if a defined loss object has been attributed a name, then use that name instead of the default output_name
-        # TODO should use assigned loss name in "add_loss" method
-        for k, name in enumerate(output_names):
-            if hasattr(task.losses[name], 'name'):
-                self.output_names[k] = task.losses[name].name
+        # the name assigned to losses will be used as output instead of the actual state output names
+        self.output_names = loss_names
 
         # now we remove the names for the non-defined losses (loss=None cases)
         for k, loss in enumerate(flat_losses):
@@ -62,7 +62,7 @@ class DistalTeacher(tf.keras.Model, ABC):
         synthetic and not empirical, avoiding sampling bias altogether.
 
         Args:
-            data: A nested structure of `Tensor` s.
+            data: A nested structure of `tensor` s.
 
         Returns:
             A `dict` containing values that will be passed to :meth:`tf.keras.callbacks.CallbackList.on_train_batch_end`.
@@ -133,8 +133,7 @@ class DistalTeacher(tf.keras.Model, ABC):
 
 
 class MotorNetModel(DistalTeacher):
-    """This is an alias name for the `DistalTeacher` class for backward compatibility.
-    """
+    """This is an alias name for the `DistalTeacher` class for backward compatibility."""
 
     def __init__(self, inputs, outputs, task, name='controller'):
         super().__init__(inputs=inputs, outputs=outputs, task=task, name=name)
