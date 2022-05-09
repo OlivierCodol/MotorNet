@@ -241,8 +241,8 @@ class Skeleton:
 
     def get_base_config(self):
         """Get the object instance's base configuration. This is the set of configuration entries that will be useful
-        for any skeleton objects or subclasses. This method should be called by the :meth:`get_save_config`
-        method. Users wanting to save additional configuration entries specific to a skeleton subclass should then
+        for any `Skeleton` class or subclass. This method should be called by the :meth:`get_save_config`
+        method. Users wanting to save additional configuration entries specific to a `Skeleton` subclass should then
         do so in the :meth:`get_save_config` method, using this method's output `dictionary` as a base.
 
         Returns:
@@ -252,11 +252,11 @@ class Skeleton:
         return cfg
 
     def get_save_config(self):
-        """Get the skeleton object's configuration as a `Dictionary`. This method should be overwritten by subclasse
+        """Get the skeleton object's configuration as a `Dictionary`. This method should be overwritten by subclass
         objects, and used to add configuration entries specific to that subclass.
 
         Returns:
-            - By default, this method returns the output of the :meth:`get_base_config` method.
+            By default, this method returns the output of the :meth:`get_base_config` method.
         """
         return self.get_base_config()
 
@@ -492,11 +492,11 @@ class PointMass(Skeleton):
         return joint_state
 
     def get_save_config(self):
-        """Get the base configuration from the :meth:`get_base_config` method, and add the mass value to the
-        configuration.
+        """Gets the base configuration from the :meth:`get_base_config` method, and adds the mass value (kg) of the
+        point mass to that `dictionnary`.
 
         Returns:
-            - a `Dictionary` containing the object instance's full configuration.
+             A `dictionary` containing the object instance's full configuration.
         """
         cfg = self.get_base_config()
         cfg['mass'] = self._mass_cfg

@@ -159,7 +159,7 @@ class Plant:
             n_timesteps: `Integer`, the number of timesteps desired for creating the target `Tensor`.
 
         Returns:
-            A `Tensor` that can be used as a target input to the :meth:`model.fit` method.
+            A `tensor` that can be used as a target input to the :meth:`model.fit` method.
         """
         return self._state2target((state, n_timesteps))
 
@@ -252,7 +252,7 @@ class Plant:
             joint_load: `Tensor`, the load(s) to apply at the joints.
 
         Returns:
-            A list containing the new joint, muscle, and geometry states following integration, in that order.
+            A `list` containing the new joint, muscle, and geometry states following integration, in that order.
         """
         return self._integrate_fn((muscle_input, joint_state, muscle_state, geometry_state, endpoint_load, joint_load))
 
@@ -288,7 +288,7 @@ class Plant:
                 "muscle", and "geometry" key, respectively.
 
         Returns:
-            A `Dictionary` containing the updated joint, muscle, and geometry states following integration.
+            A `dictionary` containing the updated joint, muscle, and geometry states following integration.
         """
 
         new_states = {
@@ -352,9 +352,12 @@ class Plant:
         geometry_state = tf.transpose(tf.concat([musculotendon_len, musculotendon_vel, moments], axis=1), [2, 1, 0])
         return geometry_state
 
-    def _get_initial_state(self, batch_size, joint_state=None):
+    def _get_initial_state(self, batch_size=None, joint_state=None):
         if joint_state is not None and tf.shape(joint_state)[0] > 1:
             batch_size = tf.shape(joint_state)[0]
+        elif not batch_size:
+            raise ValueError("The batch_size value should be specified if joint_state is unspecified or the size of "
+                             "its first dimension is equal to 1.")
 
         joint0 = self._parse_initial_joint_state(joint_state=joint_state, batch_size=batch_size)
         cartesian0 = self.skeleton.joint2cartesian(joint_state=joint0)
@@ -420,14 +423,13 @@ class Plant:
         return bounds
 
     def get_save_config(self):
-        """Get the plant object's configuration as a `Dictionary`.
+        """Get the plant object's configuration as a `dictionary`.
 
         Returns:
-
-        A `Dictionary` containing the skeleton and muscle configurations as nested `Dictionaries`, and parameters
-        pertaining to the plant's configuration. Specifically, the size of the timestep (sec), the name of each
-        muscle added via the :meth:`add_muscle` method, the number of muscles, the visual and proprioceptive
-        delay, and the standard deviation of the excitation noise.
+            A `dictionary` containing the skeleton and muscle configurations as nested `Dictionaries`, and parameters
+            pertaining to the plant's configuration. Specifically, the size of the timestep (sec), the name of each
+            muscle added via the :meth:`add_muscle` method, the number of muscles, the visual and proprioceptive
+            delay, and the standard deviation of the excitation noise.
         """
         muscle_cfg = self.muscle.get_save_config()
         skeleton_cfg = self.skeleton.get_save_config()
@@ -462,7 +464,7 @@ class Plant:
             joint_load: `Tensor`, the load(s) to apply at the joints.
 
         Returns:
-            A list containing the new joint, muscle, and geometry states following integration, in that order.
+            A `list` containing the new joint, muscle, and geometry states following integration, in that order.
         """
         return self._update_ode_fn((excitation, states, endpoint_load, joint_load))
 
@@ -476,6 +478,10 @@ class Plant:
 
         Returns:
              A list containing the (input) joint state, and cartesian, muscle, and geometry states, in that order.
+
+        Raises:
+            `ValueError`: if the `batch_size` value is not specified and the `joint_state` is also unspecified or the
+                size of its first dimension is equal to 1.
         """
         return self._get_initial_state(batch_size, joint_state)
 
@@ -487,7 +493,7 @@ class Plant:
             batch_size: `Integer`, the desired batch size.
 
         Returns:
-            A `Tensor` containing `batch_size` joint states.
+            A `tensor` containing `batch_size` joint states.
         """
         return self._draw_randu_states_fn(batch_size)
 
@@ -504,7 +510,7 @@ class Plant:
             batch_size: `Integer`, the desired batch size.
 
         Returns:
-            A `Tensor` containing `batch_size` joint states.
+            A `tensor` containing `batch_size` joint states.
         """
         return self._draw_fixed_states_fn((position, velocity, batch_size))
 
@@ -515,7 +521,7 @@ class Plant:
             joint_state: `Tensor`, the current joint configuration.
 
         Returns:
-            The current cartesian configuration (position, velocity) as a `Tensor`.
+            The current cartesian configuration (position, velocity) as a `tensor`.
         """
         return self.skeleton.joint2cartesian(joint_state=joint_state)
 
@@ -537,14 +543,14 @@ class RigidTendonArm26(Plant):
 
     If no `skeleton` input is provided, this object will use a ``motornet.plants.skeletons.TwoDofArm`` skeleton, with
     parameters:
-        - m1 = 1.82
-        - m2 = 1.43
-        - l1g = 0.135
-        - l2g = 0.165
-        - i1 = 0.051
-        - i2 = 0.057
-        - l1 = 0.309
-        - l2 = 0.333
+        - `m1 = 1.82`
+        - `m2 = 1.43`
+        - `l1g = 0.135`
+        - `l2g = 0.165`
+        - `i1 = 0.051`
+        - `i2 = 0.057`
+        - `l1 = 0.309`
+        - `l2 = 0.333`
     The default shoulder and elbow lower limits are defined as `0`, and their default upper limits as `135` and `155`
     degrees, respectively. These parameters come from `[1]`.
 
@@ -553,6 +559,16 @@ class RigidTendonArm26(Plant):
     Reference:
     `[1] Kistemaker DA, Wong JD, Gribble PL. The central nervous system does not minimize energy cost in arm movements.
     J Neurophysiol. 2010 Dec;104(6):2985-94. doi: 10.1152/jn.00483.2010. Epub 2010 Sep 8. PMID: 20884757.`
+
+    Args:
+        muscle_type: A ``motornet.plants.muscles.Muscle`` object or subclass. This defines the type of muscle that will
+            be added each time the :meth:`add_muscle` method is called.
+        skeleton: A ``motornet.plants.skeletons.Skeleton`` object or subclass. This defines the type of skeleton that
+            the muscles will wrap around. See above for details on what this argument defaults to if no argument is
+            passed.
+        timestep: `Float`, size of a single timestep (in sec).
+        **kwargs: All contents are passed to the parent ``motornet.plant.skeletons.Plant`` class. Also
+            allows for some backward compatibility.
     """
 
     def __init__(self, muscle_type, skeleton=None, timestep=0.01, **kwargs):
@@ -607,7 +623,13 @@ class CompliantTendonArm26(RigidTendonArm26):
     """This is the compliant-tendon version of the ``RigidTendonArm26`` class. Note that the default integration
     method for the current object is Runge-Kutta 4, instead of Euler.
 
-    The `**kwargs` inputs are passed as-is to the parent ``motornet.plants.RigidTendonArm26`` class.
+    Args:
+        timestep: `Float`, size of a single timestep (in sec).
+        skeleton: A ``motornet.plants.skeletons.Skeleton`` object or subclass. This defines the type of skeleton that
+            the muscles will wrap around. If no skeleton is passed, this will default to the skeleton used in the
+            parent ``motornet.plant.skeletons.RigidTendonArm26`` class.
+        **kwargs: All contents are passed to the parent ``motornet.plant.skeletons.RigidTendonArm26`` class. Also
+            allows for some backward compatibility.
     """
 
     def __init__(self, timestep=0.0002, skeleton=None, **kwargs):
