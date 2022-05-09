@@ -13,8 +13,28 @@ Please note a couple notation conventions that this module employs:
 import tensorflow as tf
 from tensorflow.python.keras.utils import losses_utils
 from tensorflow.python.keras.losses import LossFunctionWrapper
+from typing import Union
 
 auto_reduction = losses_utils.ReductionV2.AUTO
+
+
+class CompoundedLoss(LossFunctionWrapper):
+    """Wraps several losses into a single loss object, creating a composite loss that sums the loss value of
+    each subloss. Each subloss's contribution can be weighted by a constant scalar value.
+
+    Args:
+        losses: `List` or `tuple`, with each element being a `motornet.nets.losses.Loss` object instance.
+        loss_weights: `List` or `tuple`, with each element being a `float` scalar indicating the weight of the
+            corresponding loss in the `losses` argument provided above.
+        name: String, the name label to give to the loss object. This is used to print and save losses during
+            training.
+        reduction: The reduction method used. The default value is
+           ``tensorflow.python.keras.utils.losses_utils.ReductionV2.AUTO``.
+           See the Tensorflow documentation for more details.
+    """
+    def __init__(self, losses: Union[list, tuple], loss_weights: Union[list, tuple], name: str = 'compounded_loss',
+                 reduction=auto_reduction):
+        super().__init__(_compounded_losses, name=name, reduction=reduction, losses=losses, loss_weights=loss_weights)
 
 
 class L2xDxRegularizer(LossFunctionWrapper):
@@ -183,6 +203,13 @@ class L2xDxActivationLoss(LossFunctionWrapper):
                  reduction=auto_reduction):
         super().__init__(_l2_xdx_activation_loss, name=name, reduction=reduction, max_iso_force=max_iso_force,
                          deriv_weight=deriv_weight, dt=dt)
+
+
+def _compounded_losses(y_true, y_pred, losses, loss_weights):
+    compounded_loss = loss_weights[0] * losses[0](y_true, y_pred)
+    for weight, loss in zip(loss_weights[1:], losses[1:]):
+        compounded_loss += weight * loss(y_true, y_pred)
+    return compounded_loss
 
 
 def _position_loss(y_true, y_pred):
