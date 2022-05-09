@@ -3,7 +3,8 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.layers import Input
 from abc import abstractmethod
-from motornet.nets.losses import PositionLoss, L2xDxActivationLoss, L2xDxRegularizer
+from motornet.nets.losses import PositionLoss, L2xDxActivationLoss, L2xDxRegularizer, CompoundedLoss
+from copy import deepcopy
 
 
 class Task(tf.keras.utils.Sequence):
@@ -22,6 +23,9 @@ class Task(tf.keras.utils.Sequence):
         self.losses = {name: None for name in self.network.output_names}
         self.loss_names = {name: name for name in self.network.output_names}
         self.loss_weights = {name: 0. for name in self.network.output_names}
+        self._losses = {name: [] for name in self.network.output_names}
+        self._loss_names = {name: [] for name in self.network.output_names}
+        self._loss_weights = {name: [] for name in self.network.output_names}
 
         if initial_joint_state is not None:
             initial_joint_state = np.array(initial_joint_state)
@@ -37,13 +41,38 @@ class Task(tf.keras.utils.Sequence):
         self.convert_to_tensor = tf.keras.layers.Lambda(lambda x: tf.convert_to_tensor(x))
 
     def add_loss(self, assigned_output, loss, loss_weight=1., name=None):
-        # TODO raise error if assigned output is wrong
-        self.losses[assigned_output] = loss
-        self.loss_weights[assigned_output] = loss_weight
 
-        # if a name is given, overwrite the default name assigned at initialization
+        if assigned_output not in self.network.output_names:
+            raise ValueError("The assigned output passed does not match any network output name.")
+
+        is_compounded = True if self._losses[assigned_output] else False
+        keep_default_name = False
+
         if name is not None:
-            self.loss_names[assigned_output] = name
+            # if a name is given, overwrite the default name assigned at initialization
+            self._loss_names[assigned_output].append(name)
+        elif hasattr(loss, 'name'):
+            # else if the loss object has a name attribute, then use that name instead
+            self._loss_names[assigned_output].append(loss.name)
+        else:
+            keep_default_name = True
+            self._loss_names[assigned_output].append('subloss_' + str(len(self._loss_names[assigned_output] + 1)))
+
+        if is_compounded:
+            self.loss_names[assigned_output] = assigned_output.replace(' ', '_') + '_compounded'
+        elif keep_default_name is False:
+            self.loss_names[assigned_output] = self._loss_names[assigned_output][0]
+
+        self.loss_weights[assigned_output] = 1. if is_compounded else loss_weight
+        self._loss_weights[assigned_output].append(loss_weight)
+
+        self._losses[assigned_output].append(deepcopy(loss))
+        if is_compounded:
+            losses = self._losses[assigned_output]
+            loss_weights = self._loss_weights[assigned_output]
+            self.losses[assigned_output] = CompoundedLoss(losses=losses, loss_weights=loss_weights)
+        else:
+            self.losses[assigned_output] = self._losses[assigned_output][0]
 
     @abstractmethod
     def generate(self, batch_size, n_timesteps):
