@@ -213,9 +213,10 @@ class RigidTendonHillMuscle(Muscle):
     """This pre-built muscle class is an implementation of a Hill-type muscle model formulation from `[1]`, adjusted to
     behave as a rigid tendon version of the original model.
 
-    Reference:
-    `[1] Kistemaker DA, Wong JD, Gribble PL. The central nervous system does not minimize energy cost in arm movements.
-    J Neurophysiol. 2010 Dec;104(6):2985-94. doi: 10.1152/jn.00483.2010. Epub 2010 Sep 8. PMID: 20884757.`
+    References:
+        [1] `Kistemaker DA, Wong JD, Gribble PL. The central nervous system does not minimize energy cost in arm
+        movements. J Neurophysiol. 2010 Dec;104(6):2985-94. doi: 10.1152/jn.00483.2010. Epub 2010 Sep 8. PMID:
+        20884757.`
 
     Args:
         min_activation: `Float`, the minimum activation value that this muscle can have. Any activation value lower than
@@ -352,9 +353,9 @@ class RigidTendonHillMuscleThelen(Muscle):
     """This pre-built muscle class is an implementation of a Hill-type muscle model formulation from `[1]`, adjusted to
     behave as a rigid tendon version of the original model.
 
-    Reference:
-    `[1] Thelen DG. Adjustment of muscle mechanics model parameters to simulate dynamic contractions in older adults.
-    J Biomech Eng. 2003 Feb;125(1):70-7. doi: 10.1115/1.1531112. PMID: 12661198.`
+    References:
+        [1] `Thelen DG. Adjustment of muscle mechanics model parameters to simulate dynamic contractions in older
+        adults. J Biomech Eng. 2003 Feb;125(1):70-7. doi: 10.1115/1.1531112. PMID: 12661198.`
 
     Args:
         min_activation: `Float`, the minimum activation value that this muscle can have. Any activation value lower than
@@ -482,9 +483,10 @@ class CompliantTendonHillMuscle(RigidTendonHillMuscle):
     parent class from which it inherits, this object class implements a full compliant tendon version of the model,
     as formulated in the reference article.
 
-    Reference:
-    `[1] Kistemaker DA, Wong JD, Gribble PL. The central nervous system does not minimize energy cost in arm movements.
-    J Neurophysiol. 2010 Dec;104(6):2985-94. doi: 10.1152/jn.00483.2010. Epub 2010 Sep 8. PMID: 20884757.`
+    References:
+        [1] `Kistemaker DA, Wong JD, Gribble PL. The central nervous system does not minimize energy cost in arm
+        movements. J Neurophysiol. 2010 Dec;104(6):2985-94. doi: 10.1152/jn.00483.2010. Epub 2010 Sep 8. PMID:
+        20884757.`
 
     Args:
         min_activation: `Float`, the minimum activation value that this muscle can have. Any activation value lower than

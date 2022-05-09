@@ -226,23 +226,25 @@
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">keras.engine.training.Model</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
 <p>This is a custom <code class="docutils literal notranslate"><span class="pre">tensorflow.keras.Model</span></code> object, whose purpose is to enable saving
 <code class="docutils literal notranslate"><span class="pre">motornet.plants</span></code> object configuration when saving the model as well.</p>
-<p>In Tensorflow, <code class="docutils literal notranslate"><span class="pre">tensorflow.keras.Model</span></code> objects group layers into an object with training and inference features.
-See the Tensorflow documentation for more details on how to declare, compile and use use a
+<p>In <cite>Tensorflow</cite>, <code class="docutils literal notranslate"><span class="pre">tensorflow.keras.Model</span></code> objects group layers into an object with training and inference
+features. See the Tensorflow documentation for more details on how to declare, compile and use use a
 <code class="docutils literal notranslate"><span class="pre">tensorflow.keras.Model</span></code> object.</p>
 <p>Conceptually, as this model class performs backward propagation through the plant (which can be considered a perfect
 forward model), this class essentially performs the training of the controller using a <cite>distal teacher</cite> algorithm,
 as defined in <cite>[1]</cite>.</p>
-<p>Reference:
-<cite>[1] Jordan MI, Rumelhart DE. Forward Models: Supervised Learning with a Distal Teacher.
+<p class="rubric">References</p>
+<p>[1] <cite>Jordan MI, Rumelhart DE. Forward Models: Supervised Learning with a Distal Teacher.
 Cognitive Science, 1992 Jul;16(3):307-354. doi: 10.1207/s15516709cog1603_1.</cite></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>inputs</strong> – The input(s) of the model: a <code class="docutils literal notranslate"><span class="pre">tensorflow.keras.layers.Input</span></code> object or list of
-<code class="docutils literal notranslate"><span class="pre">tensorflow.keras.layers.Input</span></code> objects.</p></li>
-<li><p><strong>outputs</strong> – The output(s) of the model. See Functional API example in the Tensorflow documentation.</p></li>
-<li><p><strong>task</strong> – A <code class="docutils literal notranslate"><span class="pre">motornet.task.Task</span></code> object or subclass.</p></li>
-<li><p><strong>name</strong> – String, the name of the model.</p></li>
+<li><p><strong>inputs</strong> – A <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.keras.layers.Input`</span></code> object or <cite>list</cite> of <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.keras.layers.Input</span></code>
+objects that will serve as <cite>tensor</cite> placeholder input(s) to the model.</p></li>
+<li><p><strong>outputs</strong> – The output(s) of the model. See <cite>motornet</cite> tutorial on how to build a model, and the introduction
+section of the Functional API example in the <cite>Tensorflow</cite> documentation for more information about this
+argument: <a class="reference external" href="https://www.tensorflow.org/guide/keras/functional#introduction">https://www.tensorflow.org/guide/keras/functional#introduction</a>.</p></li>
+<li><p><strong>task</strong> – A <a class="reference internal" href="motornet.task.html#motornet.tasks.Task" title="motornet.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.tasks.Task</span></code></a> object class or subclass.</p></li>
+<li><p><strong>name</strong> – <cite>String</cite>, the name of the model.</p></li>
 </ul>
 </dd>
 </dl>
@@ -267,10 +269,10 @@ output of get_config.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.models.DistalTeacher.get_config">
 <span class="sig-name descname"><span class="pre">get_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.models.DistalTeacher.get_config" title="Permalink to this definition">#</a></dt>
-<dd><p>Get the model’s configuration.</p>
+<dd><p>Gets the model’s configuration.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A dictionary containing the model’s configuration. This includes the task object passed at initialization.</p>
+<dd class="field-odd"><p>A <cite>dictionary</cite> containing the model’s configuration. This includes the task object passed at initialization.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -281,7 +283,7 @@ output of get_config.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>path</strong> – <p>String, the absolute path to the JSON file that will be produced. The name of the JSON file itself
+<li><p><strong>path</strong> – <p><cite>String</cite>, the absolute path to the JSON file that will be produced. The name of the JSON file itself
 should be included, without the extension. For instance, if we want to create a JSON file called
 <cite>my_model_config.json</cite> in <cite>~/path/to/desired/directory</cite>, we would call this method in the python console
 like so:</p>
@@ -289,8 +291,7 @@ like so:</p>
 </pre></div>
 </div>
 </p></li>
-<li><p><strong>**kwargs</strong> – Additional keyword arguments. They are not used here, and are only present for subclassing
-compatibility.</p></li>
+<li><p><strong>**kwargs</strong> – Not used here, this is for subclassing compatibility only.</p></li>
 </ul>
 </dd>
 </dl>
@@ -300,16 +301,24 @@ compatibility.</p></li>
 <span class="sig-name descname"><span class="pre">train_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.models.DistalTeacher.train_step" title="Permalink to this definition">#</a></dt>
 <dd><p>The logic for one training step. Compared to the default method, this overriding method allows for
 recomputation of targets online (during movement), in addition to essentially reproducing what the default
-method does. Notable features missing from the original method include outputing metrics as a list instead of a
-dictionary (since <cite>motornet</cite> always uses dictionaries) and the use of sample weighting, since data is usually
-synthetic and not empirical, avoiding sampling bias altogether.</p>
+method does.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Some features from the original <code class="xref py py-meth docutils literal notranslate"><span class="pre">tensorflow.keras.Model.train_step()</span></code> method are not implemented here.</p>
+<ul class="simple">
+<li><p>Outputing metrics as a <cite>list</cite> instead of a <cite>dictionary</cite>, since <cite>motornet</cite> always uses dictionaries</p></li>
+<li><p>The sample weighting functionality, since data in <cite>motornet</cite> is usually synthetic and not empirical,
+meaning there is usually no bias in sample representation.</p></li>
+</ul>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>data</strong> – A nested structure of <cite>Tensor</cite> s.</p>
+<dd class="field-odd"><p><strong>data</strong> – A nested structure of <cite>tensor</cite> arrays.</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A <cite>dict</cite> containing values that will be passed to <code class="xref py py-meth docutils literal notranslate"><span class="pre">tf.keras.callbacks.CallbackList.on_train_batch_end()</span></code>.
-Typically, the values of the <cite>Model</cite>’s metrics are returned. Example: <cite>{‘loss’: 0.2, ‘accuracy’: 0.7}</cite>.</p>
+<dd class="field-even"><p>A <cite>dictionary</cite> containing values that will be passed to
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">tf.keras.callbacks.CallbackList.on_train_batch_end()</span></code>. Typically, the values of the <cite>Model</cite>’s metrics
+are returned. Example: <cite>{‘loss’: 0.2, ‘accuracy’: 0.7}</cite>.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -318,7 +327,7 @@ Typically, the values of the <cite>Model</cite>’s metrics are returned. Exampl
 <dt class="sig sig-object py" id="motornet.nets.models.MotorNetModel">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.models.</span></span><span class="sig-name descname"><span class="pre">MotorNetModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.models.MotorNetModel" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#motornet.nets.models.DistalTeacher" title="motornet.nets.models.DistalTeacher"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.nets.models.DistalTeacher</span></code></a></p>
-<p>This is an alias name for the <cite>DistalTeacher</cite> class for backward compatibility.</p>
+<p>This is an alias name for the <a class="reference internal" href="#motornet.nets.models.DistalTeacher" title="motornet.nets.models.DistalTeacher"><code class="xref py py-class docutils literal notranslate"><span class="pre">DistalTeacher</span></code></a> class for backward compatibility.</p>
 </dd></dl>
 </section>
 

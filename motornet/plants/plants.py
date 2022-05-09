@@ -10,37 +10,36 @@ class Plant:
     """Base class for `Plant` objects.
 
     Args:
-        skeleton: A ``motornet.plants.skeletons.Skeleton`` object. This defines the type of skeleton that the muscles
-            will wrap around.
-        muscle_type: A ``motornet.plants.muscles.Muscle`` object. This defines the type of muscle that will be added
-            each time the :meth:`add_muscle` method is called.
+        skeleton: A :class:`motornet.plants.skeletons.Skeleton` object class or subclass. This defines the type of 
+            skeleton that the muscles will wrap around.
+        muscle_type: A :class:`motornet.plants.muscles.Muscle` object class or subclass. This defines the type of muscle
+            that will be added each time the :meth:`add_muscle` method is called.
         name: `String`, the name of the object instance.
         timestep: `Float`, size of a single timestep (in sec).
-        integration_method: `String`, 'euler' to specify that numerical integration should take place using the Euler
-            method, or 'rk4', 'rungekutta4', 'runge-kutta4', or 'runge-kutta-4' to specify the Runge-Kutta 4 method
+        integration_method: `String`, "euler" to specify that numerical integration should be done using the Euler
+            method, or "rk4", "rungekutta4", "runge-kutta4", or "runge-kutta-4" to specify the Runge-Kutta 4 method
             instead. This argument is case-insensitive.
         excitation_noise_sd: `Float`, defines the amount of stochastic noise that will be added to the excitation input
             during the :meth:`call`. Specifically, this value represents the standard deviation of a gaussian
             distribution centred around zero, from which a noise term is drawn randomly at every timestep.
         proprioceptive_delay: `Float`, the delay between a proprioceptive signal being produced by the plant and the
             network receiving it as input. If this is not a multiple of the timestep size, this will be rounded up to
-            match the closest multiple value. What qualifies as "proprioceptive feedback" is `de facto` defined at the
-            network level.
+            match the closest multiple value. What qualifies as "proprioceptive feedback" is defined at the network
+            level.
         visual_delay: `Float`, the delay between a visual signal being produced by the plant and the
             network receiving it as input. If this is not a multiple of the timestep size, this will be rounded up to
-            match the closest multiple value. What qualifies as "visual feedback" is `de facto` defined at the
-            network level.
-        pos_upper_bound: `Float`, `List` or `Tuple`, indicating the upper boundary of the skeleton's joint position.
-            This should be a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance,
+            match the closest multiple value. What qualifies as "visual feedback" is defined at the network level.
+        pos_upper_bound: `Float`, `list` or `tuple`, indicating the upper boundary of the skeleton's joint position.
+            This should be a `n`-elements vector or `list`, with `n` the number of joints of the skeleton. For instance,
             for a two degrees-of-freedom arm, we would have `n=2`.
-        pos_lower_bound: `Float`, `List` or `Tuple`, indicating the lower boundary of the skeleton's joint position.
-            This should be a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance,
+        pos_lower_bound: `Float`, `list` or `tuple`, indicating the lower boundary of the skeleton's joint position.
+            This should be a `n`-elements vector or `list`, with `n` the number of joints of the skeleton. For instance,
             for a two degrees-of-freedom arm, we would have `n=2`.
-        vel_upper_bound: `Float`, `List` or `Tuple`, indicating the upper boundary of the skeleton's joint velocity.
-            This should be a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance,
+        vel_upper_bound: `Float`, `list` or `tuple`, indicating the upper boundary of the skeleton's joint velocity.
+            This should be a `n`-elements vector or `list`, with `n` the number of joints of the skeleton. For instance,
             for a two degrees-of-freedom arm, we would have `n=2`.
-        vel_lower_bound: `Float`, `List` or `Tuple`, indicating the lower boundary of the skeleton's joint velocity.
-            This should be a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance,
+        vel_lower_bound: `Float`, `list` or `tuple`, indicating the lower boundary of the skeleton's joint velocity.
+            This should be a `n`-elements vector or `list`, with `n` the number of joints of the skeleton. For instance,
             for a two degrees-of-freedom arm, we would have `n=2`.
     """
 
@@ -151,15 +150,15 @@ class Plant:
             self._integrate_fn = Lambda(lambda x: self._rungekutta4(*x), name='plant_rk4_integration')
 
     def state2target(self, state, n_timesteps: int = 1):
-        """Converts a `Tensor` formatted as a state to a `Tensor` formatted as a target that can be passed to a
-        :meth:`model.fit` call.
+        """Converts a `tensor` formatted as a state to a `tensor` formatted as a target that can be passed to a
+        :meth:`tensorflow.keras.Model.fit` call.
 
         Args:
-            state: `Tensor`, the state to be converted.
-            n_timesteps: `Integer`, the number of timesteps desired for creating the target `Tensor`.
+            state: `Tensor`, the state to be converted to a target.
+            n_timesteps: `Integer`, the number of timesteps desired for creating the target `tensor`.
 
         Returns:
-            A `tensor` that can be used as a target input to the :meth:`model.fit` method.
+            A `tensor` that can be used as a target input to the :meth:`tensorflow.keras.Model.fit` method.
         """
         return self._state2target((state, n_timesteps))
 
@@ -171,19 +170,19 @@ class Plant:
                 point in the muscle. The index `0` always stands for the worldspace, *i.e.* a fixation point outside of
                 the skeleton.
             path_coordinates:  A `List` of `lists`. There should be as many lists in the main list as there are fixation
-                points for that muscle. Each list in the main list should contain a series of `n` coordinate `Float`
-                values, with `n` being the dimensionality of the worldspace. For instance, in a 2D environment,
-                we would need two coordinate values. The coordinate system of each bone is centered on that bone's
-                origin point. Its first dimension is always alongside the length of the bone, and the next dimension(s)
-                proceed(s) from there on orthogonally to that first dimension.
-            name: `String`, the name to give to the muscle being added. In ``None`` is given, the name defaults to
+                points for that muscle. Each nested `list` within the main `list` should contain a series of `n`
+                coordinate `float` values, with `n` being the dimensionality of the worldspace. For instance, in a 2D
+                environment, we would need two coordinate values. The coordinate system of each bone is centered on that
+                bone's origin point. Its first dimension is always alongside the length of the bone, and the next
+                dimension(s) proceed(s) from there on orthogonally to that first dimension.
+            name: `String`, the name to give to the muscle being added. If ``None`` is given, the name defaults to
                 `"muscle_m"`, with `m` being a counter for the number of muscles.
             **kwargs: This is used to pass the set of properties required to build the type of muscle specified at
                 initialization. What it should contain varies depending on the muscle type being used. A `TypeError`
                 will be raised by this method if a muscle property pertaining to the muscle type specified is missing.
 
         Raises:
-            TypeError: if an argument is missing to build the type of muscle specified at initialization.
+            TypeError: If an argument is missing to build the type of muscle specified at initialization.
         """
         path_fixation_body = np.array(path_fixation_body).astype('float32').reshape((1, 1, -1))
         n_points = path_fixation_body.size
@@ -276,14 +275,14 @@ class Plant:
         return states["joint"], states["muscle"], states["geometry"]
 
     def integration_step(self, dt, state_derivative, states):
-        """Performs one numerical integration step for the ``motornet.plants.skeletons.Muscle`` object, and then for the
-        ``motornet.plants.skeletons.Skeleton`` object.
+        """Performs one numerical integration step for the :class:`motornet.plants.muscles.Muscle` object class or
+        subclass, and then for the :class:`motornet.plants.skeletons.Skeleton` object class or subclass.
 
         Args:
             dt: `Float`, size of a single timestep (in sec).
-            state_derivative: A `Dictionary` containing the derivatives of the joint, muscle, and geometry states as
-                `Tensor`, mapped to a "joint", "muscle", and "geometry" key, respectively. This is usually obtained
-                using the :meth:`update_ode` method.
+            state_derivative: `Dictionary`, contains the derivatives of the joint, muscle, and geometry states as
+                `tensor` arrays, mapped to a "joint", "muscle", and "geometry" key, respectively. This is usually
+                obtained using the :meth:`update_ode` method.
             states: A `Dictionary` containing the joint, muscle, and geometry states as `Tensor`, mapped to a "joint",
                 "muscle", and "geometry" key, respectively.
 
@@ -423,12 +422,12 @@ class Plant:
         return bounds
 
     def get_save_config(self):
-        """Get the plant object's configuration as a `dictionary`.
+        """Gets the plant object's configuration as a `dictionary`.
 
         Returns:
-            A `dictionary` containing the skeleton and muscle configurations as nested `Dictionaries`, and parameters
-            pertaining to the plant's configuration. Specifically, the size of the timestep (sec), the name of each
-            muscle added via the :meth:`add_muscle` method, the number of muscles, the visual and proprioceptive
+            A `dictionary` containing the skeleton and muscle configurations as nested `dictionary` objects, and
+            parameters of the plant's configuration. Specifically, the size of the timestep (sec), the name
+            of each muscle added via the :meth:`add_muscle` method, the number of muscles, the visual and proprioceptive
             delay, and the standard deviation of the excitation noise.
         """
         muscle_cfg = self.muscle.get_save_config()
@@ -441,10 +440,10 @@ class Plant:
         return cfg
 
     def get_geometry(self, joint_state):
-        """Compute the geometry state from the joint state.
+        """Computes the geometry state from the joint state.
 
         Args:
-            joint_state: `Tensor`, the joint state from which to compute the geometry state.
+            joint_state: `Tensor`, the joint state from which the geometry state is computed.
 
         Returns:
             The geometry state corresponding to the joint state provided.
@@ -453,13 +452,14 @@ class Plant:
 
     def update_ode(self, excitation, states, endpoint_load, joint_load):
         """Computes state derivatives by evaluating the Ordinary Differential Equations of the
-        ``motornet.plants.skeletons.Muscle`` object, and then of the ``motornet.plants.skeletons.Skeleton``.
+        ``motornet.plants.muscles.Muscle`` object class or subclass, and then of the
+        :class:`motornet.plants.skeletons.Skeleton` object class or subclass.
 
         Args:
             excitation: `Tensor`, the input to the muscles (motor command). Typically, this should be the output of the
                 controller network's forward pass.
-            states: A `Dictionary` containing the joint, muscle, and geometry states as `Tensor`, mapped to a "joint",
-                "muscle", and "geometry" key, respectively.
+            states: `Dictionary`, contains the joint, muscle, and geometry states as `tensor` arrays, mapped to a
+                "joint", "muscle", and "geometry" key, respectively.
             endpoint_load: `Tensor`, the load(s) to apply at the skeleton's endpoint.
             joint_load: `Tensor`, the load(s) to apply at the joints.
 
@@ -469,25 +469,26 @@ class Plant:
         return self._update_ode_fn((excitation, states, endpoint_load, joint_load))
 
     def get_initial_state(self, batch_size=1, joint_state=None):
-        """Get the initial states (cartesian, muscle, geometry) corresponding to a specified set of `joint_state`
-        values.
+        """Get initial states (joint, cartesian, muscle, geometry) that are biomechanically compatible with each other.
 
         Args:
             batch_size: `Integer`, the desired batch size.
-            joint_state: The joint state from which the other state values are inferred.
+            joint_state: The joint state from which the other state values are inferred. If `None`, random initial
+                joint states are drawn, from which the other state values are inferred.
 
         Returns:
-             A list containing the (input) joint state, and cartesian, muscle, and geometry states, in that order.
+             A `list` containing the joint state, and cartesian, muscle, and geometry states, in that order. If a
+             `joint_state` input was provided, the joint state in the returned `list` will be the same as the input.
 
         Raises:
-            `ValueError`: if the `batch_size` value is not specified and the `joint_state` is also unspecified or the
-                size of its first dimension is equal to 1.
+            `ValueError`: If the `batch_size` value is not specified and either the `joint_state` input is `None` or the
+             size of `joint_state` input's first dimension is equal to `1`.
         """
         return self._get_initial_state(batch_size, joint_state)
 
     def draw_random_uniform_states(self, batch_size: int = 1):
         """Draws joint states according to a random uniform distribution, bounded by the position and velocity boundary
-        attributes defined during this object instance's initialization call.
+        attributes defined at initialization.
 
         Args:
             batch_size: `Integer`, the desired batch size.
@@ -501,12 +502,11 @@ class Plant:
         return self._parse_initial_joint_state_fn((joint_state, batch_size))
 
     def draw_fixed_states(self, position, velocity=None, batch_size=1):
-        """Creates a joint state `Tensor` corresponding to the specified position tiled `batch_size` times.
+        """Creates a joint state `tensor` corresponding to the specified position, tiled `batch_size` times.
 
         Args:
-            position: The position to tile in the state `Tensor`.
-            velocity: The velocity to tile in the state `Tensor`. If not provided, this will default to `0` (null
-                velocity).
+            position: The position to tile in the state `tensor`.
+            velocity: The velocity to tile in the state `tensor`. If `None`, this will default to `0` (null velocity).
             batch_size: `Integer`, the desired batch size.
 
         Returns:
@@ -541,34 +541,37 @@ class RigidTendonArm26(Plant):
     default geometry methods, but on its own, custom-made geometry. The moment arm approximation is based on a set of
     polynomial functions. The default integration method is Euler.
 
-    If no `skeleton` input is provided, this object will use a ``motornet.plants.skeletons.TwoDofArm`` skeleton, with
-    parameters:
-        - `m1 = 1.82`
-        - `m2 = 1.43`
-        - `l1g = 0.135`
-        - `l2g = 0.165`
-        - `i1 = 0.051`
-        - `i2 = 0.057`
-        - `l1 = 0.309`
-        - `l2 = 0.333`
+    If no `skeleton` input is provided, this object will use a :class:`motornet.plants.skeletons.TwoDofArm` skeleton,
+    with the following parameters:
+
+    - `m1 = 1.82`
+    - `m2 = 1.43`
+    - `l1g = 0.135`
+    - `l2g = 0.165`
+    - `i1 = 0.051`
+    - `i2 = 0.057`
+    - `l1 = 0.309`
+    - `l2 = 0.333`
+
     The default shoulder and elbow lower limits are defined as `0`, and their default upper limits as `135` and `155`
     degrees, respectively. These parameters come from `[1]`.
 
-    The `kwargs` inputs are passed as-is to the parent ``motornet.plants.Plant`` class.
+    The `kwargs` inputs are passed as-is to the parent :class:`motornet.plants.plants.Plant` class.
 
-    Reference:
-    `[1] Kistemaker DA, Wong JD, Gribble PL. The central nervous system does not minimize energy cost in arm movements.
-    J Neurophysiol. 2010 Dec;104(6):2985-94. doi: 10.1152/jn.00483.2010. Epub 2010 Sep 8. PMID: 20884757.`
+    References:
+        [1] `Kistemaker DA, Wong JD, Gribble PL. The central nervous system does not minimize energy cost in arm
+        movements. J Neurophysiol. 2010 Dec;104(6):2985-94. doi: 10.1152/jn.00483.2010. Epub 2010 Sep 8. PMID:
+        20884757.`
 
     Args:
-        muscle_type: A ``motornet.plants.muscles.Muscle`` object or subclass. This defines the type of muscle that will
-            be added each time the :meth:`add_muscle` method is called.
-        skeleton: A ``motornet.plants.skeletons.Skeleton`` object or subclass. This defines the type of skeleton that
-            the muscles will wrap around. See above for details on what this argument defaults to if no argument is
-            passed.
+        muscle_type: A :class:`motornet.plants.muscles.Muscle` object class or subclass. This defines the type of muscle
+            that will be added each time the :meth:`add_muscle` method is called.
+        skeleton: A :class:`motornet.plants.skeletons.Skeleton` object class or subclass. This defines the type of
+            skeleton that the muscles will wrap around. See above for details on what this argument defaults to if no
+            argument is passed.
         timestep: `Float`, size of a single timestep (in sec).
-        **kwargs: All contents are passed to the parent ``motornet.plant.skeletons.Plant`` class. Also
-            allows for some backward compatibility.
+        **kwargs: All contents are passed to the parent :class:`Plant` class. Also allows for some backward
+            compatibility.
     """
 
     def __init__(self, muscle_type, skeleton=None, timestep=0.01, **kwargs):
@@ -620,15 +623,15 @@ class RigidTendonArm26(Plant):
 
 
 class CompliantTendonArm26(RigidTendonArm26):
-    """This is the compliant-tendon version of the ``RigidTendonArm26`` class. Note that the default integration
-    method for the current object is Runge-Kutta 4, instead of Euler.
+    """This is the compliant-tendon version of the :class:`RigidTendonArm26` class. Note that the default integration
+    method is Runge-Kutta 4, instead of Euler.
 
     Args:
         timestep: `Float`, size of a single timestep (in sec).
-        skeleton: A ``motornet.plants.skeletons.Skeleton`` object or subclass. This defines the type of skeleton that
-            the muscles will wrap around. If no skeleton is passed, this will default to the skeleton used in the
-            parent ``motornet.plant.skeletons.RigidTendonArm26`` class.
-        **kwargs: All contents are passed to the parent ``motornet.plant.skeletons.RigidTendonArm26`` class. Also
+        skeleton: A :class:`motornet.plants.skeletons.Skeleton` object class or subclass. This defines the type of
+            skeleton that the muscles will wrap around. If no skeleton is passed, this will default to the skeleton
+            used in the parent :class:`RigidTendonArm26` class.
+        **kwargs: All contents are passed to the parent :class:`RigidTendonArm26` class. This also
             allows for some backward compatibility.
     """
 

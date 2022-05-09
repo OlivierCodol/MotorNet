@@ -223,7 +223,32 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.layers.GRUNetwork">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.layers.</span></span><span class="sig-name descname"><span class="pre">GRUNetwork</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.layers.GRUNetwork" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">keras.engine.base_layer.Layer</span></code></p>
+<dd><p>Bases: <a class="reference internal" href="#motornet.nets.layers.Network" title="motornet.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.nets.layers.Network</span></code></a></p>
+<p>A GRU network acting as a controller to the plant. The last layer of the network is a
+<cite>tensorflow.keras.layers.Dense</cite> dense layer containing <cite>n_muscles * k</cite> units, with <cite>k</cite> being the number of inputs
+a single muscle takes (as defined by the <cite>muscle_type</cite> that the plant object uses), and <cite>n_muscles</cite> the number of
+muscles that the plant contains.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>plant</strong> – A <a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant" title="motornet.plants.plants.Plant"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant</span></code></a> object class or subclass. This is the plant that the <cite>Network</cite>
+will control.</p></li>
+<li><p><strong>n_units</strong> – <cite>Integer</cite> or <cite>list</cite>, the number of GRUs per layer. If only one layer is created, then this can
+be an <cite>integer</cite>.</p></li>
+<li><p><strong>n_hidden_layers</strong> – <cite>Integer</cite>, the number of hidden layers of GRUs that the network will implement.</p></li>
+<li><p><strong>activation</strong> – <cite>String</cite> or activation function from <cite>tensorflow</cite>. The activation function used as non-linearity
+for all GRUs.</p></li>
+<li><p><strong>kernel_regularizer</strong> – <cite>Float</cite>, the kernel regularization weight for the GRUs.</p></li>
+<li><p><strong>recurrent_regularizer</strong> – <cite>Float</cite>, the recurrent regularization weight for the GRUs.</p></li>
+<li><p><strong>hidden_noise_sd</strong> – <cite>Float</cite>, the standard deviation of the gaussian noise process applied to GRU hidden activity.</p></li>
+<li><p><strong>output_bias_initializer</strong> – A <cite>tensorflow.keras.initializers</cite> instance to initialize the biases of the
+last layer of the network (<cite>i.e.</cite>, the output layer).</p></li>
+<li><p><strong>output_kernel_initializer</strong> – A <cite>tensorflow.keras.initializers</cite> instance to initialize the kernels of the
+last layer of the network (<cite>i.e.</cite>, the output layer).</p></li>
+<li><p><strong>**kwargs</strong> – This is passed to the parent <cite>tensorflow.keras.layers.Layer</cite> class as-is.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.layers.GRUNetwork.build">
 <span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_shapes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.layers.GRUNetwork.build" title="Permalink to this definition">#</a></dt>
@@ -241,17 +266,151 @@ layer instantiation and layer call.</p>
 </dl>
 </dd></dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="motornet.nets.layers.GRUNetwork.call">
-<span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.layers.GRUNetwork.call" title="Permalink to this definition">#</a></dt>
-<dd><p>Description here
-:param inputs:
-:param states:
-:param kwargs:
-:return:</p>
+<dt class="sig sig-object py" id="motornet.nets.layers.GRUNetwork.forward_pass">
+<span class="sig-name descname"><span class="pre">forward_pass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.layers.GRUNetwork.forward_pass" title="Permalink to this definition">#</a></dt>
+<dd><p>Performs the forward pass computation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inputs</strong> – <cite>Tensor</cite>, inputs to the first layer of the network.</p></li>
+<li><p><strong>states</strong> – <cite>List</cite> of <cite>tensor</cite> arrays representing the states of each layer operating on a state (state-based
+layers).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>A <cite>tensor</cite> array, the output of the last layer to use as the motor command, or excitation to the plant.</p></li>
+<li><p>A <cite>list</cite> of the new hidden states of the GRU layers.</p></li>
+<li><p>A <cite>dictionary</cite> of the new hidden states of the GRU layers.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
 </dd></dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="motornet.nets.layers.GRUNetwork.from_config">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.layers.GRUNetwork.from_config" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="motornet.nets.layers.GRUNetwork.get_initial_states">
+<span class="sig-name descname"><span class="pre">get_initial_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">tf.float32</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.layers.GRUNetwork.get_initial_states" title="Permalink to this definition">#</a></dt>
+<dd><p>Creates the initial states for the first timestep of the network training procedure. This method
+provides the states for the full <a class="reference internal" href="#motornet.nets.layers.Network" title="motornet.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> class, that is the default states from the
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">get_base_initial_state()</span></code> method followed by the states specific to this subclass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inputs</strong> – The joint state from which the other state values are inferred. This is passed as-is to the
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">motornet.plants.Plant.get_initial_state()</span></code> method, and therefore obeys the structure documented
+there.</p></li>
+<li><p><strong>batch_size</strong> – <cite>Integer</cite>, the batch size defining the size of each state’s first dimension.</p></li>
+<li><p><strong>dtype</strong> – A <cite>dtype</cite> from the <cite>tensorflow.dtypes</cite> module.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A ‘list’ containing the output of the <code class="xref py py-meth docutils literal notranslate"><span class="pre">get_base_initial_state()</span></code> method, followed by the hidden states
+of each GRU layer as <cite>tensor</cite> arrays.</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="motornet.nets.layers.GRUNetwork.get_save_config">
+<span class="sig-name descname"><span class="pre">get_save_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.layers.GRUNetwork.get_save_config" title="Permalink to this definition">#</a></dt>
+<dd><p>Gets the base configuration from the <a class="reference internal" href="#motornet.nets.layers.Network.get_base_config" title="motornet.nets.layers.Network.get_base_config"><code class="xref py py-meth docutils literal notranslate"><span class="pre">motornet.nets.layers.Network.get_base_config()</span></code></a> method, and adds
+the configuration information specific to the <a class="reference internal" href="#motornet.nets.layers.GRUNetwork" title="motornet.nets.layers.GRUNetwork"><code class="xref py py-class docutils literal notranslate"><span class="pre">GRUNetwork</span></code></a> class to that <cite>dictionary</cite>. These are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>The standard deviation of the gaussian noise process to the GRU hidden activity.</p></li>
+<li><p>The kernel regularizer weight.</p></li>
+<li><p>The recurrent regularizer weight.</p></li>
+<li><p>The number of GRU units per hidden layer. If there are several layers, this will be a <cite>list</cite>.</p></li>
+<li><p>The number of hidden GRU layers.</p></li>
+<li><p>The name of the activation function used as non-linearity for the hidden GRU layers.</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A <cite>dictionary</cite> containing the object instance’s full configuration.</p>
+</dd>
+</dl>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="motornet.nets.layers.Network">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.layers.</span></span><span class="sig-name descname"><span class="pre">Network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.layers.Network" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">keras.engine.base_layer.Layer</span></code></p>
+<p>Base class for controller network objects. It implements a network whose function is to control the plant
+provided as input at initialization. This object can be subclassed to implement virtually anything that <cite>tensorflow</cite>
+can implement as a deep neural network, so long as it abides by the state structure used in <cite>motornet</cite> (see below
+for details).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>plant</strong> – A <a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant" title="motornet.plants.plants.Plant"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant</span></code></a> object class or subclass. This is the plant that the
+<a class="reference internal" href="#motornet.nets.layers.Network" title="motornet.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> will control.</p></li>
+<li><p><strong>proprioceptive_noise_sd</strong> – <cite>Float</cite>, the standard deviation of the gaussian noise process for the proprioceptive
+feedback loop. The gaussian noise process is a normal distribution centered on <cite>0</cite>.</p></li>
+<li><p><strong>visual_noise_sd</strong> – <cite>Float</cite>, the standard deviation of the random noise process for the visual
+feedback loop. The random process is a normal distribution centered on <cite>0</cite>.</p></li>
+<li><p><strong>n_ministeps</strong> – <cite>Integer</cite>, the number of timesteps that the plant is simulated forward for each forward pass of
+the deep neural network. For instance, if the (global) timestep size is <cite>1</cite> ms, and <cite>n_ministeps</cite> is <cite>5</cite>,
+then the plant will be simulated for every <cite>0.2</cite> ms timesteps, with the excitatory drive from the controller
+only being updated every <cite>1</cite> ms.</p></li>
+<li><p><strong>**kwargs</strong> – This is passed to the parent <cite>tensorflow.keras.layers.Layer</cite> class as-is.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="motornet.nets.layers.Network.call">
+<span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.layers.Network.call" title="Permalink to this definition">#</a></dt>
+<dd><p>The logic for a single simulation step. This performs a single forward pass through the network, and passes
+the network output as excitation signals (motor commands) to the plant object to simulate movement.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inputs</strong> – <cite>Dictionary</cite> of <cite>tensor</cite> arrays. At the very least, this should contain a “inputs” key mapped to
+a <cite>tensor</cite> array, which will be passed as-is to the network’s input layer. Additional keys will be
+passed as <cite>**kwargs</cite> to the plant call.</p></li>
+<li><p><strong>states</strong> – <cite>List</cite>, contains all the states of the plant, and of the network if any exist. The state order in
+the <cite>list</cite> follows the same convention as the <a class="reference internal" href="#motornet.nets.layers.Network.get_initial_states" title="motornet.nets.layers.Network.get_initial_states"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_initial_states()</span></code></a> method.</p></li>
+<li><p><strong>kwargs</strong> – For backward compatibility only.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>A <cite>dictionary</cite> containing the new states.</p></li>
+<li><p>A <cite>list</cite> containing the new states in the same order convention as the <a class="reference internal" href="#motornet.nets.layers.Network.get_initial_states" title="motornet.nets.layers.Network.get_initial_states"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_initial_states()</span></code></a> method.
+While this output is redundant to the user, it is necessary for <cite>tensorflow</cite> to process the network over
+time.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="motornet.nets.layers.Network.forward_pass">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">forward_pass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.layers.Network.forward_pass" title="Permalink to this definition">#</a></dt>
+<dd><p>Performs the forward pass through the network layers to obtain the motor commands that will then be passed
+on to the plant.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inputs</strong> – <cite>Tensor</cite>, inputs to the first layer of the network.</p></li>
+<li><p><strong>states</strong> – <cite>List</cite> of <cite>tensor</cite> arrays, containing the states of each layer operating on a state.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>A <cite>tensor</cite> array, the output of the last layer to use as the motor command, or excitation to the plant.</p></li>
+<li><p>A <cite>list</cite> of the new states inherent to potential layers operating on a state.</p></li>
+<li><p>A <cite>dictionary</cite> of the new states inherent to potential layers operating on a state.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>NotImplementedError</strong> – if this method is not overwritten by a subclass.</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="motornet.nets.layers.Network.from_config">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.layers.Network.from_config" title="Permalink to this definition">#</a></dt>
 <dd><p>Creates a layer from its config.</p>
 <p>This method is the reverse of <cite>get_config</cite>,
 capable of instantiating the same layer from the config
@@ -268,22 +427,92 @@ output of get_config.</p>
 </dl>
 </dd></dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="motornet.nets.layers.GRUNetwork.get_base_config">
-<span class="sig-name descname"><span class="pre">get_base_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.layers.GRUNetwork.get_base_config" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="motornet.nets.layers.Network.get_base_config">
+<span class="sig-name descname"><span class="pre">get_base_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.layers.Network.get_base_config" title="Permalink to this definition">#</a></dt>
+<dd><p>Get the object instance’s base configuration. This is the set of configuration entries that will be useful
+for any <a class="reference internal" href="#motornet.nets.layers.Network" title="motornet.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> class or subclass. This method should be called by the <a class="reference internal" href="#motornet.nets.layers.Network.get_save_config" title="motornet.nets.layers.Network.get_save_config"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_save_config()</span></code></a>
+method. Users wanting to save additional configuration entries specific to a <cite>Network</cite> subclass should then
+do so in the <a class="reference internal" href="#motornet.nets.layers.Network.get_save_config" title="motornet.nets.layers.Network.get_save_config"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_save_config()</span></code></a> method, using this method’s output <cite>dictionary</cite> as a base.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A <cite>dictionary</cite> containing the network’s proprioceptive and visual noise standard deviation and delay, and
+the number of muscles and ministeps.</p>
+</dd>
+</dl>
+</dd></dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="motornet.nets.layers.GRUNetwork.get_initial_state">
-<span class="sig-name descname"><span class="pre">get_initial_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">tf.float32</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.layers.GRUNetwork.get_initial_state" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="motornet.nets.layers.Network.get_base_initial_state">
+<span class="sig-name descname"><span class="pre">get_base_initial_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">tf.float32</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.layers.Network.get_base_initial_state" title="Permalink to this definition">#</a></dt>
+<dd><p>Creates the base initial states for the first timestep of the network training procedure. This method
+provides the base states for the default <a class="reference internal" href="#motornet.nets.layers.Network" title="motornet.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> class, in the order listed below:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>joint state</p></li>
+<li><p>cartesian state</p></li>
+<li><p>muscle state</p></li>
+<li><p>geometry state</p></li>
+<li><p>proprioception feedback array</p></li>
+<li><p>visual feedback array</p></li>
+<li><p>excitation state</p></li>
+</ul>
+</div></blockquote>
+<p>This method should be called in the <a class="reference internal" href="#motornet.nets.layers.Network.get_initial_states" title="motornet.nets.layers.Network.get_initial_states"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_initial_states()</span></code></a> method to provide a base for the output of that
+method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inputs</strong> – The joint state from which the other state values are inferred. This is passed as-is to the
+<a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.get_initial_state" title="motornet.plants.plants.Plant.get_initial_state"><code class="xref py py-meth docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant.get_initial_state()</span></code></a> method, and therefore obeys the structure
+documented there.</p></li>
+<li><p><strong>batch_size</strong> – <cite>Integer</cite>, the batch size defining the size of each state’s first dimension.</p></li>
+<li><p><strong>dtype</strong> – A <cite>dtype</cite> from the <cite>tensorflow.dtypes</cite> module.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A <cite>list</cite> of the states as <cite>tensor</cite> arrays in the order listed above.</p>
+</dd>
+</dl>
+</dd></dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="motornet.nets.layers.GRUNetwork.get_save_config">
-<span class="sig-name descname"><span class="pre">get_save_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.layers.GRUNetwork.get_save_config" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="motornet.nets.layers.Network.get_initial_states">
+<span class="sig-name descname"><span class="pre">get_initial_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">tf.float32</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.layers.Network.get_initial_states" title="Permalink to this definition">#</a></dt>
+<dd><p>Creates the initial states for the first timestep of the network training procedure. This method
+provides the states for the full <a class="reference internal" href="#motornet.nets.layers.Network" title="motornet.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> class, that is the default states from the
+<a class="reference internal" href="#motornet.nets.layers.Network.get_base_initial_state" title="motornet.nets.layers.Network.get_base_initial_state"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_base_initial_state()</span></code></a> method followed by the states specific to a potential subclass. This method
+should be overwritten by subclassing objects, and used to add new states specific to that subclass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inputs</strong> – The joint state from which the other state values are inferred. This is passed as-is to the
+<a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.get_initial_state" title="motornet.plants.plants.Plant.get_initial_state"><code class="xref py py-meth docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant.get_initial_state()</span></code></a> method, and therefore obeys the structure
+documented there.</p></li>
+<li><p><strong>batch_size</strong> – <cite>Integer</cite>, the batch size defining the size of each state’s first dimension.</p></li>
+<li><p><strong>dtype</strong> – A <cite>dtype</cite> from the <cite>tensorflow.dtypes</cite> module.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>By default, this method returns the output of the <a class="reference internal" href="#motornet.nets.layers.Network.get_base_initial_state" title="motornet.nets.layers.Network.get_base_initial_state"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_base_initial_state()</span></code></a> method, that is a
+<cite>list</cite> of the states as <cite>tensor</cite> arrays.</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="motornet.nets.layers.Network.get_save_config">
+<span class="sig-name descname"><span class="pre">get_save_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.layers.Network.get_save_config" title="Permalink to this definition">#</a></dt>
+<dd><p>Get the <a class="reference internal" href="#motornet.nets.layers.Network" title="motornet.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> object’s configuration as a <cite>dictionary</cite>. This method should be overwritten by
+subclass objects, and used to add configuration entries specific to that subclass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>By default, this method returns the output of the <a class="reference internal" href="#motornet.nets.layers.Network.get_base_config" title="motornet.nets.layers.Network.get_base_config"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_base_config()</span></code></a> method.</p>
+</dd>
+</dl>
+</dd></dl>
 </dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="motornet.nets.layers.recttanh">
 <span class="sig-prename descclassname"><span class="pre">motornet.nets.layers.</span></span><span class="sig-name descname"><span class="pre">recttanh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.layers.recttanh" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>A rectified hyperbolic tangent activation function.</p>
+</dd></dl>
 </section>
 
         </article>

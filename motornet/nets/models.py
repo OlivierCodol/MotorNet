@@ -8,24 +8,26 @@ class DistalTeacher(tf.keras.Model, ABC):
     """This is a custom ``tensorflow.keras.Model`` object, whose purpose is to enable saving
     ``motornet.plants`` object configuration when saving the model as well.
 
-    In Tensorflow, ``tensorflow.keras.Model`` objects group layers into an object with training and inference features.
-    See the Tensorflow documentation for more details on how to declare, compile and use use a
+    In `Tensorflow`, ``tensorflow.keras.Model`` objects group layers into an object with training and inference
+    features. See the Tensorflow documentation for more details on how to declare, compile and use use a
     ``tensorflow.keras.Model`` object.
 
     Conceptually, as this model class performs backward propagation through the plant (which can be considered a perfect
     forward model), this class essentially performs the training of the controller using a `distal teacher` algorithm,
     as defined in `[1]`.
 
-    Reference:
-    `[1] Jordan MI, Rumelhart DE. Forward Models: Supervised Learning with a Distal Teacher.
-    Cognitive Science, 1992 Jul;16(3):307-354. doi: 10.1207/s15516709cog1603_1.`
+    References:
+        [1] `Jordan MI, Rumelhart DE. Forward Models: Supervised Learning with a Distal Teacher.
+        Cognitive Science, 1992 Jul;16(3):307-354. doi: 10.1207/s15516709cog1603_1.`
 
     Args:
-        inputs: The input(s) of the model: a ``tensorflow.keras.layers.Input`` object or list of
-            ``tensorflow.keras.layers.Input`` objects.
-        outputs: The output(s) of the model. See Functional API example in the Tensorflow documentation.
-        task: A ``motornet.task.Task`` object or subclass.
-        name: String, the name of the model.
+        inputs: A :class:`tensorflow.keras.layers.Input`` object or `list` of :class:`tensorflow.keras.layers.Input`
+            objects that will serve as `tensor` placeholder input(s) to the model.
+        outputs: The output(s) of the model. See `motornet` tutorial on how to build a model, and the introduction
+            section of the Functional API example in the `Tensorflow` documentation for more information about this
+            argument: https://www.tensorflow.org/guide/keras/functional#introduction.
+        task: A :class:`motornet.tasks.Task` object class or subclass.
+        name: `String`, the name of the model.
     """
 
     def __init__(self, inputs, outputs, task, name='controller'):
@@ -57,16 +59,22 @@ class DistalTeacher(tf.keras.Model, ABC):
     def train_step(self, data):
         """The logic for one training step. Compared to the default method, this overriding method allows for
         recomputation of targets online (during movement), in addition to essentially reproducing what the default
-        method does. Notable features missing from the original method include outputing metrics as a list instead of a
-        dictionary (since `motornet` always uses dictionaries) and the use of sample weighting, since data is usually
-        synthetic and not empirical, avoiding sampling bias altogether.
+        method does.
+
+        .. warning::
+            Some features from the original :meth:`tensorflow.keras.Model.train_step` method are not implemented here.
+
+            - Outputing metrics as a `list` instead of a `dictionary`, since `motornet` always uses dictionaries
+            - The sample weighting functionality, since data in `motornet` is usually synthetic and not empirical,
+              meaning there is usually no bias in sample representation.
 
         Args:
-            data: A nested structure of `tensor` s.
+            data: A nested structure of `tensor` arrays.
 
         Returns:
-            A `dict` containing values that will be passed to :meth:`tf.keras.callbacks.CallbackList.on_train_batch_end`.
-            Typically, the values of the `Model`'s metrics are returned. Example: `{'loss': 0.2, 'accuracy': 0.7}`.
+            A `dictionary` containing values that will be passed to
+            :meth:`tf.keras.callbacks.CallbackList.on_train_batch_end`. Typically, the values of the `Model`'s metrics
+            are returned. Example: `{'loss': 0.2, 'accuracy': 0.7}`.
         """
 
         x, y = data
@@ -95,7 +103,7 @@ class DistalTeacher(tf.keras.Model, ABC):
         """Gets the model's configuration as a dictionary and then save it into a JSON file.
 
         Args:
-            path: String, the absolute path to the JSON file that will be produced. The name of the JSON file itself
+            path: `String`, the absolute path to the JSON file that will be produced. The name of the JSON file itself
                 should be included, without the extension. For instance, if we want to create a JSON file called
                 `my_model_config.json` in `~/path/to/desired/directory`, we would call this method in the python console
                 like so:
@@ -104,8 +112,7 @@ class DistalTeacher(tf.keras.Model, ABC):
 
                     model.save_model("~/path/to/desired/directory/my_model_config")
 
-            **kwargs: Additional keyword arguments. They are not used here, and are only present for subclassing
-                compatibility.
+            **kwargs: Not used here, this is for subclassing compatibility only.
         """
         cfg = {'Task': self.task.get_save_config()}
         cfg.update({'Network': self.task.network.get_save_config()})
@@ -117,10 +124,10 @@ class DistalTeacher(tf.keras.Model, ABC):
                 json.dump(cfg, file)
 
     def get_config(self):
-        """Get the model's configuration.
+        """Gets the model's configuration.
 
         Returns:
-            A dictionary containing the model's configuration. This includes the task object passed at initialization.
+            A `dictionary` containing the model's configuration. This includes the task object passed at initialization.
         """
 
         cfg = super().get_config()
@@ -133,7 +140,7 @@ class DistalTeacher(tf.keras.Model, ABC):
 
 
 class MotorNetModel(DistalTeacher):
-    """This is an alias name for the `DistalTeacher` class for backward compatibility."""
+    """This is an alias name for the :class:`DistalTeacher` class for backward compatibility."""
 
     def __init__(self, inputs, outputs, task, name='controller'):
         super().__init__(inputs=inputs, outputs=outputs, task=task, name=name)

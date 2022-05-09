@@ -1,7 +1,7 @@
 """
 This module implements `tensorflow.keras.callbacks.Callback` subclasses.
 For more information from the tensorflow package on what callbacks are and what they can achieve, feel free to refer to
-https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/Callback.
+the tensorflow documentation on callbacks at: https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/Callback.
 """
 
 import copy
@@ -14,8 +14,9 @@ from tensorflow.python.keras import backend
 
 
 class BatchLogger(Callback):
-    """In tensorflow, the default callbacks log performance metrics at the end of each epoch step.
-    This callback logs performance metrics at the end of each batch step instead.
+    """In tensorflow, the default callbacks log performance metrics at the end of each epoch.
+    This callback logs performance metrics at the end of each batch instead, providing more frequent logging of training
+    performance.
     """
     def __init__(self):
         super().__init__()
@@ -27,7 +28,7 @@ class BatchLogger(Callback):
         Logs the initial model weights.
 
         Args:
-            logs: Dict. Currently no data is passed to this argument for this method.
+            logs: `Dictionary`, currently no data is passed to this argument for this method.
         """
         self.weights_log.append(copy.deepcopy(self.model.weights))
 
@@ -43,20 +44,21 @@ class BatchLogger(Callback):
 
 class TrainingPlotter(Callback):
     """This callback plots the loss history and/or some test trials every `plot_freq` batches, to help monitor the
-    model's behaviour during the training sessions itself.
+    model's behaviour during the training session.
 
-    If `plot_loss` is toggled on, all the losses, including the total loss and contributing losses will be displayed.
+    If `plot_loss` is toggled on, the losses will be displayed, including the total loss and contributing losses.
 
     If test trials are toggled on (`plot_trials > 0`), cartesian position, muscle activation, muscle velocity and
-    network unit activity will be displayed.
+    network unit activity will be displayed, each in their own subplot.
 
     Args:
-        task: `motornet.tasks.Task` object, corresponding to the Task object that the Network controller is given.
-        plot_freq: Integer, indicating the number of batches after which plotting wil occur (default: `20`).
-        plot_n_t: Integer, indicating the number of timesteps used for plotting test trials (default: `100`). This
-            argument is ignored if `plot_trials` is set to 0.
-        plot_loss: Bool. Whether or not to plot loss values (default: `True`).
-        plot_trials: Integer, how many trials to simulate and plot each time (default: `3`).
+        task: :class:`motornet.tasks.Task` class or subclass, corresponding to the `Task` object that the `Network`
+            controller is given.
+        plot_freq: `Integer`, indicating the number of batches after which plotting will occur.
+        plot_n_t: `Integer`, indicating the number of timesteps used for plotting test trials. This
+            argument is ignored if `plot_trials` is set to `0`.
+        plot_loss: `Bool.`, whether or not to plot loss values.
+        plot_trials: `Integer`, how many trials to simulate and plot each time.
     """
 
     def __init__(self, task, plot_freq=20, plot_n_t=100, plot_loss=True, plot_trials=3):
@@ -74,28 +76,26 @@ class TrainingPlotter(Callback):
 
     def on_train_begin(self, logs=None):
         """Called at the beginning of training. This should only be called on train mode.
-        This method keeps track of which batch was last visited (if there was a previous training session).
+        Keeps track of which batch was last visited (if there was a previous training session).
         This allows plotting training information of previous training sessions even on subsequent training sessions.
 
-        This routine is implemented here instead of in the `on_training_end` method to ensure logging occurs even if the
-        user interrupts an ongoing training session.
+        This routine is implemented here instead of in the :meth:`on_training_end` method to ensure logging occurs even
+        if the user interrupts an ongoing training session.
 
         Args:
-            logs: Dict. Currently no data is passed to this argument for this method.
+            logs: `Dictionary`, currently no data is passed to this argument for this method.
         """
-        #
         if self.last_visited_batch is not None:
             if len(self.training_stop_history) > 0:
                 self.last_visited_batch += self.training_stop_history[-1]
             self.training_stop_history.append(self.last_visited_batch)
 
     def on_batch_end(self, batch, logs=None):
-        """
-        Plot losses, as well as test trials if toggled on in the `__init__` method.
+        """Plot losses, as well as test trials if this option is toggled on at initialization.
 
         Args:
-            batch: Integer, index of batch.
-            logs: Dict. Currently no data is passed to this argument for this method.
+            batch: `Integer`, index of batch.
+            logs: `Dictionary`, currently no data is passed to this argument for this method.
         """
 
         if self.losses == {}:  # initialize the losses dictionary if needed
@@ -173,31 +173,31 @@ class TrainingPlotter(Callback):
 
 class BatchwiseLearningRateScheduler(LearningRateScheduler):
     """The parent class adjusts the learning rate at the start of each epoch. This subclass instead applies the learning
-    rate adjustement routine to the end of each batch.
+    rate adjustement routine at the end of each batch, allowing for more frequent learning rate adjustements to occur.
 
     Args:
-        scheduler: a function that takes a batch index (integer, indexed from 0)
-            and current learning rate (float) as inputs and returns a new learning rate as output (float).
-        verbose: int. 0: quiet, 1: update messages.
+        scheduler: A (potentially custom-made) function that takes a batch index (`integer`, indexed from 0) and
+             current learning rate (`float`) as inputs and returns a new learning rate as output (`float`).
+        verbose: `Integer`, either `0` (quiet) or `1` (update messages toggled on).
     """
 
     def __init__(self, scheduler, verbose=0):
         super().__init__(scheduler, verbose)
 
     def on_epoch_begin(self, epoch, logs=None):
-        """Called at the start of an epoch.
+        """Called at the start of each epoch.
         This method is empty to overwrite the learning rate adjustement routine at the beginning of each epoch.
         """
         return None
     
     def on_batch_end(self, batch, logs=None):
-        """Called at the end of a batch.
+        """Called at the end of each batch.
         The learning rate adjustement routine implemented in the `on_epoch_begin` method for the parent class is now
         implemented here instead.
 
         Args:
-            batch: Integer, index of batch.
-            logs: Dict. Currently no data is passed to this argument for this method.
+            batch: `Integer`, index of batch.
+            logs: `Dictionary`, currently no data is passed to this argument for this method.
         """
         if not hasattr(self.model.optimizer, 'lr'):
             raise ValueError('Optimizer must have a "lr" attribute.')
@@ -222,7 +222,9 @@ class TensorflowFix(Callback):
     See this github issue for more details.
     https://github.com/tensorflow/tensorflow/issues/42872
 
-    Note that as tensorflow nightly 2.6, this issue has been fixed. This callback is kept for backward compatibility.
+    .. note::
+
+        As of tensorflow nightly 2.6, this issue has been fixed. This callback is kept for backward compatibility.
     """
     def __init__(self):
         super(TensorflowFix, self).__init__()
@@ -233,7 +235,7 @@ class TensorflowFix(Callback):
         """Called at the beginning of training. This should only be called on train mode.
 
          Args:
-             logs: Dict. Currently no data is passed to this argument for this method.
+             logs: `Dictionary`, currently no data is passed to this argument for this method.
          """
         self._backup_loss = {**self.model.loss}
 
@@ -241,7 +243,7 @@ class TensorflowFix(Callback):
         """Called at the end a batch during training. This should only be called on train mode.
 
          Args:
-             batch: Integer, index of batch.
-             logs: Dict. Currently no data is passed to this argument for this method.
+             batch: `Integer`, index of batch.
+             logs: `Dictionary`, currently no data is passed to this argument for this method.
          """
         self.model.loss = self._backup_loss

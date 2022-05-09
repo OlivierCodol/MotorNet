@@ -285,7 +285,8 @@ class GRUNetwork(Network):
     muscles that the plant contains.
 
     Args:
-        plant: A `motornet.plants.Plant` class object or subclass. This is the plant that the `Network` will control.
+        plant: A :class:`motornet.plants.plants.Plant` object class or subclass. This is the plant that the `Network`
+            will control.
         n_units: `Integer` or `list`, the number of GRUs per layer. If only one layer is created, then this can
             be an `integer`.
         n_hidden_layers: `Integer`, the number of hidden layers of GRUs that the network will implement.
@@ -366,7 +367,7 @@ class GRUNetwork(Network):
 
     def get_initial_states(self, inputs=None, batch_size: int = 1, dtype=tf.float32):
         """Creates the initial states for the first timestep of the network training procedure. This method
-        provides the states for the full `Network` class, that is the default states from the
+        provides the states for the full :class:`Network` class, that is the default states from the
         :meth:`get_base_initial_state` method followed by the states specific to this subclass.
 
         Args:
@@ -387,8 +388,7 @@ class GRUNetwork(Network):
 
     def get_save_config(self):
         """Gets the base configuration from the :meth:`motornet.nets.layers.Network.get_base_config` method, and adds
-        the configuration information
-        specific to the `GRUNetwork` class to that `dictionary`. These are:
+        the configuration information specific to the :class:`GRUNetwork` class to that `dictionary`. These are:
 
             - The standard deviation of the gaussian noise process to the GRU hidden activity.
             - The kernel regularizer weight.

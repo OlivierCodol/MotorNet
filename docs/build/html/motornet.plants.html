@@ -223,11 +223,17 @@
 <section id="module-motornet.plants">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-motornet.plants" title="Permalink to this headline">#</a></h2>
 <p>This module contains the classes and subclasses used to create the plants that a model will be trained to control.
-Plants are implemented as subclasses of the <code class="docutils literal notranslate"><span class="pre">motornet.plant.Plant</span></code> object. They all contain a single
-<code class="docutils literal notranslate"><span class="pre">motornet.plant.skeletons.Skeleton</span></code> and <code class="docutils literal notranslate"><span class="pre">motornet.plant.muscles.Muscle</span></code> subclass defining the biomechanical
-properties of that <cite>Plant</cite> object. The <cite>Plant</cite> object itself implements the numerical integration routines, some of the
-geometry state calculation routines (in conjunction with the <cite>Skeleton</cite> object), applies moment arms to produce
-generalized forces, and generally handles communication between the <cite>Skeleton</cite> and <cite>Muscle</cite> objects.</p>
+Plants are implemented as subclasses of the <a class="reference internal" href="#motornet.plants.plants.Plant" title="motornet.plants.plants.Plant"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant</span></code></a> object. They all contain a single
+<a class="reference internal" href="motornet.plants.skeletons.html#motornet.plants.skeletons.Skeleton" title="motornet.plants.skeletons.Skeleton"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.skeletons.Skeleton</span></code></a> and <a class="reference internal" href="motornet.plants.muscles.html#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.muscles.Muscle</span></code></a> subclass defining the
+biomechanical properties of that <cite>Plant</cite> object. The <cite>Plant</cite> object itself implements the numerical integration
+routines, some of the geometry state calculation routines (in conjunction with the <cite>Skeleton</cite> object), applies moment
+arms to produce generalized forces, and generally handles communication between the <cite>Skeleton</cite> and <cite>Muscle</cite> objects.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>While <cite>Plant</cite> objects are technically implemented in the <a class="reference internal" href="#module-motornet.plants.plants" title="motornet.plants.plants"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants</span></code></a> module, it is possible
+(and recommended) to call them using the <code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.Plant</span></code> path, which is more concise and strictly
+equivalent.</p>
+</div>
 </section>
 <section id="motornet-plants-muscles">
 <h2>motornet.plants.muscles<a class="headerlink" href="#motornet-plants-muscles" title="Permalink to this headline">#</a></h2>
@@ -251,9 +257,20 @@ generalized forces, and generally handles communication between the <cite>Skelet
 <dt class="sig sig-object py" id="motornet.plants.plants.CompliantTendonArm26">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.plants.plants.</span></span><span class="sig-name descname"><span class="pre">CompliantTendonArm26</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0002</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skeleton</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.plants.CompliantTendonArm26" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#motornet.plants.plants.RigidTendonArm26" title="motornet.plants.plants.RigidTendonArm26"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants.RigidTendonArm26</span></code></a></p>
-<p>This is the compliant-tendon version of the <code class="docutils literal notranslate"><span class="pre">RigidTendonArm26</span></code> class. Note that the default integration
-method for the current object is Runge-Kutta 4, instead of Euler.</p>
-<p>The <cite>**kwargs</cite> inputs are passed as-is to the parent <code class="docutils literal notranslate"><span class="pre">motornet.plants.RigidTendonArm26</span></code> class.</p>
+<p>This is the compliant-tendon version of the <a class="reference internal" href="#motornet.plants.plants.RigidTendonArm26" title="motornet.plants.plants.RigidTendonArm26"><code class="xref py py-class docutils literal notranslate"><span class="pre">RigidTendonArm26</span></code></a> class. Note that the default integration
+method is Runge-Kutta 4, instead of Euler.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>timestep</strong> – <cite>Float</cite>, size of a single timestep (in sec).</p></li>
+<li><p><strong>skeleton</strong> – A <a class="reference internal" href="motornet.plants.skeletons.html#motornet.plants.skeletons.Skeleton" title="motornet.plants.skeletons.Skeleton"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.skeletons.Skeleton</span></code></a> object class or subclass. This defines the type of
+skeleton that the muscles will wrap around. If no skeleton is passed, this will default to the skeleton
+used in the parent <a class="reference internal" href="#motornet.plants.plants.RigidTendonArm26" title="motornet.plants.plants.RigidTendonArm26"><code class="xref py py-class docutils literal notranslate"><span class="pre">RigidTendonArm26</span></code></a> class.</p></li>
+<li><p><strong>**kwargs</strong> – All contents are passed to the parent <a class="reference internal" href="#motornet.plants.plants.RigidTendonArm26" title="motornet.plants.plants.RigidTendonArm26"><code class="xref py py-class docutils literal notranslate"><span class="pre">RigidTendonArm26</span></code></a> class. This also
+allows for some backward compatibility.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.plants.plants.Plant">
@@ -263,37 +280,36 @@ method for the current object is Runge-Kutta 4, instead of Euler.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>skeleton</strong> – A <code class="docutils literal notranslate"><span class="pre">motornet.plants.skeletons.Skeleton</span></code> object. This defines the type of skeleton that the muscles
-will wrap around.</p></li>
-<li><p><strong>muscle_type</strong> – A <code class="docutils literal notranslate"><span class="pre">motornet.plants.muscles.Muscle</span></code> object. This defines the type of muscle that will be added
-each time the <a class="reference internal" href="#motornet.plants.plants.Plant.add_muscle" title="motornet.plants.plants.Plant.add_muscle"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_muscle()</span></code></a> method is called.</p></li>
+<li><p><strong>skeleton</strong> – A <a class="reference internal" href="motornet.plants.skeletons.html#motornet.plants.skeletons.Skeleton" title="motornet.plants.skeletons.Skeleton"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.skeletons.Skeleton</span></code></a> object class or subclass. This defines the type of
+skeleton that the muscles will wrap around.</p></li>
+<li><p><strong>muscle_type</strong> – A <a class="reference internal" href="motornet.plants.muscles.html#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.muscles.Muscle</span></code></a> object class or subclass. This defines the type of muscle
+that will be added each time the <a class="reference internal" href="#motornet.plants.plants.Plant.add_muscle" title="motornet.plants.plants.Plant.add_muscle"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_muscle()</span></code></a> method is called.</p></li>
 <li><p><strong>name</strong> – <cite>String</cite>, the name of the object instance.</p></li>
 <li><p><strong>timestep</strong> – <cite>Float</cite>, size of a single timestep (in sec).</p></li>
-<li><p><strong>integration_method</strong> – <cite>String</cite>, ‘euler’ to specify that numerical integration should take place using the Euler
-method, or ‘rk4’, ‘rungekutta4’, ‘runge-kutta4’, or ‘runge-kutta-4’ to specify the Runge-Kutta 4 method
+<li><p><strong>integration_method</strong> – <cite>String</cite>, “euler” to specify that numerical integration should be done using the Euler
+method, or “rk4”, “rungekutta4”, “runge-kutta4”, or “runge-kutta-4” to specify the Runge-Kutta 4 method
 instead. This argument is case-insensitive.</p></li>
 <li><p><strong>excitation_noise_sd</strong> – <cite>Float</cite>, defines the amount of stochastic noise that will be added to the excitation input
 during the <code class="xref py py-meth docutils literal notranslate"><span class="pre">call()</span></code>. Specifically, this value represents the standard deviation of a gaussian
 distribution centred around zero, from which a noise term is drawn randomly at every timestep.</p></li>
 <li><p><strong>proprioceptive_delay</strong> – <cite>Float</cite>, the delay between a proprioceptive signal being produced by the plant and the
 network receiving it as input. If this is not a multiple of the timestep size, this will be rounded up to
-match the closest multiple value. What qualifies as “proprioceptive feedback” is <cite>de facto</cite> defined at the
-network level.</p></li>
+match the closest multiple value. What qualifies as “proprioceptive feedback” is defined at the network
+level.</p></li>
 <li><p><strong>visual_delay</strong> – <cite>Float</cite>, the delay between a visual signal being produced by the plant and the
 network receiving it as input. If this is not a multiple of the timestep size, this will be rounded up to
-match the closest multiple value. What qualifies as “visual feedback” is <cite>de facto</cite> defined at the
-network level.</p></li>
-<li><p><strong>pos_upper_bound</strong> – <cite>Float</cite>, <cite>List</cite> or <cite>Tuple</cite>, indicating the upper boundary of the skeleton’s joint position.
-This should be a <cite>n</cite>-elements vector or list, with <cite>n</cite> the number of joints of the skeleton. For instance,
+match the closest multiple value. What qualifies as “visual feedback” is defined at the network level.</p></li>
+<li><p><strong>pos_upper_bound</strong> – <cite>Float</cite>, <cite>list</cite> or <cite>tuple</cite>, indicating the upper boundary of the skeleton’s joint position.
+This should be a <cite>n</cite>-elements vector or <cite>list</cite>, with <cite>n</cite> the number of joints of the skeleton. For instance,
 for a two degrees-of-freedom arm, we would have <cite>n=2</cite>.</p></li>
-<li><p><strong>pos_lower_bound</strong> – <cite>Float</cite>, <cite>List</cite> or <cite>Tuple</cite>, indicating the lower boundary of the skeleton’s joint position.
-This should be a <cite>n</cite>-elements vector or list, with <cite>n</cite> the number of joints of the skeleton. For instance,
+<li><p><strong>pos_lower_bound</strong> – <cite>Float</cite>, <cite>list</cite> or <cite>tuple</cite>, indicating the lower boundary of the skeleton’s joint position.
+This should be a <cite>n</cite>-elements vector or <cite>list</cite>, with <cite>n</cite> the number of joints of the skeleton. For instance,
 for a two degrees-of-freedom arm, we would have <cite>n=2</cite>.</p></li>
-<li><p><strong>vel_upper_bound</strong> – <cite>Float</cite>, <cite>List</cite> or <cite>Tuple</cite>, indicating the upper boundary of the skeleton’s joint velocity.
-This should be a <cite>n</cite>-elements vector or list, with <cite>n</cite> the number of joints of the skeleton. For instance,
+<li><p><strong>vel_upper_bound</strong> – <cite>Float</cite>, <cite>list</cite> or <cite>tuple</cite>, indicating the upper boundary of the skeleton’s joint velocity.
+This should be a <cite>n</cite>-elements vector or <cite>list</cite>, with <cite>n</cite> the number of joints of the skeleton. For instance,
 for a two degrees-of-freedom arm, we would have <cite>n=2</cite>.</p></li>
-<li><p><strong>vel_lower_bound</strong> – <cite>Float</cite>, <cite>List</cite> or <cite>Tuple</cite>, indicating the lower boundary of the skeleton’s joint velocity.
-This should be a <cite>n</cite>-elements vector or list, with <cite>n</cite> the number of joints of the skeleton. For instance,
+<li><p><strong>vel_lower_bound</strong> – <cite>Float</cite>, <cite>list</cite> or <cite>tuple</cite>, indicating the lower boundary of the skeleton’s joint velocity.
+This should be a <cite>n</cite>-elements vector or <cite>list</cite>, with <cite>n</cite> the number of joints of the skeleton. For instance,
 for a two degrees-of-freedom arm, we would have <cite>n=2</cite>.</p></li>
 </ul>
 </dd>
@@ -309,12 +325,12 @@ for a two degrees-of-freedom arm, we would have <cite>n=2</cite>.</p></li>
 point in the muscle. The index <cite>0</cite> always stands for the worldspace, <em>i.e.</em> a fixation point outside of
 the skeleton.</p></li>
 <li><p><strong>path_coordinates</strong> – A <cite>List</cite> of <cite>lists</cite>. There should be as many lists in the main list as there are fixation
-points for that muscle. Each list in the main list should contain a series of <cite>n</cite> coordinate <cite>Float</cite>
-values, with <cite>n</cite> being the dimensionality of the worldspace. For instance, in a 2D environment,
-we would need two coordinate values. The coordinate system of each bone is centered on that bone’s
-origin point. Its first dimension is always alongside the length of the bone, and the next dimension(s)
-proceed(s) from there on orthogonally to that first dimension.</p></li>
-<li><p><strong>name</strong> – <cite>String</cite>, the name to give to the muscle being added. In <code class="docutils literal notranslate"><span class="pre">None</span></code> is given, the name defaults to
+points for that muscle. Each nested <cite>list</cite> within the main <cite>list</cite> should contain a series of <cite>n</cite>
+coordinate <cite>float</cite> values, with <cite>n</cite> being the dimensionality of the worldspace. For instance, in a 2D
+environment, we would need two coordinate values. The coordinate system of each bone is centered on that
+bone’s origin point. Its first dimension is always alongside the length of the bone, and the next
+dimension(s) proceed(s) from there on orthogonally to that first dimension.</p></li>
+<li><p><strong>name</strong> – <cite>String</cite>, the name to give to the muscle being added. If <code class="docutils literal notranslate"><span class="pre">None</span></code> is given, the name defaults to
 <cite>“muscle_m”</cite>, with <cite>m</cite> being a counter for the number of muscles.</p></li>
 <li><p><strong>**kwargs</strong> – This is used to pass the set of properties required to build the type of muscle specified at
 initialization. What it should contain varies depending on the muscle type being used. A <cite>TypeError</cite>
@@ -322,25 +338,24 @@ will be raised by this method if a muscle property pertaining to the muscle type
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if an argument is missing to build the type of muscle specified at initialization.</p>
+<dd class="field-even"><p><strong>TypeError</strong> – If an argument is missing to build the type of muscle specified at initialization.</p>
 </dd>
 </dl>
 </dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.plants.Plant.draw_fixed_states">
 <span class="sig-name descname"><span class="pre">draw_fixed_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">velocity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.plants.Plant.draw_fixed_states" title="Permalink to this definition">#</a></dt>
-<dd><p>Creates a joint state <cite>Tensor</cite> corresponding to the specified position tiled <cite>batch_size</cite> times.</p>
+<dd><p>Creates a joint state <cite>tensor</cite> corresponding to the specified position, tiled <cite>batch_size</cite> times.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>position</strong> – The position to tile in the state <cite>Tensor</cite>.</p></li>
-<li><p><strong>velocity</strong> – The velocity to tile in the state <cite>Tensor</cite>. If not provided, this will default to <cite>0</cite> (null
-velocity).</p></li>
+<li><p><strong>position</strong> – The position to tile in the state <cite>tensor</cite>.</p></li>
+<li><p><strong>velocity</strong> – The velocity to tile in the state <cite>tensor</cite>. If <cite>None</cite>, this will default to <cite>0</cite> (null velocity).</p></li>
 <li><p><strong>batch_size</strong> – <cite>Integer</cite>, the desired batch size.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A <cite>Tensor</cite> containing <cite>batch_size</cite> joint states.</p>
+<dd class="field-even"><p>A <cite>tensor</cite> containing <cite>batch_size</cite> joint states.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -348,23 +363,23 @@ velocity).</p></li>
 <dt class="sig sig-object py" id="motornet.plants.plants.Plant.draw_random_uniform_states">
 <span class="sig-name descname"><span class="pre">draw_random_uniform_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.plants.Plant.draw_random_uniform_states" title="Permalink to this definition">#</a></dt>
 <dd><p>Draws joint states according to a random uniform distribution, bounded by the position and velocity boundary
-attributes defined during this object instance’s initialization call.</p>
+attributes defined at initialization.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>batch_size</strong> – <cite>Integer</cite>, the desired batch size.</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A <cite>Tensor</cite> containing <cite>batch_size</cite> joint states.</p>
+<dd class="field-even"><p>A <cite>tensor</cite> containing <cite>batch_size</cite> joint states.</p>
 </dd>
 </dl>
 </dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.plants.Plant.get_geometry">
 <span class="sig-name descname"><span class="pre">get_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.plants.Plant.get_geometry" title="Permalink to this definition">#</a></dt>
-<dd><p>Compute the geometry state from the joint state.</p>
+<dd><p>Computes the geometry state from the joint state.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>joint_state</strong> – <cite>Tensor</cite>, the joint state from which to compute the geometry state.</p>
+<dd class="field-odd"><p><strong>joint_state</strong> – <cite>Tensor</cite>, the joint state from which the geometry state is computed.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>The geometry state corresponding to the joint state provided.</p>
@@ -374,29 +389,37 @@ attributes defined during this object instance’s initialization call.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.plants.Plant.get_initial_state">
 <span class="sig-name descname"><span class="pre">get_initial_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.plants.Plant.get_initial_state" title="Permalink to this definition">#</a></dt>
-<dd><p>Get the initial states (cartesian, muscle, geometry) corresponding to a specified set of <cite>joint_state</cite>
-values.</p>
+<dd><p>Get initial states (joint, cartesian, muscle, geometry) that are biomechanically compatible with each other.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>batch_size</strong> – <cite>Integer</cite>, the desired batch size.</p></li>
-<li><p><strong>joint_state</strong> – The joint state from which the other state values are inferred.</p></li>
+<li><p><strong>joint_state</strong> – The joint state from which the other state values are inferred. If <cite>None</cite>, random initial
+joint states are drawn, from which the other state values are inferred.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A list containing the (input) joint state, and cartesian, muscle, and geometry states, in that order.</p>
+<dd class="field-even"><p>A <cite>list</cite> containing the joint state, and cartesian, muscle, and geometry states, in that order. If a
+<cite>joint_state</cite> input was provided, the joint state in the returned <cite>list</cite> will be the same as the input.</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the <cite>batch_size</cite> value is not specified and either the <cite>joint_state</cite> input is <cite>None</cite> or the
+    size of <cite>joint_state</cite> input’s first dimension is equal to <cite>1</cite>.</p>
 </dd>
 </dl>
 </dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.plants.Plant.get_save_config">
 <span class="sig-name descname"><span class="pre">get_save_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.plants.Plant.get_save_config" title="Permalink to this definition">#</a></dt>
-<dd><p>Get the plant object’s configuration as a <cite>Dictionary</cite>.</p>
-<p>Returns:</p>
-<p>A <cite>Dictionary</cite> containing the skeleton and muscle configurations as nested <cite>Dictionaries</cite>, and parameters
-pertaining to the plant’s configuration. Specifically, the size of the timestep (sec), the name of each
-muscle added via the <a class="reference internal" href="#motornet.plants.plants.Plant.add_muscle" title="motornet.plants.plants.Plant.add_muscle"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_muscle()</span></code></a> method, the number of muscles, the visual and proprioceptive
+<dd><p>Gets the plant object’s configuration as a <cite>dictionary</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A <cite>dictionary</cite> containing the skeleton and muscle configurations as nested <cite>dictionary</cite> objects, and
+parameters of the plant’s configuration. Specifically, the size of the timestep (sec), the name
+of each muscle added via the <a class="reference internal" href="#motornet.plants.plants.Plant.add_muscle" title="motornet.plants.plants.Plant.add_muscle"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_muscle()</span></code></a> method, the number of muscles, the visual and proprioceptive
 delay, and the standard deviation of the excitation noise.</p>
+</dd>
+</dl>
 </dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.plants.Plant.integrate">
@@ -417,28 +440,28 @@ the controller network’s forward pass.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A list containing the new joint, muscle, and geometry states following integration, in that order.</p>
+<dd class="field-even"><p>A <cite>list</cite> containing the new joint, muscle, and geometry states following integration, in that order.</p>
 </dd>
 </dl>
 </dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.plants.Plant.integration_step">
 <span class="sig-name descname"><span class="pre">integration_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_derivative</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.plants.Plant.integration_step" title="Permalink to this definition">#</a></dt>
-<dd><p>Performs one numerical integration step for the <code class="docutils literal notranslate"><span class="pre">motornet.plants.skeletons.Muscle</span></code> object, and then for the
-<code class="docutils literal notranslate"><span class="pre">motornet.plants.skeletons.Skeleton</span></code> object.</p>
+<dd><p>Performs one numerical integration step for the <a class="reference internal" href="motornet.plants.muscles.html#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.muscles.Muscle</span></code></a> object class or
+subclass, and then for the <a class="reference internal" href="motornet.plants.skeletons.html#motornet.plants.skeletons.Skeleton" title="motornet.plants.skeletons.Skeleton"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.skeletons.Skeleton</span></code></a> object class or subclass.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dt</strong> – <cite>Float</cite>, size of a single timestep (in sec).</p></li>
-<li><p><strong>state_derivative</strong> – A <cite>Dictionary</cite> containing the derivatives of the joint, muscle, and geometry states as
-<cite>Tensor</cite>, mapped to a “joint”, “muscle”, and “geometry” key, respectively. This is usually obtained
-using the <a class="reference internal" href="#motornet.plants.plants.Plant.update_ode" title="motornet.plants.plants.Plant.update_ode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">update_ode()</span></code></a> method.</p></li>
+<li><p><strong>state_derivative</strong> – <cite>Dictionary</cite>, contains the derivatives of the joint, muscle, and geometry states as
+<cite>tensor</cite> arrays, mapped to a “joint”, “muscle”, and “geometry” key, respectively. This is usually
+obtained using the <a class="reference internal" href="#motornet.plants.plants.Plant.update_ode" title="motornet.plants.plants.Plant.update_ode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">update_ode()</span></code></a> method.</p></li>
 <li><p><strong>states</strong> – A <cite>Dictionary</cite> containing the joint, muscle, and geometry states as <cite>Tensor</cite>, mapped to a “joint”,
 “muscle”, and “geometry” key, respectively.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A <cite>Dictionary</cite> containing the updated joint, muscle, and geometry states following integration.</p>
+<dd class="field-even"><p>A <cite>dictionary</cite> containing the updated joint, muscle, and geometry states following integration.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -451,7 +474,7 @@ using the <a class="reference internal" href="#motornet.plants.plants.Plant.upda
 <dd class="field-odd"><p><strong>joint_state</strong> – <cite>Tensor</cite>, the current joint configuration.</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The current cartesian configuration (position, velocity) as a <cite>Tensor</cite>.</p>
+<dd class="field-even"><p>The current cartesian configuration (position, velocity) as a <cite>tensor</cite>.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -471,17 +494,17 @@ using the <a class="reference internal" href="#motornet.plants.plants.Plant.upda
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.plants.Plant.state2target">
 <span class="sig-name descname"><span class="pre">state2target</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_timesteps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.plants.Plant.state2target" title="Permalink to this definition">#</a></dt>
-<dd><p>Converts a <cite>Tensor</cite> formatted as a state to a <cite>Tensor</cite> formatted as a target that can be passed to a
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">model.fit()</span></code> call.</p>
+<dd><p>Converts a <cite>tensor</cite> formatted as a state to a <cite>tensor</cite> formatted as a target that can be passed to a
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">tensorflow.keras.Model.fit()</span></code> call.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>state</strong> – <cite>Tensor</cite>, the state to be converted.</p></li>
-<li><p><strong>n_timesteps</strong> – <cite>Integer</cite>, the number of timesteps desired for creating the target <cite>Tensor</cite>.</p></li>
+<li><p><strong>state</strong> – <cite>Tensor</cite>, the state to be converted to a target.</p></li>
+<li><p><strong>n_timesteps</strong> – <cite>Integer</cite>, the number of timesteps desired for creating the target <cite>tensor</cite>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A <cite>Tensor</cite> that can be used as a target input to the <code class="xref py py-meth docutils literal notranslate"><span class="pre">model.fit()</span></code> method.</p>
+<dd class="field-even"><p>A <cite>tensor</cite> that can be used as a target input to the <code class="xref py py-meth docutils literal notranslate"><span class="pre">tensorflow.keras.Model.fit()</span></code> method.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -489,20 +512,21 @@ using the <a class="reference internal" href="#motornet.plants.plants.Plant.upda
 <dt class="sig sig-object py" id="motornet.plants.plants.Plant.update_ode">
 <span class="sig-name descname"><span class="pre">update_ode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">excitation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint_load</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_load</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.plants.Plant.update_ode" title="Permalink to this definition">#</a></dt>
 <dd><p>Computes state derivatives by evaluating the Ordinary Differential Equations of the
-<code class="docutils literal notranslate"><span class="pre">motornet.plants.skeletons.Muscle</span></code> object, and then of the <code class="docutils literal notranslate"><span class="pre">motornet.plants.skeletons.Skeleton</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">motornet.plants.muscles.Muscle</span></code> object class or subclass, and then of the
+<a class="reference internal" href="motornet.plants.skeletons.html#motornet.plants.skeletons.Skeleton" title="motornet.plants.skeletons.Skeleton"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.skeletons.Skeleton</span></code></a> object class or subclass.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>excitation</strong> – <cite>Tensor</cite>, the input to the muscles (motor command). Typically, this should be the output of the
 controller network’s forward pass.</p></li>
-<li><p><strong>states</strong> – A <cite>Dictionary</cite> containing the joint, muscle, and geometry states as <cite>Tensor</cite>, mapped to a “joint”,
-“muscle”, and “geometry” key, respectively.</p></li>
+<li><p><strong>states</strong> – <cite>Dictionary</cite>, contains the joint, muscle, and geometry states as <cite>tensor</cite> arrays, mapped to a
+“joint”, “muscle”, and “geometry” key, respectively.</p></li>
 <li><p><strong>endpoint_load</strong> – <cite>Tensor</cite>, the load(s) to apply at the skeleton’s endpoint.</p></li>
 <li><p><strong>joint_load</strong> – <cite>Tensor</cite>, the load(s) to apply at the joints.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A list containing the new joint, muscle, and geometry states following integration, in that order.</p>
+<dd class="field-even"><p>A <cite>list</cite> containing the new joint, muscle, and geometry states following integration, in that order.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -533,21 +557,39 @@ frame, and the point-mass is constrained to a <cite>(1, 1) -&gt; (1, -1) -&gt; (
 lumped-muscle models are functional approximations of biological reality, this class’ geometry does not rely on the
 default geometry methods, but on its own, custom-made geometry. The moment arm approximation is based on a set of
 polynomial functions. The default integration method is Euler.</p>
-<p>If no <cite>skeleton</cite> input is provided, this object will use a <code class="docutils literal notranslate"><span class="pre">motornet.plants.skeletons.TwoDofArm</span></code> skeleton, with
-:param - m1 = 1.82:
-:param - m2 = 1.43:
-:param - l1g = 0.135:
-:param - l2g = 0.165:
-:param - i1 = 0.051:
-:param - i2 = 0.057:
-:param - l1 = 0.309:
-:param - l2 = 0.333:</p>
+<p>If no <cite>skeleton</cite> input is provided, this object will use a <a class="reference internal" href="motornet.plants.skeletons.html#motornet.plants.skeletons.TwoDofArm" title="motornet.plants.skeletons.TwoDofArm"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.skeletons.TwoDofArm</span></code></a> skeleton,
+with the following parameters:</p>
+<ul class="simple">
+<li><p><cite>m1 = 1.82</cite></p></li>
+<li><p><cite>m2 = 1.43</cite></p></li>
+<li><p><cite>l1g = 0.135</cite></p></li>
+<li><p><cite>l2g = 0.165</cite></p></li>
+<li><p><cite>i1 = 0.051</cite></p></li>
+<li><p><cite>i2 = 0.057</cite></p></li>
+<li><p><cite>l1 = 0.309</cite></p></li>
+<li><p><cite>l2 = 0.333</cite></p></li>
+</ul>
 <p>The default shoulder and elbow lower limits are defined as <cite>0</cite>, and their default upper limits as <cite>135</cite> and <cite>155</cite>
 degrees, respectively. These parameters come from <cite>[1]</cite>.</p>
-<p>The <cite>kwargs</cite> inputs are passed as-is to the parent <code class="docutils literal notranslate"><span class="pre">motornet.plants.Plant</span></code> class.</p>
-<p>Reference:
-<cite>[1] Kistemaker DA, Wong JD, Gribble PL. The central nervous system does not minimize energy cost in arm movements.
-J Neurophysiol. 2010 Dec;104(6):2985-94. doi: 10.1152/jn.00483.2010. Epub 2010 Sep 8. PMID: 20884757.</cite></p>
+<p>The <cite>kwargs</cite> inputs are passed as-is to the parent <a class="reference internal" href="#motornet.plants.plants.Plant" title="motornet.plants.plants.Plant"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant</span></code></a> class.</p>
+<p class="rubric">References</p>
+<p>[1] <cite>Kistemaker DA, Wong JD, Gribble PL. The central nervous system does not minimize energy cost in arm
+movements. J Neurophysiol. 2010 Dec;104(6):2985-94. doi: 10.1152/jn.00483.2010. Epub 2010 Sep 8. PMID:
+20884757.</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>muscle_type</strong> – A <a class="reference internal" href="motornet.plants.muscles.html#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.muscles.Muscle</span></code></a> object class or subclass. This defines the type of muscle
+that will be added each time the <code class="xref py py-meth docutils literal notranslate"><span class="pre">add_muscle()</span></code> method is called.</p></li>
+<li><p><strong>skeleton</strong> – A <a class="reference internal" href="motornet.plants.skeletons.html#motornet.plants.skeletons.Skeleton" title="motornet.plants.skeletons.Skeleton"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.skeletons.Skeleton</span></code></a> object class or subclass. This defines the type of
+skeleton that the muscles will wrap around. See above for details on what this argument defaults to if no
+argument is passed.</p></li>
+<li><p><strong>timestep</strong> – <cite>Float</cite>, size of a single timestep (in sec).</p></li>
+<li><p><strong>**kwargs</strong> – All contents are passed to the parent <a class="reference internal" href="#motornet.plants.plants.Plant" title="motornet.plants.plants.Plant"><code class="xref py py-class docutils literal notranslate"><span class="pre">Plant</span></code></a> class. Also allows for some backward
+compatibility.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 </section>
 </section>

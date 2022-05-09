@@ -1,13 +1,13 @@
-"""This module implements custom ``Loss`` objects that are useful for motor control.
+"""This module implements custom ``tensorflow.python.keras.losses.Loss`` objects that are useful for motor control.
 
-Please note a couple notation conventions that this module employs:
+.. note::
+    There are a couple naming conventions that this module employs:
 
-- ``Regularizer`` indicates the penalization is applied to the *value* of the model's output, not the error between the
-  model's output and a user-fed label.
+    - ``Regularizer`` indicates the penalization is applied to the *value* of the model's output, not the error
+      between the model's output and a user-fed label.
 
-- ``xDx`` indicates that both the value and the derivative of the passed input is penalized, with the derivative loss scaled
-  by a used-defined "deriv_weight" scalar compared to the value.
-
+    - ``xDx`` indicates that both the value and the derivative of the passed input is penalized, with the derivative
+      loss scaled by a used-defined `deriv_weight` scalar compared to the value.
 """
 
 import tensorflow as tf
@@ -23,14 +23,14 @@ class CompoundedLoss(LossFunctionWrapper):
     each subloss. Each subloss's contribution can be weighted by a constant scalar value.
 
     Args:
-        losses: `List` or `tuple`, with each element being a `motornet.nets.losses.Loss` object instance.
-        loss_weights: `List` or `tuple`, with each element being a `float` scalar indicating the weight of the
+        losses: `List` or `tuple` of loss objects.
+        loss_weights: `List` or `tuple` of `float` scalars indicating the weight of the
             corresponding loss in the `losses` argument provided above.
-        name: String, the name label to give to the loss object. This is used to print and save losses during
-            training.
+        name: `String`, the name (label) to give to the compounded loss object. This is used to print, plot, and save
+            losses during training.
         reduction: The reduction method used. The default value is
            ``tensorflow.python.keras.utils.losses_utils.ReductionV2.AUTO``.
-           See the Tensorflow documentation for more details.
+           See the `Tensorflow` documentation for more details.
     """
     def __init__(self, losses: Union[list, tuple], loss_weights: Union[list, tuple], name: str = 'compounded_loss',
                  reduction=auto_reduction):
@@ -46,13 +46,13 @@ class L2xDxRegularizer(LossFunctionWrapper):
         loss = np.reduce_mean(x ** 2) + deriv_weight * np.reduce_mean(dx ** 2)
 
     Args:
-        deriv_weight: Float, the weight of the derivative's penalty compared to the value itself.
-        dt: Float, the size of a single timestep. This is used to calculate derivatives using Euler's method.
-        name: String, the name label to give to the loss object. This is used to print and save losses during
-            training.
+        deriv_weight: `Float`, the weight of the derivative's penalty compared to the value itself.
+        dt: `Float`, the size of a single timestep. This is used to calculate derivatives using Euler's method.
+        name: `String`, the name (label) to give to the compounded loss object. This is used to print, plot, and save
+            losses during training.
         reduction: The reduction method used. The default value is
            ``tensorflow.python.keras.utils.losses_utils.ReductionV2.AUTO``.
-           See the Tensorflow documentation for more details.
+           See the `Tensoflow` documentation for more details.
     """
 
     def __init__(self, deriv_weight: float, dt: float, name: str = 'gru_regularizer', reduction=auto_reduction):
@@ -68,11 +68,11 @@ class L2Regularizer(LossFunctionWrapper):
         loss = np.reduce_mean(x ** 2)
 
     Args:
-        name: String, the name label to give to the loss object. This is used to print and save losses during
-            training.
+        name: `String`, the name (label) to give to the compounded loss object. This is used to print, plot, and save
+            losses during training.
         reduction: The reduction method used. The default value is
            ``tensorflow.python.keras.utils.losses_utils.ReductionV2.AUTO``.
-           See the Tensorflow documentation for more details.
+           See the `Tensoflow` documentation for more details.
     """
 
     def __init__(self, name: str = 'l2_regularizer', reduction=auto_reduction):
@@ -88,21 +88,23 @@ class RecurrentActivityRegularizer(LossFunctionWrapper):
 
         loss = recurrent_weight * f + activity_weight * np.reduce_mean(h ** 2)
 
-    The variable ``f`` was calculated according to the recurrent regularization method proposed in [1] but adapted for
+    The variable `f` was calculated according to the recurrent regularization method proposed in `[1]` but adapted for
     GRU units.
 
-    [1] `Sussillo, D., Churchland, M., Kaufman, M. et al. A neural network that finds a naturalistic solution for the
-    production of muscle activity. Nat Neurosci 18, 1025–1033 (2015). https://doi.org/10.1038/nn.4042`
+    References:
+        [1] `Sussillo, D., Churchland, M., Kaufman, M. et al. A neural network that finds a naturalistic solution for
+        the production of muscle activity. Nat Neurosci 18, 1025–1033 (2015). https://doi.org/10.1038/nn.4042`
 
     Args:
-        network: ``motornet.layers.Network`` object. The Network object must be the one being trained. This is used to
-            fetch the weight values of the layer indexed ``1``.
-        recurrent_weight: Float, the weight of the penalization for the recurrent activity values.
-        activity_weight: Float, the weight of the penalization for the hidden activity values.
-        name: String, the name label to give to the loss object. This is used to print and save losses during training.
+        network: :class:`motornet.nets.layers.Network` object class or subclass. The Network object must be the one
+            being trained. This is used to fetch the weight values of the layer indexed `1`.
+        recurrent_weight: `Float`, the weight of the penalization for the recurrent activity values.
+        activity_weight: `Float`, the weight of the penalization for the hidden activity values.
+        name: `String`, the name (label) to give to the compounded loss object. This is used to print, plot, and save
+            losses during training.
         reduction: The reduction method used. The default value is
            ``tensorflow.python.keras.utils.losses_utils.ReductionV2.AUTO``.
-           See the Tensorflow documentation for more details.
+           See the `Tensorflow` documentation for more details.
     """
 
     def __init__(self, network, recurrent_weight: float, activity_weight: float, name: str = 'recurrent_activity',
@@ -117,18 +119,20 @@ class PositionLoss(LossFunctionWrapper):
 
     .. code-block:: python
 
-        x1, _ = np.split(x, 2, axis=-1)
-        x2, _ = np.split(y, 2, axis=-1)
-        loss = np.reduce_mean(np.abs(x1 - x2))
+        xp, _ = np.split(x, 2, axis=-1)  # remove velocity from the positional state
+        yp, _ = np.split(y, 2, axis=-1)
+        loss = np.reduce_mean(np.abs(xp - yp))
 
-    Note that the positional error does not include velocity, hence the use of ``np.split`` to extract position from the
-    state array.
+    .. note::
+        The positional error does not include velocity, hence the use of ``np.split`` to extract position from the
+        state array.
 
     Args:
-        name: String, the name label to give to the loss object. This is used to print and save losses during training.
+        name: `String`, the name (label) to give to the compounded loss object. This is used to print, plot, and save
+            losses during training.
         reduction: The reduction method used. The default value is
            ``tensorflow.python.keras.utils.losses_utils.ReductionV2.AUTO``.
-           See the Tensorflow documentation for more details.
+           See the `Tensoflow` documentation for more details.
     """
 
     def __init__(self, name: str = 'position', reduction=auto_reduction):
@@ -140,12 +144,13 @@ class L2ActivationLoss(LossFunctionWrapper):
     The L2 penalty is normalized by the maximum isometric force of each muscle.
 
     Args:
-        max_iso_force: Float or list, the maximum isometric force of each muscle in the order they are declared in the
-            ``motornet.plant`` object.
-        name: String, the name label to give to the loss object. This is used to print and save losses during training.
+        max_iso_force: `Float` or `list`, the maximum isometric force of each muscle in the order they are declared in
+            the :class:`motornet.plants.plants.Plant` object class or subclass.
+        name: `String`, the name (label) to give to the compounded loss object. This is used to print, plot, and save
+            losses during training.
         reduction: The reduction method used. The default value is
            ``tensorflow.python.keras.utils.losses_utils.ReductionV2.AUTO``.
-           See the Tensorflow documentation for more details.
+           See the `Tensorflow` documentation for more details.
     """
 
     def __init__(self, max_iso_force, name: str = 'l2_activation', reduction=auto_reduction):
@@ -154,7 +159,7 @@ class L2ActivationLoss(LossFunctionWrapper):
 
 
 class L2ActivationMuscleVelLoss(LossFunctionWrapper):
-    """Applies a L2 penalty to muscle activation and to muscle velocity.
+    """Applies a L2 penalty to muscle activation and muscle velocity.
     Must be applied to the `muscle state` output state.
     The L2 penalty on muscle activation is normalized by the maximum isometric force of each muscle.
     If ``a`` is the normalized muscle activation and ``dx`` the muscle velocity, then the penalty would evaluate at:
@@ -164,13 +169,14 @@ class L2ActivationMuscleVelLoss(LossFunctionWrapper):
         loss = tf.reduce_mean(a ** 2) + deriv_weight * tf.reduce_mean(dx ** 2)
 
     Args:
-        max_iso_force: Float or list, the maximum isometric force of each muscle in the order they are declared in the
-            ``motornet.plant`` object.
-        deriv_weight: Float, the weight of the derivative's penalty compared to the value itself.
-        name: String, the name label to give to the loss object. This is used to print and save losses during training.
+        max_iso_force: `Float` or `list`, the maximum isometric force of each muscle in the order they are declared in
+            the :class:`motornet.plants.plants.Plant` object class or subclass.
+        deriv_weight: `Float`, the weight of the derivative's penalty compared to the value itself.
+        name: `String`, the name (label) to give to the compounded loss object. This is used to print, plot, and save
+            losses during training.
         reduction: The reduction method used. The default value is
            ``tensorflow.python.keras.utils.losses_utils.ReductionV2.AUTO``.
-           See the Tensorflow documentation for more details.
+           See the `Tensoflow` documentation for more details.
     """
 
     def __init__(self, max_iso_force: float, deriv_weight: float, name: str = 'l2_activation_muscle_vel',
@@ -189,14 +195,15 @@ class L2xDxActivationLoss(LossFunctionWrapper):
         loss = np.reduce_mean(a ** 2) + deriv_weight * np.reduce_mean(da ** 2)
 
     Args:
-        max_iso_force: Float or list, the maximum isometric force of each muscle in the order they are declared in the
-            ``motornet.plant`` object.
-        deriv_weight: Float, the weight of the derivative's penalty compared to the value itself.
-        dt: Float, the size of a single timestep. This is used to calculate derivatives using Euler's method.
-        name: String, the name label to give to the loss object. This is used to print and save losses during training.
+        max_iso_force: `Float` or `list`, the maximum isometric force of each muscle in the order they are declared in
+            the :class:`motornet.plants.plants.Plant` object class or subclass.
+        deriv_weight: `Float`, the weight of the derivative's penalty compared to the value itself.
+        dt: `Float`, the size of a single timestep. This is used to calculate derivatives using Euler's method.
+        name: `String`, the name (label) to give to the compounded loss object. This is used to print, plot, and save
+            losses during training.
         reduction: The reduction method used. The default value is
            ``tensorflow.python.keras.utils.losses_utils.ReductionV2.AUTO``.
-           See the Tensorflow documentation for more details.
+           See the `Tensoflow` documentation for more details.
     """
 
     def __init__(self, max_iso_force: float, deriv_weight: float, dt: float, name: str = 'l2_xdx_activation',
