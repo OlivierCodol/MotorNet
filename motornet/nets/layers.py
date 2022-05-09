@@ -2,10 +2,31 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.layers import Layer, GRUCell, Dense, Lambda
 from abc import abstractmethod
+from typing import Union
 
 
 class Network(Layer):
-    def __init__(self, plant, proprioceptive_noise_sd=0., visual_noise_sd=0., n_ministeps=1, **kwargs):
+    """Base class for controller network objects. It implements a network whose function is to control the plant
+    provided as input at initialization. This object can be subclassed to implement virtually anything that `tensorflow`
+    can implement as a deep neural network, so long as it abides by the state structure used in `motornet` (see below
+    for details).
+
+    Args:
+        plant: A :class:`motornet.plants.plants.Plant` object class or subclass. This is the plant that the
+            :class:`Network` will control.
+        proprioceptive_noise_sd: `Float`, the standard deviation of the gaussian noise process for the proprioceptive
+            feedback loop. The gaussian noise process is a normal distribution centered on `0`.
+        visual_noise_sd: `Float`, the standard deviation of the random noise process for the visual
+            feedback loop. The random process is a normal distribution centered on `0`.
+        n_ministeps: `Integer`, the number of timesteps that the plant is simulated forward for each forward pass of
+            the deep neural network. For instance, if the (global) timestep size is `1` ms, and `n_ministeps` is `5`,
+            then the plant will be simulated for every `0.2` ms timesteps, with the excitatory drive from the controller
+            only being updated every `1` ms.
+        **kwargs: This is passed to the parent `tensorflow.keras.layers.Layer` class as-is.
+    """
+
+    def __init__(self, plant, proprioceptive_noise_sd: float = 0., visual_noise_sd: float = 0., n_ministeps: int = 1,
+                 **kwargs):
 
         # set noise levels
         self.proprioceptive_noise_sd = proprioceptive_noise_sd
@@ -30,6 +51,7 @@ class Network(Layer):
         self.output_size = self.state_size
         self.plant = plant
         self.layers = []
+
         # functionality for recomputing inputs at every timestep
         self.do_recompute_inputs = False
         self.recompute_inputs = lambda inputs, states: inputs
@@ -75,17 +97,52 @@ class Network(Layer):
         super().__init__(**kwargs)
 
     @abstractmethod
-    def build(self, input_shapes):
-        return
+    def forward_pass(self, inputs, states):
+        """Performs the forward pass through the network layers to obtain the motor commands that will then be passed
+        on to the plant.
+
+        Args:
+            inputs: `Tensor`, inputs to the first layer of the network.
+            states: `List` of `tensor` arrays, containing the states of each layer operating on a state.
+
+        Returns:
+            - A `tensor` array, the output of the last layer to use as the motor command, or excitation to the plant.
+            - A `list` of the new states inherent to potential layers operating on a state.
+            - A `dictionary` of the new states inherent to potential layers operating on a state.
+
+        Raises:
+            NotImplementedError: if this method is not overwritten by a subclass.
+        """
+        raise NotImplementedError("This method must be overwritten by a subclass.")
 
     def get_base_config(self):
-        cfg = {'proprioceptive_noise_sd': self.proprioceptive_noise_sd, 'visual_noise_sd': self.visual_noise_sd,
-               'hidden_noise_sd': self.hidden_noise_sd, 'proprioceptive_delay': self.proprioceptive_delay,
-               'visual_delay': self.visual_delay, 'n_muscle': self.n_muscles,
-               'n_ministeps': self.n_ministeps}
+        """Get the object instance's base configuration. This is the set of configuration entries that will be useful
+        for any :class:`Network` class or subclass. This method should be called by the :meth:`get_save_config`
+        method. Users wanting to save additional configuration entries specific to a `Network` subclass should then
+        do so in the :meth:`get_save_config` method, using this method's output `dictionary` as a base.
+
+        Returns:
+             A `dictionary` containing the network's proprioceptive and visual noise standard deviation and delay, and
+             the number of muscles and ministeps.
+        """
+
+        cfg = {
+            'proprioceptive_noise_sd': self.proprioceptive_noise_sd,
+            'visual_noise_sd': self.visual_noise_sd,
+            'proprioceptive_delay': self.proprioceptive_delay,
+            'visual_delay': self.visual_delay,
+            'n_muscle': self.n_muscles,
+            'n_ministeps': self.n_ministeps
+        }
         return cfg
 
     def get_save_config(self):
+        """Get the :class:`Network` object's configuration as a `dictionary`. This method should be overwritten by
+        subclass objects, and used to add configuration entries specific to that subclass.
+
+        Returns:
+            By default, this method returns the output of the :meth:`get_base_config` method.
+        """
         return self.get_base_config()
 
     @classmethod
@@ -93,12 +150,22 @@ class Network(Layer):
         return cls(**config)
 
     def call(self, inputs, states=None, **kwargs):
-        """
-        Description here
-        :param inputs:
-        :param states:
-        :param kwargs:
-        :return:
+        """The logic for a single simulation step. This performs a single forward pass through the network, and passes
+        the network output as excitation signals (motor commands) to the plant object to simulate movement.
+
+        Args:
+            inputs: `Dictionary` of `tensor` arrays. At the very least, this should contain a "inputs" key mapped to
+                a `tensor` array, which will be passed as-is to the network's input layer. Additional keys will be
+                passed as `**kwargs` to the plant call.
+            states: `List`, contains all the states of the plant, and of the network if any exist. The state order in
+                the `list` follows the same convention as the :meth:`get_initial_states` method.
+            kwargs: For backward compatibility only.
+
+        Returns:
+            - A `dictionary` containing the new states.
+            - A `list` containing the new states in the same order convention as the :meth:`get_initial_states` method.
+              While this output is redundant to the user, it is necessary for `tensorflow` to process the network over
+              time.
         """
 
         # handle feedback
@@ -113,7 +180,7 @@ class Network(Layer):
             inputs = self.recompute_inputs(inputs, states)
 
         x = self.lambda_cat((proprio_fb, visual_fb, inputs.pop("inputs")))
-        u, new_network_states, new_network_states_dict = self.forward_pass(x, states)
+        u, new_network_states, new_network_states_dict = self.forward_pass(inputs, states)
 
         # plant forward pass
         jstate, cstate, mstate, gstate = self.unpack_plant_states(states)
@@ -132,24 +199,51 @@ class Network(Layer):
         new_states.extend(new_network_states)
 
         # pack output
-        output = {'joint position': jstate,
-                  'cartesian position': cstate,
-                  'muscle state': mstate,
-                  'geometry state': gstate,
-                  'proprioceptive feedback': new_proprio_feedback,
-                  'visual feedback': new_visual_feedback,
-                  'excitation': u,
-                  **new_network_states_dict}
+        output = {
+            'joint position': jstate,
+            'cartesian position': cstate,
+            'muscle state': mstate,
+            'geometry state': gstate,
+            'proprioceptive feedback': new_proprio_feedback,
+            'visual feedback': new_visual_feedback,
+            'excitation': u,
+            **new_network_states_dict
+        }
 
         return output, new_states
 
-    def get_initial_state(self, inputs=None, batch_size=1, dtype=tf.float32):
+    def get_base_initial_state(self, inputs=None, batch_size: int = 1, dtype=tf.float32):
+        """Creates the base initial states for the first timestep of the network training procedure. This method
+        provides the base states for the default :class:`Network` class, in the order listed below:
+
+            - joint state
+            - cartesian state
+            - muscle state
+            - geometry state
+            - proprioception feedback array
+            - visual feedback array
+            - excitation state
+
+        This method should be called in the :meth:`get_initial_states` method to provide a base for the output of that
+        method.
+
+        Args:
+            inputs: The joint state from which the other state values are inferred. This is passed as-is to the
+                :meth:`motornet.plants.plants.Plant.get_initial_state` method, and therefore obeys the structure
+                documented there.
+            batch_size: `Integer`, the batch size defining the size of each state's first dimension.
+            dtype: A `dtype` from the `tensorflow.dtypes` module.
+
+        Returns:
+            A `list` of the states as `tensor` arrays in the order listed above.
+        """
+
         if inputs is not None:
             states = self.plant.get_initial_state(joint_state=inputs, batch_size=batch_size)
         else:
             states = self.plant.get_initial_state(batch_size=batch_size)
-        hidden_states = self.get_new_hidden_state((batch_size, dtype))
-        # no need to add noise as this is just a placeholder for initialization purposes (i.e. not used in first pass)
+
+        # no need to add noise as this is just a placeholder for initialization purposes (i.e., not used in first pass)
         excitation = self.get_new_excitation_state((batch_size, dtype))
 
         proprio_true = self.get_new_proprio_feedback(states[2])
@@ -162,14 +256,54 @@ class Network(Layer):
         states.append(proprio_noisy)
         states.append(visual_noisy)
         states.append(excitation)
-        states.extend(hidden_states)
         return states
+
+    def get_initial_states(self, inputs=None, batch_size: int = 1, dtype=tf.float32):
+        """Creates the initial states for the first timestep of the network training procedure. This method
+        provides the states for the full :class:`Network` class, that is the default states from the
+        :meth:`get_base_initial_state` method followed by the states specific to a potential subclass. This method
+        should be overwritten by subclassing objects, and used to add new states specific to that subclass.
+
+        Args:
+            inputs: The joint state from which the other state values are inferred. This is passed as-is to the
+                :meth:`motornet.plants.plants.Plant.get_initial_state` method, and therefore obeys the structure
+                documented there.
+            batch_size: `Integer`, the batch size defining the size of each state's first dimension.
+            dtype: A `dtype` from the `tensorflow.dtypes` module.
+
+        Returns:
+            By default, this method returns the output of the :meth:`get_base_initial_state` method, that is a
+            `list` of the states as `tensor` arrays.
+        """
+        return self.get_base_initial_state(inputs=inputs, batch_size=batch_size, dtype=dtype)
 
 
 class GRUNetwork(Network):
+    """A GRU network acting as a controller to the plant. The last layer of the network is a
+    `tensorflow.keras.layers.Dense` dense layer containing `n_muscles * k` units, with `k` being the number of inputs
+    a single muscle takes (as defined by the `muscle_type` that the plant object uses), and `n_muscles` the number of
+    muscles that the plant contains.
 
-    def __init__(self, plant, n_units=20, n_hidden_layers=1, activation='tanh', kernel_regularizer=0.,
-                 recurrent_regularizer=0., hidden_noise_sd=0., output_bias_initializer=tf.initializers.Constant(value=-5),
+    Args:
+        plant: A `motornet.plants.Plant` class object or subclass. This is the plant that the `Network` will control.
+        n_units: `Integer` or `list`, the number of GRUs per layer. If only one layer is created, then this can
+            be an `integer`.
+        n_hidden_layers: `Integer`, the number of hidden layers of GRUs that the network will implement.
+        activation: `String` or activation function from `tensorflow`. The activation function used as non-linearity
+            for all GRUs.
+        kernel_regularizer: `Float`, the kernel regularization weight for the GRUs.
+        recurrent_regularizer: `Float`, the recurrent regularization weight for the GRUs.
+        hidden_noise_sd: `Float`, the standard deviation of the gaussian noise process applied to GRU hidden activity.
+        output_bias_initializer: A `tensorflow.keras.initializers` instance to initialize the biases of the
+            last layer of the network (`i.e.`, the output layer).
+        output_kernel_initializer: A `tensorflow.keras.initializers` instance to initialize the kernels of the
+            last layer of the network (`i.e.`, the output layer).
+        **kwargs: This is passed to the parent `tensorflow.keras.layers.Layer` class as-is.
+    """
+
+    def __init__(self, plant, n_units: Union[int, list] = 20, n_hidden_layers: int = 1, activation='tanh',
+                 kernel_regularizer: float = 0., recurrent_regularizer: float = 0., hidden_noise_sd: float = 0.,
+                 output_bias_initializer=tf.initializers.Constant(value=-5),
                  output_kernel_initializer=tf.keras.initializers.random_normal(stddev=10 ** -3), **kwargs):
 
         super().__init__(plant, **kwargs)
@@ -207,34 +341,93 @@ class GRUNetwork(Network):
         self.output_names.extend(['gru_hidden' + str(k) for k in range(self.n_hidden_layers)])
 
     def build(self, input_shapes):
+
         for k in range(self.n_hidden_layers):
-            layer = GRUCell(units=self.n_units[k],
-                            activation=self.activation,
-                            name='hidden_layer_' + str(k),
-                            kernel_regularizer=self.kernel_regularizer,
-                            recurrent_regularizer=self.recurrent_regularizer,
-                            )
+            layer = GRUCell(
+                units=self.n_units[k],
+                activation=self.activation,
+                name='hidden_layer_' + str(k),
+                kernel_regularizer=self.kernel_regularizer,
+                recurrent_regularizer=self.recurrent_regularizer,
+            )
             self.layers.append(layer)
-        output_layer = Dense(units=self.plant.input_dim,
-                             activation='sigmoid',
-                             name='output_layer',
-                             bias_initializer=self.output_bias_initializer,
-                             kernel_initializer=self.output_kernel_initializer,
-                             kernel_regularizer=self.kernel_regularizer,
-                             )
+
+        output_layer = Dense(
+            units=self.plant.input_dim,
+            activation='sigmoid',
+            name='output_layer',
+            bias_initializer=self.output_bias_initializer,
+            kernel_initializer=self.output_kernel_initializer,
+            kernel_regularizer=self.kernel_regularizer,
+        )
+
         self.layers.append(output_layer)
         self.built = True
 
+    def get_initial_states(self, inputs=None, batch_size: int = 1, dtype=tf.float32):
+        """Creates the initial states for the first timestep of the network training procedure. This method
+        provides the states for the full `Network` class, that is the default states from the
+        :meth:`get_base_initial_state` method followed by the states specific to this subclass.
+
+        Args:
+            inputs: The joint state from which the other state values are inferred. This is passed as-is to the
+                :meth:`motornet.plants.Plant.get_initial_state` method, and therefore obeys the structure documented
+                there.
+            batch_size: `Integer`, the batch size defining the size of each state's first dimension.
+            dtype: A `dtype` from the `tensorflow.dtypes` module.
+
+        Returns:
+            A 'list' containing the output of the :meth:`get_base_initial_state` method, followed by the hidden states
+            of each GRU layer as `tensor` arrays.
+        """
+        states = self.get_base_initial_state(inputs=inputs, batch_size=batch_size, dtype=dtype)
+        hidden_states = self.get_new_hidden_state((batch_size, dtype))
+        states.extend(hidden_states)
+        return states
+
     def get_save_config(self):
+        """Gets the base configuration from the :meth:`motornet.nets.layers.Network.get_base_config` method, and adds
+        the configuration information
+        specific to the `GRUNetwork` class to that `dictionary`. These are:
+
+            - The standard deviation of the gaussian noise process to the GRU hidden activity.
+            - The kernel regularizer weight.
+            - The recurrent regularizer weight.
+            - The number of GRU units per hidden layer. If there are several layers, this will be a `list`.
+            - The number of hidden GRU layers.
+            - The name of the activation function used as non-linearity for the hidden GRU layers.
+
+        Returns:
+            A `dictionary` containing the object instance's full configuration.
+        """
+
         base_config = self.get_base_config()
-        cfg = {'kernel_regularizer_weight': self.kernel_regularizer_weight,
-               'recurrent_regularizer_weight': self.recurrent_regularizer_weight, 'n_units': int(self.n_units[0]),
-               'n_hidden_layers': self.n_hidden_layers, 'activation': self.activation_name, **base_config}
+        cfg = {
+            'hidden_noise_sd': self.hidden_noise_sd,
+            'kernel_regularizer_weight': self.kernel_regularizer_weight,
+            'recurrent_regularizer_weight': self.recurrent_regularizer_weight,
+            'n_units': int(self.n_units[0]),
+            'n_hidden_layers': self.n_hidden_layers,
+            'activation': self.activation_name, **base_config
+        }
         return cfg
 
-    def forward_pass(self, x, states):
+    def forward_pass(self, inputs, states):
+        """Performs the forward pass computation.
+
+        Args:
+            inputs: `Tensor`, inputs to the first layer of the network.
+            states: `List` of `tensor` arrays representing the states of each layer operating on a state (state-based
+                layers).
+
+        Returns:
+            - A `tensor` array, the output of the last layer to use as the motor command, or excitation to the plant.
+            - A `list` of the new hidden states of the GRU layers.
+            - A `dictionary` of the new hidden states of the GRU layers.
+        """
         new_hidden_states_dict = {}
         new_hidden_states = []
+        x = inputs
 
         for k in range(self.n_hidden_layers):
             x, new_hidden_state = self.layers[k](x, states[- self.n_hidden_layers + k])
@@ -245,9 +438,9 @@ class GRUNetwork(Network):
         return u, new_hidden_states, new_hidden_states_dict
 
 
-# Custom activation function (rectified hyperbolic tangent)
 @tf.function
 def recttanh(x):
+    """A rectified hyperbolic tangent activation function."""
     x = tf.keras.activations.tanh(x)
     x = tf.where(tf.less_equal(x, tf.constant(0.)), tf.constant(0.), x)
     return x
