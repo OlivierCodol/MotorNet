@@ -232,18 +232,19 @@ with a large amount of cores, and should significantly improve training speed ov
 <p>This script should be called from a terminal console, and takes up to four parameter inputs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">param 1</dt>
-<dd class="field-odd"><p>Directory to use. The declared directory should contain the model configurations saved as a JSON file.
-See <code class="xref py py-meth docutils literal notranslate"><span class="pre">motornet.nets.models.MotorNetModel.save_model()</span></code> for more information on how to produce one such file.</p>
+<dd class="field-odd"><p><cite>String</cite>, directory to use. The declared directory should contain the model configurations saved as a JSON file.
+See <a class="reference internal" href="motornet.nets.models.html#motornet.nets.models.DistalTeacher.save_model" title="motornet.nets.models.DistalTeacher.save_model"><code class="xref py py-meth docutils literal notranslate"><span class="pre">motornet.nets.models.DistalTeacher.save_model()</span></code></a> for more information on how to produce a model
+configuration file.</p>
 </dd>
 <dt class="field-even">param 2</dt>
-<dd class="field-even"><p>String, whether run this script in <cite>train</cite> or <cite>test</cite> mode.</p>
+<dd class="field-even"><p><cite>String</cite>, whether run this script in <cite>train</cite> or <cite>test</cite> mode.</p>
 </dd>
 <dt class="field-odd">param 3</dt>
 <dd class="field-odd"><p>Run mode to be passed to task object. The type and content of this input will likely depend on the task
 object being used.</p>
 </dd>
 <dt class="field-even">param 4</dt>
-<dd class="field-even"><p>Integer, total number of training iterations.</p>
+<dd class="field-even"><p><cite>Integer</cite>, total number of training iterations.</p>
 </dd>
 <dt class="field-odd">raises ValueError</dt>
 <dd class="field-odd"><p>If the first input’s directory does not contain a model’s JSON configuration file.</p>

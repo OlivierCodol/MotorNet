@@ -235,7 +235,7 @@ details).</p>
 be <cite>2</cite> for a point-mass evolving in a cartesian, planar <cite>xy</cite> space.</p></li>
 <li><p><strong>mass</strong> – <cite>Float</cite>, the mass (kg) of the point-mass.</p></li>
 <li><p><strong>name</strong> – <cite>String</cite>, the name of the skeleton.</p></li>
-<li><p><strong>**kwargs</strong> – The kwargs inputs are passed as-is to the parent <code class="docutils literal notranslate"><span class="pre">motornet.plant.Skeleton</span></code> class. This also
+<li><p><strong>**kwargs</strong> – This is passed as-is to the parent <a class="reference internal" href="#motornet.plants.skeletons.Skeleton" title="motornet.plants.skeletons.Skeleton"><code class="xref py py-class docutils literal notranslate"><span class="pre">Skeleton</span></code></a> class. This also
 allows for some backward compatibility. Do not try to pass a <cite>dof</cite> input value as this is automatically
 taken by the <cite>space_dim</cite> input.</p></li>
 </ul>
@@ -265,16 +265,16 @@ point mass to that <cite>dictionnary</cite>.</p>
 <li><p><strong>space_dim</strong> – <cite>Integer</cite>, the dimensionality of the space in which the skeleton evolves. For instance, this would be
 <cite>2</cite> for a cartesian, planar <cite>xy</cite> space.</p></li>
 <li><p><strong>name</strong> – <cite>String</cite>, the name of the object instance.</p></li>
-<li><p><strong>pos_upper_bound</strong> – <cite>Float</cite>, <cite>List</cite> or <cite>Tuple</cite>, indicating the upper boundary of joint position. This should be
+<li><p><strong>pos_upper_bound</strong> – <cite>Float</cite>, <cite>list</cite> or <cite>tuple</cite>, indicating the upper boundary of joint position. This should be
 a <cite>n</cite>-elements vector or list, with <cite>n</cite> the number of joints of the skeleton. For instance, for a two
 degrees-of-freedom arm, we would have <cite>n=2</cite>.</p></li>
-<li><p><strong>pos_lower_bound</strong> – <cite>Float</cite>, <cite>List</cite> or <cite>Tuple</cite>, indicating the lower boundary of joint position. This should be
+<li><p><strong>pos_lower_bound</strong> – <cite>Float</cite>, <cite>list</cite> or <cite>tuple</cite>, indicating the lower boundary of joint position. This should be
 a <cite>n</cite>-elements vector or list, with <cite>n</cite> the number of joints of the skeleton. For instance, for a two
 degrees-of-freedom arm, we would have <cite>n=2</cite>.</p></li>
-<li><p><strong>vel_upper_bound</strong> – <cite>Float</cite>, <cite>List</cite> or <cite>Tuple</cite>, indicating the upper boundary of joint velocity. This should be
+<li><p><strong>vel_upper_bound</strong> – <cite>Float</cite>, <cite>list</cite> or <cite>tuple</cite>, indicating the upper boundary of joint velocity. This should be
 a <cite>n</cite>-elements vector or list, with <cite>n</cite> the number of joints of the skeleton. For instance, for a two
 degrees-of-freedom arm, we would have <cite>n=2</cite>.</p></li>
-<li><p><strong>vel_lower_bound</strong> – <cite>Float</cite>, <cite>List</cite> or <cite>Tuple</cite>, indicating the lower boundary of joint velocity. This should be
+<li><p><strong>vel_lower_bound</strong> – <cite>Float</cite>, <cite>list</cite> or <cite>tuple</cite>, indicating the lower boundary of joint velocity. This should be
 a <cite>n</cite>-elements vector or list, with <cite>n</cite> the number of joints of the skeleton. For instance, for a two
 degrees-of-freedom arm, we would have <cite>n=2</cite>.</p></li>
 </ul>
@@ -282,35 +282,37 @@ degrees-of-freedom arm, we would have <cite>n=2</cite>.</p></li>
 </dl>
 <dl class="simple">
 <dt>OPTIONAL ARGUMENTS</dt><dd><ul class="simple">
-<li><p><strong>input_dim</strong> – <cite>Integer</cite>, dimensionality of the control input (<em>e.g.</em> torques). Default: <cite>dof</cite>.</p></li>
+<li><p><strong>input_dim</strong> – <cite>Integer</cite>, dimensionality of the control input (<em>e.g.</em> torques). Default: takes the
+same value as <cite>dof</cite>.</p></li>
 <li><p><strong>state_dim</strong> – <cite>Integer</cite>, typically position and velocity for each degree of freedom. Default: <cite>2 * dof</cite>.</p></li>
-<li><p><strong>output_dim</strong> – <cite>Integer</cite>, dimensionality of the call output, usually the new state. Default: <cite>state_dim</cite>.</p></li>
+<li><p><strong>output_dim</strong> – <cite>Integer</cite>, dimensionality of the <a class="reference internal" href="#motornet.plants.skeletons.Skeleton.integrate" title="motornet.plants.skeletons.Skeleton.integrate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">integrate()</span></code></a> output, usually the new state.
+Default: <cite>state_dim</cite>.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.skeletons.Skeleton.build">
 <span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos_upper_bound</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos_lower_bound</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vel_upper_bound</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vel_lower_bound</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integration_method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'euler'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.Skeleton.build" title="Permalink to this definition">#</a></dt>
-<dd><p>This method should be called by the initialization method of the parent <code class="docutils literal notranslate"><span class="pre">motornet.plant.Plant</span></code> object or
-subclass.</p>
+<dd><p>This method should be called by the initialization method of the <a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant" title="motornet.plants.plants.Plant"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant</span></code></a>
+object class or subclass.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>timestep</strong> – Float, size of a single timestep (in sec).</p></li>
-<li><p><strong>pos_upper_bound</strong> – <cite>Float</cite>, <cite>List</cite> or <cite>Tuple</cite>, indicating the upper boundary of joint position. Should
+<li><p><strong>timestep</strong> – Float, size of a single timestep (sec).</p></li>
+<li><p><strong>pos_upper_bound</strong> – <cite>Float</cite>, <cite>list</cite> or <cite>tuple</cite>, indicating the upper boundary of joint position. Should
 be a <cite>n</cite>-elements vector or list, with <cite>n</cite> the number of joints of the skeleton. For instance, for a two
 degrees-of-freedom arm, we would have <cite>n=2</cite>.</p></li>
-<li><p><strong>pos_lower_bound</strong> – <cite>Float</cite>, <cite>List</cite> or <cite>Tuple</cite>, indicating the lower boundary of joint position. Should
+<li><p><strong>pos_lower_bound</strong> – <cite>Float</cite>, <cite>list</cite> or <cite>tuple</cite>, indicating the lower boundary of joint position. Should
 be a <cite>n</cite>-elements vector or list, with <cite>n</cite> the number of joints of the skeleton. For instance, for a two
 degrees-of-freedom arm, we would have <cite>n=2</cite>.</p></li>
-<li><p><strong>vel_upper_bound</strong> – <cite>Float</cite>, <cite>List</cite> or <cite>Tuple</cite>, indicating the upper boundary of joint velocity. Should
+<li><p><strong>vel_upper_bound</strong> – <cite>Float</cite>, <cite>list</cite> or <cite>tuple</cite>, indicating the upper boundary of joint velocity. Should
 be a <cite>n</cite>-elements vector or list, with <cite>n</cite> the number of joints of the skeleton. For instance, for a two
 degrees-of-freedom arm, we would have <cite>n=2</cite>.</p></li>
-<li><p><strong>vel_lower_bound</strong> – <cite>Float</cite>, <cite>List</cite> or <cite>Tuple</cite>, indicating the lower boundary of joint velocity. Should
+<li><p><strong>vel_lower_bound</strong> – <cite>Float</cite>, <cite>list</cite> or <cite>tuple</cite>, indicating the lower boundary of joint velocity. Should
 be a <cite>n</cite>-elements vector or list, with <cite>n</cite> the number of joints of the skeleton. For instance, for a two
 degrees-of-freedom arm, we would have <cite>n=2</cite>.</p></li>
-<li><p><strong>integration_method</strong> – String, ‘euler’ to specify that numerical integration should take place using the Euler
-method, or ‘rk4’, ‘rungekutta4’, ‘runge-kutta4’, or ‘runge-kutta-4’ to specify the Runge-Kutta 4 method
+<li><p><strong>integration_method</strong> – String, “euler” to specify that numerical integration should be done using the Euler
+method, or “rk4”, “rungekutta4”, “runge-kutta4”, or “runge-kutta-4” to specify the Runge-Kutta 4 method
 instead. This argument is case-insensitive.</p></li>
 </ul>
 </dd>
@@ -331,10 +333,7 @@ past that boundary, then the velocity is set to <cite>0</cite>.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p>A <cite>tensor</cite> containing the clipped velocities, with same dimensionality as the <cite>vel</cite> input argument.</p></li>
-</ul>
-</p>
+<dd class="field-even"><p>A <cite>tensor</cite> containing the clipped velocities, with same dimensionality as the <cite>vel</cite> input argument.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -342,23 +341,21 @@ past that boundary, then the velocity is set to <cite>0</cite>.</p>
 <dt class="sig sig-object py" id="motornet.plants.skeletons.Skeleton.get_base_config">
 <span class="sig-name descname"><span class="pre">get_base_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.Skeleton.get_base_config" title="Permalink to this definition">#</a></dt>
 <dd><p>Get the object instance’s base configuration. This is the set of configuration entries that will be useful
-for any <cite>Skeleton</cite> class or subclass. This method should be called by the <a class="reference internal" href="#motornet.plants.skeletons.Skeleton.get_save_config" title="motornet.plants.skeletons.Skeleton.get_save_config"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_save_config()</span></code></a>
-method. Users wanting to save additional configuration entries specific to a <cite>Skeleton</cite> subclass should then
-do so in the <a class="reference internal" href="#motornet.plants.skeletons.Skeleton.get_save_config" title="motornet.plants.skeletons.Skeleton.get_save_config"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_save_config()</span></code></a> method, using this method’s output <cite>dictionary</cite> as a base.</p>
+for any <a class="reference internal" href="#motornet.plants.skeletons.Skeleton" title="motornet.plants.skeletons.Skeleton"><code class="xref py py-class docutils literal notranslate"><span class="pre">Skeleton</span></code></a> class or subclass. This method should be called by the <a class="reference internal" href="#motornet.plants.skeletons.Skeleton.get_save_config" title="motornet.plants.skeletons.Skeleton.get_save_config"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_save_config()</span></code></a>
+method. Users wanting to save additional configuration entries specific to a <a class="reference internal" href="#motornet.plants.skeletons.Skeleton" title="motornet.plants.skeletons.Skeleton"><code class="xref py py-class docutils literal notranslate"><span class="pre">Skeleton</span></code></a> subclass should
+then do so in the <a class="reference internal" href="#motornet.plants.skeletons.Skeleton.get_save_config" title="motornet.plants.skeletons.Skeleton.get_save_config"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_save_config()</span></code></a> method, using this method’s output <cite>dictionary</cite> as a base.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><ul class="simple">
-<li><p>A <cite>dictionary</cite> containing the skeleton’s degrees of freedom, timestep size, and space dimensionality.</p></li>
-</ul>
-</p>
+<dd class="field-odd"><p>A <cite>dictionary</cite> containing the skeleton’s degrees of freedom, timestep size, and space dimensionality.</p>
 </dd>
 </dl>
 </dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.skeletons.Skeleton.get_save_config">
 <span class="sig-name descname"><span class="pre">get_save_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.Skeleton.get_save_config" title="Permalink to this definition">#</a></dt>
-<dd><p>Get the skeleton object’s configuration as a <cite>Dictionary</cite>. This method should be overwritten by subclass
-objects, and used to add configuration entries specific to that subclass.</p>
+<dd><p>Get the skeleton object’s configuration as a <cite>dictionary</cite>. This method should be overwritten by subclass
+objects, and used to add configuration entries specific to that subclass, on top of the output of the
+<a class="reference internal" href="#motornet.plants.skeletons.Skeleton.get_base_config" title="motornet.plants.skeletons.Skeleton.get_base_config"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_base_config()</span></code></a> method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>By default, this method returns the output of the <a class="reference internal" href="#motornet.plants.skeletons.Skeleton.get_base_config" title="motornet.plants.skeletons.Skeleton.get_base_config"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_base_config()</span></code></a> method.</p>
@@ -368,12 +365,13 @@ objects, and used to add configuration entries specific to that subclass.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.skeletons.Skeleton.integrate">
 <span class="sig-name descname"><span class="pre">integrate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_derivative</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.Skeleton.integrate" title="Permalink to this definition">#</a></dt>
-<dd><p>Perform one integration step. This method is usually called by the parent``motornet.plant.Plant`` object or
-subclass during numerical integration.</p>
+<dd><p>Performs one integration step. This method is usually called by the
+<a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.integration_step" title="motornet.plants.plants.Plant.integration_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant.integration_step()</span></code></a> uring numerical integration by the
+<a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant" title="motornet.plants.plants.Plant"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant</span></code></a> wrapper class or subclass.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dt</strong> – <cite>Float</cite>, timestep (sec) of the plant. The skeleton object’s <code class="docutils literal notranslate"><span class="pre">self.dt</span></code> attribute is not used here
+<li><p><strong>dt</strong> – <cite>Float</cite>, timestep (sec) of the plant. The skeleton object’s <code class="xref py py-attr docutils literal notranslate"><span class="pre">dt</span></code> attribute is not used here
 because for the Runge-Kutta method, half-timesteps can occasionally be passed.</p></li>
 <li><p><strong>state_derivative</strong> – <cite>Tensor</cite>, derivative of joint state. This input and <cite>joint_state</cite> should have identical
 dimensionality.</p></li>
@@ -382,10 +380,7 @@ should have identical dimensionality.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p>The new state following integration. The dimensionality is identical to that of the <cite>joint_state</cite> input.</p></li>
-</ul>
-</p>
+<dd class="field-even"><p>The new state following integration. The dimensionality is identical to that of the <cite>joint_state</cite> input.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -398,10 +393,7 @@ should have identical dimensionality.</p></li>
 <dd class="field-odd"><p><strong>joint_state</strong> – <cite>Tensor</cite>, the current joint configuration.</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p>A <cite>tensor</cite> containing the current cartesian configuration (position, velocity).</p></li>
-</ul>
-</p>
+<dd class="field-even"><p>A <cite>tensor</cite> containing the current cartesian configuration (position, velocity).</p>
 </dd>
 </dl>
 </dd></dl>
@@ -409,33 +401,38 @@ should have identical dimensionality.</p></li>
 <dt class="sig sig-object py" id="motornet.plants.skeletons.Skeleton.path2cartesian">
 <span class="sig-name descname"><span class="pre">path2cartesian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_coordinates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_fixation_body</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.Skeleton.path2cartesian" title="Permalink to this definition">#</a></dt>
 <dd><p>Transforms muscle paths into cartesian paths for each muscle’s fixation points, given a joint configuration.
-This method is used by the parent <code class="docutils literal notranslate"><span class="pre">motornet.plant.Plant</span></code> object or subclass to then calculate musculotendon
-complex length and velocity, as well as moment arms. See <cite>[1]</cite> for more details.</p>
+This method is used by the wrapper <a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant" title="motornet.plants.plants.Plant"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant</span></code></a> object class or subclass to then
+calculate musculotendon complex length and velocity, as well as moment arms. See <cite>[1]</cite> for more details.</p>
+<p class="rubric">References</p>
+<p>[1] <cite>Sherman MA, Seth A, Delp SL. What Is Moment Arm? Calculating Muscle Effectiveness in Biomechanical
+Models Using Generalized Coordinates. Proc ASME Des Eng Tech Conf. 2013 Aug; DOI: 10.1115/DETC2013-13633.
+PMID: 25905111; PMCID: PMC4404026.</cite></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>path_coordinates</strong> – The coordinates of each muscle’s fixation point. This is an attribute held by the parent
-<code class="docutils literal notranslate"><span class="pre">motornet.plant.Plant</span></code> object or subclass.</p></li>
+<li><p><strong>path_coordinates</strong> – The coordinates of each muscle’s fixation point. This is an attribute held by the wrapper
+<a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant" title="motornet.plants.plants.Plant"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant</span></code></a> object class or subclass.</p></li>
 <li><p><strong>path_fixation_body</strong> – The body part (bone) to which each muscle fixation point is attached to. This is an
-attribute held by the parent <code class="docutils literal notranslate"><span class="pre">motornet.plant.Plant</span></code> object or subclass.</p></li>
+attribute held by the wrapper <a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant" title="motornet.plants.plants.Plant"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant</span></code></a> object class or subclass.</p></li>
 <li><p><strong>joint_state</strong> – <cite>Tensor</cite>, the current joint configuration.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p>The position of each fixation point in cartesian space.</p></li>
-<li><p>The derivative with respect to time of each fixation point’s position in cartesian space (velocity).</p></li>
-<li><p>The derivative with respect to joint angle of each fixation point’s position in cartesian space.</p></li>
+<li><p>The position of each fixation point in cartesian space. The dimensionality is <cite>n_batch * space_dim *
+n_fixation_points</cite>, with <cite>space_dim</cite> the dimensionality of the worldspace and <cite>n_fixation_points</cite> the
+number of fixation points across all muscles.</p></li>
+<li><p>The derivative with respect to time of each fixation point’s position in cartesian space (velocity). The
+dimensionality is <cite>n_batch * space_dim * n_fixation_points</cite>, with <cite>space_dim</cite> the dimensionality of the
+worldspace and <cite>n_fixation_points</cite> the number of fixation points across all muscles.</p></li>
+<li><p>The derivative with respect to joint angle of each fixation point’s position in cartesian space. The
+dimensionality is <cite>n_batch * space_dim * n_dof * n_fixation_points</cite>, with <cite>space_dim</cite> the dimensionality
+of the worldspace, <cite>n_dof</cite> the number of degrees of freedoms of the <a class="reference internal" href="#motornet.plants.skeletons.Skeleton" title="motornet.plants.skeletons.Skeleton"><code class="xref py py-class docutils literal notranslate"><span class="pre">Skeleton</span></code></a> object class or
+subclass, and <cite>n_fixation_points</cite> the number of fixation points across all muscles.</p></li>
 </ul>
 </p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>A <cite>3</cite>-elements <cite>List</cite> object</p>
-</dd>
 </dl>
-<p><cite>[1] Sherman MA, Seth A, Delp SL. What Is Moment Arm? Calculating Muscle Effectiveness in Biomechanical Models
-Using Generalized Coordinates. Proc ASME Des Eng Tech Conf. 2013 Aug; DOI: 10.1115/DETC2013-13633. PMID:
-25905111; PMCID: PMC4404026.</cite></p>
 </dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.skeletons.Skeleton.setattr">
@@ -453,7 +450,7 @@ Using Generalized Coordinates. Proc ASME Des Eng Tech Conf. 2013 Aug; DOI: 10.11
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.skeletons.Skeleton.update_ode">
 <span class="sig-name descname"><span class="pre">update_ode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint_load</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.Skeleton.update_ode" title="Permalink to this definition">#</a></dt>
-<dd><p>Evaluate the Ordinary Differential Equation (ODE) function.</p>
+<dd><p>Evaluates the Ordinary Differential Equation (ODE) function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -464,10 +461,7 @@ skeleton object or subclass’ <cite>space_dim</cite> attribute.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p>The derivatives of the joint state. The dimensionality is identical to that of the <cite>joint_state</cite> input.</p></li>
-</ul>
-</p>
+<dd class="field-even"><p>The derivatives of the joint state. The dimensionality is identical to that of the <cite>joint_state</cite> input.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -476,7 +470,7 @@ skeleton object or subclass’ <cite>space_dim</cite> attribute.</p></li>
 <dt class="sig sig-object py" id="motornet.plants.skeletons.TwoDofArm">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.plants.skeletons.</span></span><span class="sig-name descname"><span class="pre">TwoDofArm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'two_dof_arm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.864572</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.534315</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.180496</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l2g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.181479</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.013193</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.020062</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.309</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.26</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.TwoDofArm" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#motornet.plants.skeletons.Skeleton" title="motornet.plants.skeletons.Skeleton"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.skeletons.Skeleton</span></code></a></p>
-<p>A <cite>2</cite> degrees-of-freedom planar arm.</p>
+<p>A two degrees-of-freedom planar arm.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -485,28 +479,25 @@ skeleton object or subclass’ <cite>space_dim</cite> attribute.</p></li>
 <li><p><strong>m2</strong> – <cite>Float</cite>, mass (kg) of the second bone.</p></li>
 <li><p><strong>l1g</strong> – <cite>Float</cite>, position of the center of gravity of the first bone (m).</p></li>
 <li><p><strong>l2g</strong> – <cite>Float</cite>, position of the center of gravity of the second bone (m).</p></li>
-<li><p><strong>i1</strong> – <cite>Float</cite>, inertia (kg.m ** 2) of the first bone.</p></li>
-<li><p><strong>i2</strong> – <cite>Float</cite>, inertia (kg.m ** 2) of the second bone.</p></li>
+<li><p><strong>i1</strong> – <cite>Float</cite>, inertia (kg.m^2) of the first bone.</p></li>
+<li><p><strong>i2</strong> – <cite>Float</cite>, inertia (kg.m^2) of the second bone.</p></li>
 <li><p><strong>l1</strong> – <cite>Float</cite>, length (m) of the first bone.</p></li>
 <li><p><strong>l2</strong> – <cite>Float</cite>, length (m) of the second bone.</p></li>
-<li><p><strong>**kwargs</strong> – All contents are passed to the parent <code class="docutils literal notranslate"><span class="pre">motornet.plant.skeletons.Skeleton</span></code> base class. Also allows
-for some backward compatibility.</p></li>
+<li><p><strong>**kwargs</strong> – All contents are passed to the parent <a class="reference internal" href="#motornet.plants.skeletons.Skeleton" title="motornet.plants.skeletons.Skeleton"><code class="xref py py-class docutils literal notranslate"><span class="pre">Skeleton</span></code></a> base class. Also allows for some backward
+compatibility.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.skeletons.TwoDofArm.get_save_config">
 <span class="sig-name descname"><span class="pre">get_save_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.skeletons.TwoDofArm.get_save_config" title="Permalink to this definition">#</a></dt>
-<dd><p>Get the base configuration from the <code class="xref py py-meth docutils literal notranslate"><span class="pre">get_base_config()</span></code> method, and add the arm’s properties to the
-configuration: each bone length, mass, center of gravity, coriolis forces, and viscosity parameters.</p>
-<blockquote>
-<div><dl class="simple">
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>A <cite>dictionary</cite> containing the object instance’s full configuration.</p></li>
-</ul>
+<dd><p>Gets the base configuration from the <a class="reference internal" href="#motornet.plants.skeletons.Skeleton.get_base_config" title="motornet.plants.skeletons.Skeleton.get_base_config"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Skeleton.get_base_config()</span></code></a> method, and adds the arm’s properties
+to the configuration: each bone length, mass, center of gravity, coriolis forces, and viscosity parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A <cite>dictionary</cite> containing the object instance’s full configuration.</p>
 </dd>
 </dl>
-</div></blockquote>
 </dd></dl>
 </dd></dl>
 </section>

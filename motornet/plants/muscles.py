@@ -5,9 +5,9 @@ from abc import abstractmethod
 
 
 class Muscle:
-    """Base class for muscle objects. If a plant contains several muscles, this object will contain all of them in a
-    vectorized format, meaning for any given plant there will always be only `one` muscle object, regardless of the
-    number of muscles wrapped around the skeleton.
+    """This is the base class for muscle objects. If a plant contains several muscles, this object will contain all of
+    those in a vectorized format, meaning for any given plant there will always be only `one` muscle object, regardless
+    of the number of muscles wrapped around the skeleton.
 
     The dimensionality of the muscle states produced by this object and subclasses will always be
     `n_batches * n_timesteps * n_states * n_muscles`.
@@ -18,7 +18,7 @@ class Muscle:
         output_dim: `Integer`, the dimensionality of the output. Since this object does not rely on a ``call`` method,
             but on an :meth:`integrate` method, this is the dimensionality of the :meth:`integrate` method's output.
             The output of that method should be a `muscle state`, so `output_dim` is usually the number of states
-            of the `Muscle` object.
+            of the :class:`Muscle` object class or subclass.
         min_activation: `Float`, the minimum activation value that this muscle can have. Any activation value lower than
             this value will be clipped.
         tau_activation: `Float`, the time constant for activation of the muscle. This is used for the Ordinary
@@ -59,10 +59,10 @@ class Muscle:
         Args:
             timestep: `Float`, the size of a single timestep in seconds.
             max_isometric_force: `Float` or `list` of `float`, the maximum amount of force (N) that this particular
-                muscle can use. If several muscles are being built, then this should be a list containing as many
+                muscle can use. If several muscles are being built, then this should be a `list` containing as many
                 elements as there are muscles.
-            kwargs: Optional keyword arguments. This allows for extra parameters to be passed in the :meth:`build`
-                method for a `Muscle` subclass, would it be needed.
+            **kwargs: Optional keyword arguments. This allows for extra parameters to be passed in the :meth:`build`
+                method for a :class:`Muscle` subclass, if needed.
         """
         self.dt = tf.constant(timestep, name='dt')
         self.n_muscles = np.array(max_isometric_force).size
@@ -79,8 +79,8 @@ class Muscle:
 
         Args:
             excitation: `Float` or `list` of `float`, the descending excitation drive to the muscle(s). If several
-                muscles are declared in the parent plant object, then this should be a list containing as many elements
-                as there are muscles in that parent plant object.
+                muscles are declared in the parent plant object, then this should be a `list` containing as many
+                elements as there are muscles in that parent plant object.
             muscle_state: `Tensor`, the `muscle state` that provides the initial activation value for the Ordinary
                 Differential Equation.
 
@@ -90,7 +90,7 @@ class Muscle:
         return self._activation_ode_fn((excitation, muscle_state))
 
     def get_initial_muscle_state(self, batch_size: int, geometry_state):
-        """Infers the `muscle states` matching a provided `geometry state` array.
+        """Infers the `muscle state` matching a provided `geometry state` array.
 
         Args:
             batch_size: `Integer`, the size of the batch passed in `geometry state`.
@@ -122,8 +122,8 @@ class Muscle:
 
         Args:
             excitation: `Float` or `list` of `float`, the descending excitation drive to the muscle(s). If several
-                muscles are declared in the parent plant object, then this should be a list containing as many elements
-                as there are muscles in that parent plant object.
+                muscles are declared in the parent plant object, then this should be a `list` containing as many
+                elements as there are muscles in that parent plant object.
             muscle_state: `Tensor`, the `muscle state` used as the initial value for the evaluation of the Ordinary
                 Differential Equations.
 
@@ -161,7 +161,7 @@ class Muscle:
         self.__setattr__(name, value)
 
     def get_save_config(self):
-        """Get the object instance's configuration. This is the set of configuration entries that will be useful
+        """Gets the object instance's configuration. This is the set of configuration entries that will be useful
         for any muscle objects or subclasses.
 
         Returns:
@@ -173,15 +173,15 @@ class Muscle:
 
 class ReluMuscle(Muscle):
     """A "rectified linear" muscle that outputs the input directly, but can only have a positive activation value.
-    In essence, this muscle object behaves as a simple linear actuator that can only pull, and not pull. It does not
+    In essence, this muscle object behaves as a simple linear actuator that can only pull, and not push. It does not
     have an upper bound and its output (assuming it is positive) is scaled by the declared maximum isometric force.
     Therefore, an input of `1` will yield an output force equal to the maximum isometric force.
 
     Note that the maximum isometric force is not declared at initialization but via the :meth:`build` call, which is
-    inherited from the parent ``motornet.plant.muscles.Muscle`` class.
+    inherited from the parent :class:`Muscle` class.
 
     Args:
-        **kwargs: All contents are passed to the parent ``motornet.plant.muscles.Muscle`` class.
+        **kwargs: All contents are passed to the parent :class:`Muscle` class.
     """
 
     def __init__(self, **kwargs):
@@ -210,7 +210,7 @@ class ReluMuscle(Muscle):
 
 
 class RigidTendonHillMuscle(Muscle):
-    """This pre-built muscle class is an implementation of a Hill-type muscle model formulation from `[1]`, adjusted to
+    """This pre-built muscle class is an implementation of a Hill-type muscle model as detailed in `[1]`, adjusted to
     behave as a rigid tendon version of the original model.
 
     References:
@@ -221,20 +221,22 @@ class RigidTendonHillMuscle(Muscle):
     Args:
         min_activation: `Float`, the minimum activation value that this muscle can have. Any activation value lower than
             this value will be clipped.
-        **kwargs: All contents are passed to the parent ``motornet.plant.muscles.Muscle`` class.
+        **kwargs: All contents are passed to the parent :class:`Muscle` class.
     """
 
     def __init__(self, min_activation=0.001, **kwargs):
         super().__init__(min_activation=min_activation, **kwargs)
         self.__name__ = 'RigidTendonHillMuscle'
 
-        self.state_name = ['activation',
-                           'muscle length',
-                           'muscle velocity',
-                           'force-length PE',
-                           'force-length CE',
-                           'force-velocity CE',
-                           'force']
+        self.state_name = [
+            'activation',
+            'muscle length',
+            'muscle velocity',
+            'force-length PE',
+            'force-length CE',
+            'force-velocity CE',
+            'force'
+        ]
         self.state_dim = len(self.state_name)
 
         # parameters for the passive element (PE) and contractile element (CE)
@@ -264,9 +266,9 @@ class RigidTendonHillMuscle(Muscle):
         self.built = False
 
     def build(self, timestep, max_isometric_force, **kwargs):
-        """Build the muscle given parameters from the ``motornet.plants.Plant`` wrapper object. This should be called by
-        the :meth:`motornet.plants.Plant.add_muscle` method to build the muscle scructure according to the parameters of
-        that plant.
+        """Build the muscle using arguments from the :class:`motornet.plants.plants.Plant` wrapper object. This should
+        be called by the :meth:`motornet.plants.plants.Plant.add_muscle` method to build the muscle scructure according
+        to the parameters of that plant.
 
         Args:
             timestep: `Float`, the size of a single timestep in seconds.
@@ -280,9 +282,10 @@ class RigidTendonHillMuscle(Muscle):
                 the length at which the muscle will output the maximum amount of force given the same excitation. If
                 several muscles are declared in the parent plant object, then this should be a list containing as many
                 elements as there are muscles in that parent plant object.
-            normalized_slack_muscle_length: `Float` or `list` of `float`, the muscle length (m) past which the muscle(s)
-                will start to developp passive forces. If several muscles are declared in the parent plant object, then
-                this should be a list containing as many elements as there are muscles in that parent plant object.
+            normalized_slack_muscle_length: `Float` or `list` of `float`, the muscle length (m) past which the
+                muscle(s) will start to developp passive forces. If several muscles are declared in the parent plant
+                object, then this should be a list containing as many elements as there are muscles in that parent plant
+                object.
         """
         tendon_length = kwargs.get('tendon_length')
         optimal_muscle_length = kwargs.get('optimal_muscle_length')
@@ -350,7 +353,7 @@ class RigidTendonHillMuscle(Muscle):
 
 
 class RigidTendonHillMuscleThelen(Muscle):
-    """This pre-built muscle class is an implementation of a Hill-type muscle model formulation from `[1]`, adjusted to
+    """This pre-built muscle class is an implementation of a Hill-type muscle model as detailed in `[1]`, adjusted to
     behave as a rigid tendon version of the original model.
 
     References:
@@ -360,7 +363,7 @@ class RigidTendonHillMuscleThelen(Muscle):
     Args:
         min_activation: `Float`, the minimum activation value that this muscle can have. Any activation value lower than
             this value will be clipped.
-        **kwargs: All contents are passed to the parent ``motornet.plant.muscles.Muscle`` class.
+        **kwargs: All contents are passed to the parent :class:`Muscle` class.
     """
 
     def __init__(self, min_activation=0.001, **kwargs):
@@ -401,9 +404,9 @@ class RigidTendonHillMuscleThelen(Muscle):
         self.built = False
 
     def build(self, timestep, max_isometric_force, **kwargs):
-        """Build the muscle given parameters from the ``motornet.plants.Plant`` wrapper object. This should be called by
-        the :meth:`motornet.plants.Plant.add_muscle` method to build the muscle scructure according to the parameters of
-        that plant.
+        """Build the muscle using arguments from the :class:`motornet.plants.plants.Plant` wrapper object. This should
+        be called by the :meth:`motornet.plants.plants.Plant.add_muscle` method to build the muscle scructure according
+        to the parameters of that plant.
 
         Args:
             timestep: `Float`, the size of a single timestep in seconds.
@@ -417,10 +420,12 @@ class RigidTendonHillMuscleThelen(Muscle):
                 the length at which the muscle will output the maximum amount of force given the same excitation. If
                 several muscles are declared in the parent plant object, then this should be a list containing as many
                 elements as there are muscles in that parent plant object.
-            normalized_slack_muscle_length: `Float` or `list` of `float`, the muscle length (m) past which the muscle(s)
-                will start to developp passive forces. If several muscles are declared in the parent plant object, then
-                this should be a list containing as many elements as there are muscles in that parent plant object.
+            normalized_slack_muscle_length: `Float` or `list` of `float`, the muscle length (m) past which the
+                muscle(s) will start to developp passive forces. If several muscles are declared in the parent plant
+                object, then this should be a list containing as many elements as there are muscles in that parent plant
+                object.
         """
+
         tendon_length = kwargs.get('tendon_length')
         optimal_muscle_length = kwargs.get('optimal_muscle_length')
         normalized_slack_muscle_length = kwargs.get('normalized_slack_muscle_length')
@@ -479,9 +484,9 @@ class RigidTendonHillMuscleThelen(Muscle):
 
 
 class CompliantTendonHillMuscle(RigidTendonHillMuscle):
-    """This pre-built muscle class is an implementation of a Hill-type muscle model formulation from `[1]`. Unlike its
-    parent class from which it inherits, this object class implements a full compliant tendon version of the model,
-    as formulated in the reference article.
+    """This pre-built muscle class is an implementation of a Hill-type muscle model as detailed in `[1]`. Unlike its
+    parent class, this class implements a full compliant tendon version of the model, as formulated in the
+    reference article.
 
     References:
         [1] `Kistemaker DA, Wong JD, Gribble PL. The central nervous system does not minimize energy cost in arm
@@ -491,7 +496,7 @@ class CompliantTendonHillMuscle(RigidTendonHillMuscle):
     Args:
         min_activation: `Float`, the minimum activation value that this muscle can have. Any activation value lower than
             this value will be clipped.
-        **kwargs: All contents are passed to the parent ``motornet.plant.muscles.Muscle`` class.
+        **kwargs: All contents are passed to the parent :class:`Muscle` class.
     """
 
     def __init__(self, min_activation=0.01, **kwargs):

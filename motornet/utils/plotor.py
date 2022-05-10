@@ -10,17 +10,16 @@ from matplotlib.collections import LineCollection
 
 
 def compute_limits(data, margin=0.1):
-    """This small function computes the limits to use for plotting data, given the range of the dataset and a margin
-    size around that range.
+    """Computes the limits to use for plotting data, given the range of the dataset and a margin size around that range.
 
     Args:
-        data: A `numpy.ndarray` object containing the data to plot.
-        margin: Float, the proportion of the data's range to add as margin for plotting. For instance, if the data
+        data: A `numpy.ndarray` containing the data to plot.
+        margin: `Float`, the proportion of the data's range to add as margin for plotting. For instance, if the data
             value range from `0` to `10`, and the margin is set to `0.2`, then the limits would become `[-2, 12]` since
             the range is `10`.
 
     Returns:
-        A list of two `float` values, representing the lower and upper limits to use on the plot, in that order.
+        A `list` of two `float` values, representing the lower and upper limits to use on the plot, in that order.
     """
     data_range = data.ptp()
     m = data_range * margin
@@ -46,14 +45,14 @@ def _plot_line_collection(segments, cmap: str = 'viridis', linewidth: int = 1, f
 
 
 def plot_pos_over_time(cart_results):
-    """Plot position results over time, giving a darker color to the early part of a trajectory, and a lighter color to
-    the later part of the trajectory.
+    """Plots trajectory position over time, giving a darker color to the early part of a trajectory, and a lighter color
+    to the later part of the trajectory.
 
     Args:
-        cart_results: A `numpy.ndarray` object containing the trajectories. Its dimensionality should be
+        cart_results: A `numpy.ndarray` containing the trajectories. Its dimensionality should be
             `n_batches * n_timesteps * (2 . n_dim)`, with `n_dim` being the trajectory's dimensionality. For instance,
             for a planar reach, since the movement is in 2D space, we have`n_dim = 2`, meaning the third dimension of
-            the array is `4` (x position, y position, x velocity, y velocity).
+            the array is `4` (`x` position, `y` position, `x` velocity, `y` velocity).
     """
     n_timesteps = cart_results.shape[1]
     segments, points = _results_to_line_collection(cart_results)
@@ -79,19 +78,19 @@ def _results_to_line_collection(results):
     return segments_all_batches, points
 
 
-def plot_arm26_over_time(arm, joint_state, cmap: str = 'viridis', linewidth: int = 1, figure=plt.gcf(), **kwargs):
-    """Plot an arm26 over time, with earlier and later arm configuration in the movement being represented as darker and
-    brighter colors, respectively.
+def plot_2dof_arm_over_time(arm, joint_state, cmap: str = 'viridis', linewidth: int = 1, figure=plt.gcf(), **kwargs):
+    """Plots an arm26 over time, with earlier and later arm configuration in the movement being represented as darker
+    and brighter colors, respectively.
 
     Args:
-        arm: `motornet.plants.skeletons.Arm26` object to plot.
-        joint_state: A `numpy.ndarray` object containing the trajectory. Its dimensionality should be
+        arm: :class:`motornet.plants.skeletons.TwoDofArm` object to plot.
+        joint_state: A `numpy.ndarray` containing the trajectory. Its dimensionality should be
             `1 * n_timesteps * (2 . n_dim)`, with `n_dim` being the trajectory's dimensionality. For an `arm26`,
             since the arm has 2 degrees of freedom, we have`n_dim = 2`, meaning the third dimension of
             the array is `4` (shoulder position, elbow position, shoulder velocity, elbow velocity).
-        cmap: String, colormap supported by `matplotlib`.
+        cmap: `String`, colormap supported by `matplotlib`.
         figure: `matplotlib.figure.Figure` handle.
-        linewidth: Integer, line width of the arm segments being plotted.
+        linewidth: `Integer`, line width of the arm segments being plotted.
     """
 
     assert joint_state.shape[0] == 1  # can only take one simulation at a time

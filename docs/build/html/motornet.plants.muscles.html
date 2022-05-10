@@ -224,9 +224,9 @@
 <dt class="sig sig-object py" id="motornet.plants.muscles.CompliantTendonHillMuscle">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">CompliantTendonHillMuscle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_activation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.CompliantTendonHillMuscle" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#motornet.plants.muscles.RigidTendonHillMuscle" title="motornet.plants.muscles.RigidTendonHillMuscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.muscles.RigidTendonHillMuscle</span></code></a></p>
-<p>This pre-built muscle class is an implementation of a Hill-type muscle model formulation from <cite>[1]</cite>. Unlike its
-parent class from which it inherits, this object class implements a full compliant tendon version of the model,
-as formulated in the reference article.</p>
+<p>This pre-built muscle class is an implementation of a Hill-type muscle model as detailed in <cite>[1]</cite>. Unlike its
+parent class, this class implements a full compliant tendon version of the model, as formulated in the
+reference article.</p>
 <p class="rubric">References</p>
 <p>[1] <cite>Kistemaker DA, Wong JD, Gribble PL. The central nervous system does not minimize energy cost in arm
 movements. J Neurophysiol. 2010 Dec;104(6):2985-94. doi: 10.1152/jn.00483.2010. Epub 2010 Sep 8. PMID:
@@ -236,7 +236,7 @@ movements. J Neurophysiol. 2010 Dec;104(6):2985-94. doi: 10.1152/jn.00483.2010. 
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>min_activation</strong> – <cite>Float</cite>, the minimum activation value that this muscle can have. Any activation value lower than
 this value will be clipped.</p></li>
-<li><p><strong>**kwargs</strong> – All contents are passed to the parent <code class="docutils literal notranslate"><span class="pre">motornet.plant.muscles.Muscle</span></code> class.</p></li>
+<li><p><strong>**kwargs</strong> – All contents are passed to the parent <a class="reference internal" href="#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Muscle</span></code></a> class.</p></li>
 </ul>
 </dd>
 </dl>
@@ -245,9 +245,9 @@ this value will be clipped.</p></li>
 <dt class="sig sig-object py" id="motornet.plants.muscles.Muscle">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">Muscle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_activation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_activation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.015</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_deactivation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.05</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.Muscle" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Base class for muscle objects. If a plant contains several muscles, this object will contain all of them in a
-vectorized format, meaning for any given plant there will always be only <cite>one</cite> muscle object, regardless of the
-number of muscles wrapped around the skeleton.</p>
+<p>This is the base class for muscle objects. If a plant contains several muscles, this object will contain all of
+those in a vectorized format, meaning for any given plant there will always be only <cite>one</cite> muscle object, regardless
+of the number of muscles wrapped around the skeleton.</p>
 <p>The dimensionality of the muscle states produced by this object and subclasses will always be
 <cite>n_batches * n_timesteps * n_states * n_muscles</cite>.</p>
 <dl class="field-list simple">
@@ -258,7 +258,7 @@ driven by an excitation signal, then this value should be <cite>1</cite>.</p></l
 <li><p><strong>output_dim</strong> – <cite>Integer</cite>, the dimensionality of the output. Since this object does not rely on a <code class="docutils literal notranslate"><span class="pre">call</span></code> method,
 but on an <a class="reference internal" href="#motornet.plants.muscles.Muscle.integrate" title="motornet.plants.muscles.Muscle.integrate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">integrate()</span></code></a> method, this is the dimensionality of the <a class="reference internal" href="#motornet.plants.muscles.Muscle.integrate" title="motornet.plants.muscles.Muscle.integrate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">integrate()</span></code></a> method’s output.
 The output of that method should be a <cite>muscle state</cite>, so <cite>output_dim</cite> is usually the number of states
-of the <cite>Muscle</cite> object.</p></li>
+of the <a class="reference internal" href="#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Muscle</span></code></a> object class or subclass.</p></li>
 <li><p><strong>min_activation</strong> – <cite>Float</cite>, the minimum activation value that this muscle can have. Any activation value lower than
 this value will be clipped.</p></li>
 <li><p><strong>tau_activation</strong> – <cite>Float</cite>, the time constant for activation of the muscle. This is used for the Ordinary
@@ -276,8 +276,8 @@ Differential Equation of the muscle activation function.</p></li>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>excitation</strong> – <cite>Float</cite> or <cite>list</cite> of <cite>float</cite>, the descending excitation drive to the muscle(s). If several
-muscles are declared in the parent plant object, then this should be a list containing as many elements
-as there are muscles in that parent plant object.</p></li>
+muscles are declared in the parent plant object, then this should be a <cite>list</cite> containing as many
+elements as there are muscles in that parent plant object.</p></li>
 <li><p><strong>muscle_state</strong> – <cite>Tensor</cite>, the <cite>muscle state</cite> that provides the initial activation value for the Ordinary
 Differential Equation.</p></li>
 </ul>
@@ -298,10 +298,10 @@ that plant.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>timestep</strong> – <cite>Float</cite>, the size of a single timestep in seconds.</p></li>
 <li><p><strong>max_isometric_force</strong> – <cite>Float</cite> or <cite>list</cite> of <cite>float</cite>, the maximum amount of force (N) that this particular
-muscle can use. If several muscles are being built, then this should be a list containing as many
+muscle can use. If several muscles are being built, then this should be a <cite>list</cite> containing as many
 elements as there are muscles.</p></li>
-<li><p><strong>kwargs</strong> – Optional keyword arguments. This allows for extra parameters to be passed in the <a class="reference internal" href="#motornet.plants.muscles.Muscle.build" title="motornet.plants.muscles.Muscle.build"><code class="xref py py-meth docutils literal notranslate"><span class="pre">build()</span></code></a>
-method for a <cite>Muscle</cite> subclass, would it be needed.</p></li>
+<li><p><strong>**kwargs</strong> – Optional keyword arguments. This allows for extra parameters to be passed in the <a class="reference internal" href="#motornet.plants.muscles.Muscle.build" title="motornet.plants.muscles.Muscle.build"><code class="xref py py-meth docutils literal notranslate"><span class="pre">build()</span></code></a>
+method for a <a class="reference internal" href="#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Muscle</span></code></a> subclass, if needed.</p></li>
 </ul>
 </dd>
 </dl>
@@ -309,7 +309,7 @@ method for a <cite>Muscle</cite> subclass, would it be needed.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.muscles.Muscle.get_initial_muscle_state">
 <span class="sig-name descname"><span class="pre">get_initial_muscle_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geometry_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.Muscle.get_initial_muscle_state" title="Permalink to this definition">#</a></dt>
-<dd><p>Infers the <cite>muscle states</cite> matching a provided <cite>geometry state</cite> array.</p>
+<dd><p>Infers the <cite>muscle state</cite> matching a provided <cite>geometry state</cite> array.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -326,7 +326,7 @@ inferred.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.muscles.Muscle.get_save_config">
 <span class="sig-name descname"><span class="pre">get_save_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.Muscle.get_save_config" title="Permalink to this definition">#</a></dt>
-<dd><p>Get the object instance’s configuration. This is the set of configuration entries that will be useful
+<dd><p>Gets the object instance’s configuration. This is the set of configuration entries that will be useful
 for any muscle objects or subclasses.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -377,8 +377,8 @@ object’s <a class="reference internal" href="#motornet.plants.muscles.Muscle.u
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>excitation</strong> – <cite>Float</cite> or <cite>list</cite> of <cite>float</cite>, the descending excitation drive to the muscle(s). If several
-muscles are declared in the parent plant object, then this should be a list containing as many elements
-as there are muscles in that parent plant object.</p></li>
+muscles are declared in the parent plant object, then this should be a <cite>list</cite> containing as many
+elements as there are muscles in that parent plant object.</p></li>
 <li><p><strong>muscle_state</strong> – <cite>Tensor</cite>, the <cite>muscle state</cite> used as the initial value for the evaluation of the Ordinary
 Differential Equations.</p></li>
 </ul>
@@ -394,14 +394,14 @@ Differential Equations.</p></li>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">ReluMuscle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.ReluMuscle" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.muscles.Muscle</span></code></a></p>
 <p>A “rectified linear” muscle that outputs the input directly, but can only have a positive activation value.
-In essence, this muscle object behaves as a simple linear actuator that can only pull, and not pull. It does not
+In essence, this muscle object behaves as a simple linear actuator that can only pull, and not push. It does not
 have an upper bound and its output (assuming it is positive) is scaled by the declared maximum isometric force.
 Therefore, an input of <cite>1</cite> will yield an output force equal to the maximum isometric force.</p>
 <p>Note that the maximum isometric force is not declared at initialization but via the <code class="xref py py-meth docutils literal notranslate"><span class="pre">build()</span></code> call, which is
-inherited from the parent <code class="docutils literal notranslate"><span class="pre">motornet.plant.muscles.Muscle</span></code> class.</p>
+inherited from the parent <a class="reference internal" href="#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Muscle</span></code></a> class.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>**kwargs</strong> – All contents are passed to the parent <code class="docutils literal notranslate"><span class="pre">motornet.plant.muscles.Muscle</span></code> class.</p>
+<dd class="field-odd"><p><strong>**kwargs</strong> – All contents are passed to the parent <a class="reference internal" href="#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Muscle</span></code></a> class.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -409,7 +409,7 @@ inherited from the parent <code class="docutils literal notranslate"><span class
 <dt class="sig sig-object py" id="motornet.plants.muscles.RigidTendonHillMuscle">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">RigidTendonHillMuscle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_activation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.RigidTendonHillMuscle" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.muscles.Muscle</span></code></a></p>
-<p>This pre-built muscle class is an implementation of a Hill-type muscle model formulation from <cite>[1]</cite>, adjusted to
+<p>This pre-built muscle class is an implementation of a Hill-type muscle model as detailed in <cite>[1]</cite>, adjusted to
 behave as a rigid tendon version of the original model.</p>
 <p class="rubric">References</p>
 <p>[1] <cite>Kistemaker DA, Wong JD, Gribble PL. The central nervous system does not minimize energy cost in arm
@@ -420,16 +420,16 @@ movements. J Neurophysiol. 2010 Dec;104(6):2985-94. doi: 10.1152/jn.00483.2010. 
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>min_activation</strong> – <cite>Float</cite>, the minimum activation value that this muscle can have. Any activation value lower than
 this value will be clipped.</p></li>
-<li><p><strong>**kwargs</strong> – All contents are passed to the parent <code class="docutils literal notranslate"><span class="pre">motornet.plant.muscles.Muscle</span></code> class.</p></li>
+<li><p><strong>**kwargs</strong> – All contents are passed to the parent <a class="reference internal" href="#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Muscle</span></code></a> class.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.muscles.RigidTendonHillMuscle.build">
 <span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_isometric_force</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.RigidTendonHillMuscle.build" title="Permalink to this definition">#</a></dt>
-<dd><p>Build the muscle given parameters from the <code class="docutils literal notranslate"><span class="pre">motornet.plants.Plant</span></code> wrapper object. This should be called by
-the <code class="xref py py-meth docutils literal notranslate"><span class="pre">motornet.plants.Plant.add_muscle()</span></code> method to build the muscle scructure according to the parameters of
-that plant.</p>
+<dd><p>Build the muscle using arguments from the <a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant" title="motornet.plants.plants.Plant"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant</span></code></a> wrapper object. This should
+be called by the <a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.add_muscle" title="motornet.plants.plants.Plant.add_muscle"><code class="xref py py-meth docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant.add_muscle()</span></code></a> method to build the muscle scructure according
+to the parameters of that plant.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -444,9 +444,10 @@ as there are muscles in that parent plant object.</p></li>
 the length at which the muscle will output the maximum amount of force given the same excitation. If
 several muscles are declared in the parent plant object, then this should be a list containing as many
 elements as there are muscles in that parent plant object.</p></li>
-<li><p><strong>normalized_slack_muscle_length</strong> – <cite>Float</cite> or <cite>list</cite> of <cite>float</cite>, the muscle length (m) past which the muscle(s)
-will start to developp passive forces. If several muscles are declared in the parent plant object, then
-this should be a list containing as many elements as there are muscles in that parent plant object.</p></li>
+<li><p><strong>normalized_slack_muscle_length</strong> – <cite>Float</cite> or <cite>list</cite> of <cite>float</cite>, the muscle length (m) past which the
+muscle(s) will start to developp passive forces. If several muscles are declared in the parent plant
+object, then this should be a list containing as many elements as there are muscles in that parent plant
+object.</p></li>
 </ul>
 </dd>
 </dl>
@@ -456,7 +457,7 @@ this should be a list containing as many elements as there are muscles in that p
 <dt class="sig sig-object py" id="motornet.plants.muscles.RigidTendonHillMuscleThelen">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">RigidTendonHillMuscleThelen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_activation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.RigidTendonHillMuscleThelen" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.muscles.Muscle</span></code></a></p>
-<p>This pre-built muscle class is an implementation of a Hill-type muscle model formulation from <cite>[1]</cite>, adjusted to
+<p>This pre-built muscle class is an implementation of a Hill-type muscle model as detailed in <cite>[1]</cite>, adjusted to
 behave as a rigid tendon version of the original model.</p>
 <p class="rubric">References</p>
 <p>[1] <cite>Thelen DG. Adjustment of muscle mechanics model parameters to simulate dynamic contractions in older
@@ -466,16 +467,16 @@ adults. J Biomech Eng. 2003 Feb;125(1):70-7. doi: 10.1115/1.1531112. PMID: 12661
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>min_activation</strong> – <cite>Float</cite>, the minimum activation value that this muscle can have. Any activation value lower than
 this value will be clipped.</p></li>
-<li><p><strong>**kwargs</strong> – All contents are passed to the parent <code class="docutils literal notranslate"><span class="pre">motornet.plant.muscles.Muscle</span></code> class.</p></li>
+<li><p><strong>**kwargs</strong> – All contents are passed to the parent <a class="reference internal" href="#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Muscle</span></code></a> class.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.muscles.RigidTendonHillMuscleThelen.build">
 <span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_isometric_force</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.RigidTendonHillMuscleThelen.build" title="Permalink to this definition">#</a></dt>
-<dd><p>Build the muscle given parameters from the <code class="docutils literal notranslate"><span class="pre">motornet.plants.Plant</span></code> wrapper object. This should be called by
-the <code class="xref py py-meth docutils literal notranslate"><span class="pre">motornet.plants.Plant.add_muscle()</span></code> method to build the muscle scructure according to the parameters of
-that plant.</p>
+<dd><p>Build the muscle using arguments from the <a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant" title="motornet.plants.plants.Plant"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant</span></code></a> wrapper object. This should
+be called by the <a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.add_muscle" title="motornet.plants.plants.Plant.add_muscle"><code class="xref py py-meth docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant.add_muscle()</span></code></a> method to build the muscle scructure according
+to the parameters of that plant.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -490,9 +491,10 @@ as there are muscles in that parent plant object.</p></li>
 the length at which the muscle will output the maximum amount of force given the same excitation. If
 several muscles are declared in the parent plant object, then this should be a list containing as many
 elements as there are muscles in that parent plant object.</p></li>
-<li><p><strong>normalized_slack_muscle_length</strong> – <cite>Float</cite> or <cite>list</cite> of <cite>float</cite>, the muscle length (m) past which the muscle(s)
-will start to developp passive forces. If several muscles are declared in the parent plant object, then
-this should be a list containing as many elements as there are muscles in that parent plant object.</p></li>
+<li><p><strong>normalized_slack_muscle_length</strong> – <cite>Float</cite> or <cite>list</cite> of <cite>float</cite>, the muscle length (m) past which the
+muscle(s) will start to developp passive forces. If several muscles are declared in the parent plant
+object, then this should be a list containing as many elements as there are muscles in that parent plant
+object.</p></li>
 </ul>
 </dd>
 </dl>

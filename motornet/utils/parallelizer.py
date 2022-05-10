@@ -4,12 +4,13 @@ with a large amount of cores, and should significantly improve training speed ov
 This script should be called from a terminal console, and takes up to four parameter inputs.
 
 Args:
-    1: Directory to use. The declared directory should contain the model configurations saved as a JSON file.
-        See :meth:`motornet.nets.models.MotorNetModel.save_model` for more information on how to produce one such file.
-    2: String, whether run this script in `train` or `test` mode.
+    1: `String`, directory to use. The declared directory should contain the model configurations saved as a JSON file.
+        See :meth:`motornet.nets.models.DistalTeacher.save_model` for more information on how to produce a model
+        configuration file.
+    2: `String`, whether run this script in `train` or `test` mode.
     3: Run mode to be passed to task object. The type and content of this input will likely depend on the task
-        object being used.
-    4: Integer, total number of training iterations.
+       object being used.
+    4: `Integer`, total number of training iterations.
 
 Raises:
     ValueError: If the first input's directory does not contain a model's JSON configuration file.

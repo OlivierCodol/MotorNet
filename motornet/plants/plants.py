@@ -556,7 +556,7 @@ class RigidTendonArm26(Plant):
     The default shoulder and elbow lower limits are defined as `0`, and their default upper limits as `135` and `155`
     degrees, respectively. These parameters come from `[1]`.
 
-    The `kwargs` inputs are passed as-is to the parent :class:`motornet.plants.plants.Plant` class.
+    The `kwargs` inputs are passed as-is to the parent :class:`Plant` class.
 
     References:
         [1] `Kistemaker DA, Wong JD, Gribble PL. The central nervous system does not minimize energy cost in arm
