@@ -5,7 +5,7 @@ from abc import abstractmethod
 
 
 class Muscle:
-    """This is the base class for muscle objects. If a plant contains several muscles, this object will contain all of
+    """Base class for `Muscle` objects. If a plant contains several muscles, this object will contain all of
     those in a vectorized format, meaning for any given plant there will always be only `one` muscle object, regardless
     of the number of muscles wrapped around the skeleton.
 

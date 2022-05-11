@@ -6,7 +6,7 @@ from typing import Union
 
 
 class Skeleton:
-    """Base class for skeletons.
+    """Base class for `Skeleton` objects.
 
     Args:
         dof: `Integer`, number of degrees of freedom of the skeleton. Typically this is the number of joints.

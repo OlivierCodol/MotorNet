@@ -469,7 +469,7 @@ class Plant:
         return self._update_ode_fn((excitation, states, endpoint_load, joint_load))
 
     def get_initial_state(self, batch_size=1, joint_state=None):
-        """Get initial states (joint, cartesian, muscle, geometry) that are biomechanically compatible with each other.
+        """Gets initial states (joint, cartesian, muscle, geometry) that are biomechanically compatible with each other.
 
         Args:
             batch_size: `Integer`, the desired batch size.

@@ -6,7 +6,7 @@ from typing import Union
 
 
 class Network(Layer):
-    """Base class for controller network objects. It implements a network whose function is to control the plant
+    """Base class for controller `Network` objects. It implements a network whose function is to control the plant
     provided as input at initialization. This object can be subclassed to implement virtually anything that `tensorflow`
     can implement as a deep neural network, so long as it abides by the state structure used in `motornet` (see below
     for details).
@@ -44,6 +44,24 @@ class Network(Layer):
             tf.TensorShape([self.n_muscles * 2, self.proprioceptive_delay]),  # muscle length & velocity
             tf.TensorShape([plant.space_dim, self.visual_delay]),
             tf.TensorShape([plant.input_dim]),
+        ]
+        self.initial_state_names = [
+            'joint0',
+            'cartesian0',
+            'muscle0',
+            'geometry0',
+            'proprio_feedback0',
+            'visual_feedback0',
+            'excitation',
+        ]
+        self.output_names = [
+            'joint position',
+            'cartesian position',
+            'muscle state',
+            'geometry state',
+            'proprioceptive feedback',
+            'visual feedback',
+            'excitation'
         ]
 
         # create attributes
@@ -84,16 +102,6 @@ class Network(Layer):
         self.get_new_excitation_state = Lambda(lambda x: tf.zeros((x[0], self.plant.input_dim), dtype=x[1]))
         self.built = False
 
-        self.output_names = [
-            'joint position',
-            'cartesian position',
-            'muscle state',
-            'geometry state',
-            'proprioceptive feedback',
-            'visual feedback',
-            'excitation'
-        ]
-
         super().__init__(**kwargs)
 
     @abstractmethod
@@ -111,12 +119,12 @@ class Network(Layer):
             - A `dictionary` of the new states inherent to potential layers operating on a state.
 
         Raises:
-            NotImplementedError: if this method is not overwritten by a subclass.
+            NotImplementedError: If this method is not overwritten by a subclass object.
         """
-        raise NotImplementedError("This method must be overwritten by a subclass.")
+        raise NotImplementedError("This method must be overwritten by a subclass object.")
 
     def get_base_config(self):
-        """Get the object instance's base configuration. This is the set of configuration entries that will be useful
+        """Gets the object instance's base configuration. This is the set of configuration entries that will be useful
         for any :class:`Network` class or subclass. This method should be called by the :meth:`get_save_config`
         method. Users wanting to save additional configuration entries specific to a `Network` subclass should then
         do so in the :meth:`get_save_config` method, using this method's output `dictionary` as a base.
@@ -137,7 +145,7 @@ class Network(Layer):
         return cfg
 
     def get_save_config(self):
-        """Get the :class:`Network` object's configuration as a `dictionary`. This method should be overwritten by
+        """Gets the :class:`Network` object's configuration as a `dictionary`. This method should be overwritten by
         subclass objects, and used to add configuration entries specific to that subclass.
 
         Returns:
@@ -180,7 +188,7 @@ class Network(Layer):
             inputs = self.recompute_inputs(inputs, states)
 
         x = self.lambda_cat((proprio_fb, visual_fb, inputs.pop("inputs")))
-        u, new_network_states, new_network_states_dict = self.forward_pass(inputs, states)
+        u, new_network_states, new_network_states_dict = self.forward_pass(x, states)
 
         # plant forward pass
         jstate, cstate, mstate, gstate = self.unpack_plant_states(states)
@@ -258,7 +266,7 @@ class Network(Layer):
         states.append(excitation)
         return states
 
-    def get_initial_states(self, inputs=None, batch_size: int = 1, dtype=tf.float32):
+    def get_initial_state(self, inputs=None, batch_size: int = 1, dtype=tf.float32):
         """Creates the initial states for the first timestep of the network training procedure. This method
         provides the states for the full :class:`Network` class, that is the default states from the
         :meth:`get_base_initial_state` method followed by the states specific to a potential subclass. This method
@@ -266,7 +274,7 @@ class Network(Layer):
 
         Args:
             inputs: The joint state from which the other state values are inferred. This is passed as-is to the
-                :meth:`motornet.plants.plants.Plant.get_initial_state` method, and therefore obeys the structure
+                :meth:`motornet.plants.plants.Plant.get_initial_state` method, and therefore obeys the logic
                 documented there.
             batch_size: `Integer`, the batch size defining the size of each state's first dimension.
             dtype: A `dtype` from the `tensorflow.dtypes` module.
@@ -320,6 +328,12 @@ class GRUNetwork(Network):
         self.hidden_noise_sd = hidden_noise_sd
 
         # hidden states for GRU layer(s)
+        self.n_units = n_units
+        self.n_hidden_layers = n_hidden_layers
+        layer_state_names = ['gru_hidden_' + str(k) for k in range(self.n_hidden_layers)]
+        self.output_names.extend(layer_state_names)
+        self.initial_state_names.extend([name + '_0' for name in layer_state_names])
+
         for n in n_units:
             self.state_size.append(tf.TensorShape([n]))
 
@@ -330,16 +344,13 @@ class GRUNetwork(Network):
         self.recurrent_regularizer = tf.keras.regularizers.l2(recurrent_regularizer)
         self.output_bias_initializer = output_bias_initializer
         self.output_kernel_initializer = output_kernel_initializer
-        self.n_hidden_layers = n_hidden_layers
+
         if activation == 'recttanh':
             self.activation = recttanh
             self.activation_name = 'recttanh'
         else:
             self.activation = activation
             self.activation_name = activation
-        self.n_units = n_units
-
-        self.output_names.extend(['gru_hidden' + str(k) for k in range(self.n_hidden_layers)])
 
     def build(self, input_shapes):
 
@@ -365,7 +376,7 @@ class GRUNetwork(Network):
         self.layers.append(output_layer)
         self.built = True
 
-    def get_initial_states(self, inputs=None, batch_size: int = 1, dtype=tf.float32):
+    def get_initial_state(self, inputs=None, batch_size: int = 1, dtype=tf.float32):
         """Creates the initial states for the first timestep of the network training procedure. This method
         provides the states for the full :class:`Network` class, that is the default states from the
         :meth:`get_base_initial_state` method followed by the states specific to this subclass.

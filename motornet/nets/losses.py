@@ -1,4 +1,4 @@
-"""This module implements custom ``tensorflow.python.keras.losses.Loss`` objects that are useful for motor control.
+"""This module implements custom :class:`tensorflow.python.keras.losses.Loss` objects that are useful for motor control.
 
 .. note::
     There are a couple naming conventions that this module employs:
