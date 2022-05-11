@@ -231,7 +231,7 @@ centre-out reaching movements.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>network</strong> – <a class="reference internal" href="motornet.nets.layers.html#motornet.nets.layers.Network" title="motornet.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.nets.layers.Network</span></code></a> object class or subclass. This is the network that will perform
 the task.</p></li>
-<li><p><strong>name</strong> – String`, the name of the task object instance.</p></li>
+<li><p><strong>name</strong> – <cite>String</cite>, the name of the task object instance.</p></li>
 <li><p><strong>angular_step</strong> – <cite>Float</cite>, the angular distance (deg) between each centre-out reach during validation. For instance,
 if this is <cite>45</cite>, the <cite>Task</cite> object will ask the network to perform reaches in <cite>8</cite> directions equally
 distributed around the center position.</p></li>
@@ -262,9 +262,9 @@ distribution bounded by these values.</p></li>
 <li><p><strong>batch_size</strong> – <cite>Integer</cite>, the batch size to use to create the inputs, targets, and initial states.</p></li>
 <li><p><strong>n_timesteps</strong> – <cite>Integer</cite>, the number of timesteps to use to create the inputs and targets. Initial states do
 not require a time dimension.</p></li>
-<li><p><strong>validation</strong> – <cite>Boolean</cite>, whether to generate trials for validation purposes or not (as opposed to training</p></li>
-<li><p><strong>are</strong> (<em>purposes</em><em>)</em><em>. This is useful when one wants to test a network's performance in a set of trial types that</em>) – </p></li>
-<li><p><strong>training.</strong> (<em>not the same as those used for</em>) – </p></li>
+<li><p><strong>validation</strong> – <cite>Boolean</cite>, whether to generate trials for validation purposes or not (as opposed to training
+purposes). This is useful when one wants to test a network’s performance in a set of trial types that
+are not the same as those used for training.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -293,7 +293,7 @@ initialization.</p></li>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>network</strong> – <a class="reference internal" href="motornet.nets.layers.html#motornet.nets.layers.Network" title="motornet.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.nets.layers.Network</span></code></a> object class or subclass. This is the network that will perform
 the task.</p></li>
-<li><p><strong>name</strong> – String`, the name of the task object instance.</p></li>
+<li><p><strong>name</strong> – <cite>String</cite>, the name of the task object instance.</p></li>
 <li><p><strong>deriv_weight</strong> – <cite>Float</cite>, the weight of the muscle activation’s derivative contribution to the default muscle L2
 loss.</p></li>
 <li><p><strong>delay_range</strong> – Two-items <cite>list</cite>, <cite>tuple</cite> or <cite>numpy.ndarray</cite>, indicating the lower and upper range of the time
@@ -313,9 +313,9 @@ bounded by these values.</p></li>
 <li><p><strong>batch_size</strong> – <cite>Integer</cite>, the batch size to use to create the inputs, targets, and initial states.</p></li>
 <li><p><strong>n_timesteps</strong> – <cite>Integer</cite>, the number of timesteps to use to create the inputs and targets. Initial states do
 not require a time dimension.</p></li>
-<li><p><strong>validation</strong> – <cite>Boolean</cite>, whether to generate trials for validation purposes or not (as opposed to training</p></li>
-<li><p><strong>are</strong> (<em>purposes</em><em>)</em><em>. This is useful when one wants to test a network's performance in a set of trial types that</em>) – </p></li>
-<li><p><strong>training.</strong> (<em>not the same as those used for</em>) – </p></li>
+<li><p><strong>validation</strong> – <cite>Boolean</cite>, whether to generate trials for validation purposes or not (as opposed to training
+purposes). This is useful when one wants to test a network’s performance in a set of trial types that
+are not the same as those used for training.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -344,7 +344,7 @@ initialization.</p></li>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>network</strong> – <a class="reference internal" href="motornet.nets.layers.html#motornet.nets.layers.Network" title="motornet.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.nets.layers.Network</span></code></a> object class or subclass. This is the network that will perform
 the task.</p></li>
-<li><p><strong>name</strong> – String`, the name of the task object instance.</p></li>
+<li><p><strong>name</strong> – <cite>String</cite>, the name of the task object instance.</p></li>
 <li><p><strong>deriv_weight</strong> – <cite>Float</cite>, the weight of the muscle activation’s derivative contribution to the default muscle L2
 loss.</p></li>
 <li><p><strong>**kwargs</strong> – This is passed as-is to the parent <a class="reference internal" href="#motornet.tasks.Task" title="motornet.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a> class.</p></li>
@@ -361,9 +361,9 @@ loss.</p></li>
 <li><p><strong>batch_size</strong> – <cite>Integer</cite>, the batch size to use to create the inputs, targets, and initial states.</p></li>
 <li><p><strong>n_timesteps</strong> – <cite>Integer</cite>, the number of timesteps to use to create the inputs and targets. Initial states do
 not require a time dimension.</p></li>
-<li><p><strong>validation</strong> – <cite>Boolean</cite>, whether to generate trials for validation purposes or not (as opposed to training</p></li>
-<li><p><strong>are</strong> (<em>purposes</em><em>)</em><em>. This is useful when one wants to test a network's performance in a set of trial types that</em>) – </p></li>
-<li><p><strong>training.</strong> (<em>not the same as those used for</em>) – </p></li>
+<li><p><strong>validation</strong> – <cite>Boolean</cite>, whether to generate trials for validation purposes or not (as opposed to training
+purposes). This is useful when one wants to test a network’s performance in a set of trial types that
+are not the same as those used for training.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -392,11 +392,11 @@ initialization.</p></li>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>network</strong> – <a class="reference internal" href="motornet.nets.layers.html#motornet.nets.layers.Network" title="motornet.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.nets.layers.Network</span></code></a> object class or subclass. This is the network that will perform
 the task.</p></li>
-<li><p><strong>endpoint_load</strong> – <cite>K</cite>-items <cite>list</cite>, <cite>tuple</cite> or <cite>numpy.ndarray</cite>, with <cite>K</cite> the <cite>space_dim</cite> attribute of the
+<li><p><strong>endpoint_load</strong> – <cite>K</cite>-items <cite>list</cite>, <cite>tuple</cite> or <cite>numpy.ndarray</cite>, with <cite>K</cite> the <code class="xref py py-attr docutils literal notranslate"><span class="pre">space_dim</span></code> attribute of the
 <a class="reference internal" href="motornet.plants.skeletons.html#motornet.plants.skeletons.Skeleton" title="motornet.plants.skeletons.Skeleton"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.skeletons.Skeleton</span></code></a> object class or subclass, <cite>i.e.</cite>, the dimensionality of the
 worldspace. Each element <cite>k</cite> in <cite>K</cite> indicates the the load (N) to apply to the skeleton’s endpoint for
-the <a href="#id1"><span class="problematic" id="id2">`</span></a>k`th worldspace dimension.</p></li>
-<li><p><strong>name</strong> – String`, the name of the task object instance.</p></li>
+the <cite>k</cite>-th worldspace dimension.</p></li>
+<li><p><strong>name</strong> – <cite>String</cite>, the name of the task object instance.</p></li>
 <li><p><strong>deriv_weight</strong> – <cite>Float</cite>, the weight of the muscle activation’s derivative contribution to the default muscle L2
 loss.</p></li>
 <li><p><strong>**kwargs</strong> – This is passed as-is to the parent <a class="reference internal" href="#motornet.tasks.Task" title="motornet.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a> class.</p></li>
@@ -413,9 +413,9 @@ loss.</p></li>
 <li><p><strong>batch_size</strong> – <cite>Integer</cite>, the batch size to use to create the inputs, targets, and initial states.</p></li>
 <li><p><strong>n_timesteps</strong> – <cite>Integer</cite>, the number of timesteps to use to create the inputs and targets. Initial states do
 not require a time dimension.</p></li>
-<li><p><strong>validation</strong> – <cite>Boolean</cite>, whether to generate trials for validation purposes or not (as opposed to training</p></li>
-<li><p><strong>are</strong> (<em>purposes</em><em>)</em><em>. This is useful when one wants to test a network's performance in a set of trial types that</em>) – </p></li>
-<li><p><strong>training.</strong> (<em>not the same as those used for</em>) – </p></li>
+<li><p><strong>validation</strong> – <cite>Boolean</cite>, whether to generate trials for validation purposes or not (as opposed to training
+purposes). This is useful when one wants to test a network’s performance in a set of trial types that
+are not the same as those used for training.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -450,7 +450,7 @@ of pre-defined initial joint states is desired. If <cite>None</cite>, the initia
 <p>This parameter will be ignored on <a class="reference internal" href="#motornet.tasks.Task.generate" title="motornet.tasks.Task.generate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">generate()</span></code></a> calls where a <cite>joint_state</cite> is provided as input
 argument.</p>
 </p></li>
-<li><p><strong>name</strong> – String`, the name of the task object instance.</p></li>
+<li><p><strong>name</strong> – <cite>String</cite>, the name of the task object instance.</p></li>
 </ul>
 </dd>
 </dl>
@@ -486,9 +486,9 @@ save losses during training.</p></li>
 <li><p><strong>batch_size</strong> – <cite>Integer</cite>, the batch size to use to create the inputs, targets, and initial states.</p></li>
 <li><p><strong>n_timesteps</strong> – <cite>Integer</cite>, the number of timesteps to use to create the inputs and targets. Initial states do
 not require a time dimension.</p></li>
-<li><p><strong>validation</strong> – <cite>Boolean</cite>, whether to generate trials for validation purposes or not (as opposed to training</p></li>
-<li><p><strong>are</strong> (<em>purposes</em><em>)</em><em>. This is useful when one wants to test a network's performance in a set of trial types that</em>) – </p></li>
-<li><p><strong>training.</strong> (<em>not the same as those used for</em>) – </p></li>
+<li><p><strong>validation</strong> – <cite>Boolean</cite>, whether to generate trials for validation purposes or not (as opposed to training
+purposes). This is useful when one wants to test a network’s performance in a set of trial types that
+are not the same as those used for training.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -645,7 +645,7 @@ To print loss-related attributes, see <a class="reference internal" href="#motor
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.tasks.Task.print_losses">
 <span class="sig-name descname"><span class="pre">print_losses</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.Task.print_losses" title="Permalink to this definition">#</a></dt>
-<dd><p>Prints all currently declared losses in a human-readable format, including the default losses declared at
+<dd><p>Prints all currently declared losses in a readable format, including the default losses declared at
 initialization. This method prints the assigned output, loss object instance, loss weight and loss name of each
 loss. It also specifies if each loss is part of a compounded loss or not.</p>
 </dd></dl>

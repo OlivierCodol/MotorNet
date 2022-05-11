@@ -20,7 +20,7 @@ class Task(tf.keras.utils.Sequence):
 
             This parameter will be ignored on :meth:`generate` calls where a `joint_state` is provided as input
             argument.
-        name: String`, the name of the task object instance.
+        name: `String`, the name of the task object instance.
     """
     def __init__(self, network, initial_joint_state=None, name: str = 'Task'):
         self.__name__ = name
@@ -108,8 +108,8 @@ class Task(tf.keras.utils.Sequence):
             n_timesteps: `Integer`, the number of timesteps to use to create the inputs and targets. Initial states do
                 not require a time dimension.
             validation: `Boolean`, whether to generate trials for validation purposes or not (as opposed to training
-            purposes). This is useful when one wants to test a network's performance in a set of trial types that are
-            not the same as those used for training.
+                purposes). This is useful when one wants to test a network's performance in a set of trial types that
+                are not the same as those used for training.
 
         Returns:
             - A `dictionary` to use as input to the model. Each value in the `dictionary` should be a `tensor` array.
@@ -183,7 +183,7 @@ class Task(tf.keras.utils.Sequence):
         return [self.losses, self.loss_weights]
 
     def print_losses(self):
-        """Prints all currently declared losses in a human-readable format, including the default losses declared at
+        """Prints all currently declared losses in a readable format, including the default losses declared at
         initialization. This method prints the assigned output, loss object instance, loss weight and loss name of each
         loss. It also specifies if each loss is part of a compounded loss or not.
         """
@@ -214,7 +214,7 @@ class Task(tf.keras.utils.Sequence):
             a for a in dir(self)
             if not a.startswith('_') and not callable(getattr(self, a)) and not blacklist.__contains__(a)
         ]
-        values = [getattr(self, a) for a in attributes if not blacklist.__contains__(a)]
+        values = [getattr(self, a) for a in attributes]
         return attributes, values
 
     def print_attributes(self):
@@ -348,7 +348,7 @@ class RandomTargetReach(Task):
     Args:
         network: :class:`motornet.nets.layers.Network` object class or subclass. This is the network that will perform
             the task.
-        name: String`, the name of the task object instance.
+        name: `String`, the name of the task object instance.
         deriv_weight: `Float`, the weight of the muscle activation's derivative contribution to the default muscle L2
             loss.
         **kwargs: This is passed as-is to the parent :class:`Task` class.
@@ -379,11 +379,11 @@ class RandomTargetReachWithLoads(Task):
     Args:
         network: :class:`motornet.nets.layers.Network` object class or subclass. This is the network that will perform
             the task.
-        endpoint_load: `K`-items `list`, `tuple` or `numpy.ndarray`, with `K` the `space_dim` attribute of the
+        endpoint_load: `K`-items `list`, `tuple` or `numpy.ndarray`, with `K` the :attr:`space_dim` attribute of the
             :class:`motornet.plants.skeletons.Skeleton` object class or subclass, `i.e.`, the dimensionality of the
             worldspace. Each element `k` in `K` indicates the the load (N) to apply to the skeleton's endpoint for
-            the `k`th worldspace dimension.
-        name: String`, the name of the task object instance.
+            the `k`-th worldspace dimension.
+        name: `String`, the name of the task object instance.
         deriv_weight: `Float`, the weight of the muscle activation's derivative contribution to the default muscle L2
             loss.
         **kwargs: This is passed as-is to the parent :class:`Task` class.
@@ -424,7 +424,7 @@ class DelayedReach(Task):
     Args:
         network: :class:`motornet.nets.layers.Network` object class or subclass. This is the network that will perform
             the task.
-        name: String`, the name of the task object instance.
+        name: `String`, the name of the task object instance.
         deriv_weight: `Float`, the weight of the muscle activation's derivative contribution to the default muscle L2
             loss.
         delay_range: Two-items `list`, `tuple` or `numpy.ndarray`, indicating the lower and upper range of the time
@@ -478,7 +478,7 @@ class CentreOutReach(Task):
     Args:
         network: :class:`motornet.nets.layers.Network` object class or subclass. This is the network that will perform
             the task.
-        name: String`, the name of the task object instance.
+        name: `String`, the name of the task object instance.
         angular_step: `Float`, the angular distance (deg) between each centre-out reach during validation. For instance,
             if this is `45`, the `Task` object will ask the network to perform reaches in `8` directions equally
             distributed around the center position.
