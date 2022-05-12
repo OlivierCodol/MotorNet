@@ -409,6 +409,17 @@ joint states are drawn, from which the other state values are inferred.</p></li>
 </dl>
 </dd></dl>
 <dl class="py method">
+<dt class="sig sig-object py" id="motornet.plants.plants.Plant.get_muscle_cfg">
+<span class="sig-name descname"><span class="pre">get_muscle_cfg</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.plants.Plant.get_muscle_cfg" title="Permalink to this definition">#</a></dt>
+<dd><p>Gets the wrapping configuration of muscles added through the <a class="reference internal" href="#motornet.plants.plants.Plant.add_muscle" title="motornet.plants.plants.Plant.add_muscle"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_muscle()</span></code></a> method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A <cite>dictionary</cite> containing a key for each muscle name, associated to a nested dictionary containing
+information fo that muscle.</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.plants.Plant.get_save_config">
 <span class="sig-name descname"><span class="pre">get_save_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.plants.Plant.get_save_config" title="Permalink to this definition">#</a></dt>
 <dd><p>Gets the plant object’s configuration as a <cite>dictionary</cite>.</p>
@@ -417,7 +428,8 @@ joint states are drawn, from which the other state values are inferred.</p></li>
 <dd class="field-odd"><p>A <cite>dictionary</cite> containing the skeleton and muscle configurations as nested <cite>dictionary</cite> objects, and
 parameters of the plant’s configuration. Specifically, the size of the timestep (sec), the name
 of each muscle added via the <a class="reference internal" href="#motornet.plants.plants.Plant.add_muscle" title="motornet.plants.plants.Plant.add_muscle"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_muscle()</span></code></a> method, the number of muscles, the visual and proprioceptive
-delay, and the standard deviation of the excitation noise.</p>
+delay, the standard deviation of the excitation noise, and the muscle wrapping configuration as returned by
+<a class="reference internal" href="#motornet.plants.plants.Plant.get_muscle_cfg" title="motornet.plants.plants.Plant.get_muscle_cfg"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_muscle_cfg()</span></code></a>.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -477,6 +489,12 @@ obtained using the <a class="reference internal" href="#motornet.plants.plants.P
 <dd class="field-even"><p>The current cartesian configuration (position, velocity) as a <cite>tensor</cite>.</p>
 </dd>
 </dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="motornet.plants.plants.Plant.print_muscle_wrappings">
+<span class="sig-name descname"><span class="pre">print_muscle_wrappings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.plants.Plant.print_muscle_wrappings" title="Permalink to this definition">#</a></dt>
+<dd><p>Prints the wrapping configuration of the muscles added using the <a class="reference internal" href="#motornet.plants.plants.Plant.add_muscle" title="motornet.plants.plants.Plant.add_muscle"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_muscle()</span></code></a> method in a readable
+format.</p>
 </dd></dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.plants.Plant.setattr">
