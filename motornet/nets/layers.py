@@ -330,9 +330,9 @@ class GRUNetwork(Network):
         # hidden states for GRU layer(s)
         self.n_units = n_units
         self.n_hidden_layers = n_hidden_layers
-        layer_state_names = ['gru_hidden_' + str(k) for k in range(self.n_hidden_layers)]
-        self.output_names.extend(layer_state_names)
-        self.initial_state_names.extend([name + '_0' for name in layer_state_names])
+        self.layer_state_names = ['gru_hidden_' + str(k) for k in range(self.n_hidden_layers)]
+        self.output_names.extend(self.layer_state_names)
+        self.initial_state_names.extend([name + '_0' for name in self.layer_state_names])
 
         for n in n_units:
             self.state_size.append(tf.TensorShape([n]))
@@ -443,7 +443,7 @@ class GRUNetwork(Network):
         for k in range(self.n_hidden_layers):
             x, new_hidden_state = self.layers[k](x, states[- self.n_hidden_layers + k])
             new_hidden_state_noisy = self.add_noise((new_hidden_state, self.hidden_noise_sd))
-            new_hidden_states_dict['gru_hidden' + str(k)] = new_hidden_state_noisy
+            new_hidden_states_dict[self.layer_state_names[k]] = new_hidden_state_noisy
             new_hidden_states.append(new_hidden_state_noisy)
         u = self.layers[-1](x)
         return u, new_hidden_states, new_hidden_states_dict

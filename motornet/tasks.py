@@ -379,10 +379,11 @@ class RandomTargetReachWithLoads(Task):
     Args:
         network: :class:`motornet.nets.layers.Network` object class or subclass. This is the network that will perform
             the task.
-        endpoint_load: `K`-items `list`, `tuple` or `numpy.ndarray`, with `K` the :attr:`space_dim` attribute of the
-            :class:`motornet.plants.skeletons.Skeleton` object class or subclass, `i.e.`, the dimensionality of the
-            worldspace. Each element `k` in `K` indicates the the load (N) to apply to the skeleton's endpoint for
-            the `k`-th worldspace dimension.
+        endpoint_load: `Float`, or `K`-items `list`, `tuple` or `numpy.ndarray`, with `K` the :attr:`space_dim`
+            attribute of the :class:`motornet.plants.skeletons.Skeleton` object class or subclass, `i.e.`, the
+            dimensionality of the worldspace. Each element `k` in `K` indicates the the load (N) to apply to the
+            skeleton's endpoint for the `k`-th worldspace dimension. If a `float` is given, that load is applied to
+            all dimensions.
         name: `String`, the name of the task object instance.
         deriv_weight: `Float`, the weight of the muscle activation's derivative contribution to the default muscle L2
             loss.
@@ -392,7 +393,7 @@ class RandomTargetReachWithLoads(Task):
     def __init__(
             self,
             network,
-            endpoint_load: Union[list, tuple, np.ndarray],
+            endpoint_load: Union[float, list, tuple, np.ndarray],
             name: str = 'RandomTargetReachWithLoads',
             deriv_weight: float = 0.,
             **kwargs

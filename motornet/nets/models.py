@@ -39,7 +39,6 @@ class DistalTeacher(tf.keras.Model, ABC):
         # ensure each loss is tagged with the correct loss name, since the loss order is reshuffled in the parent
         # `tensorflow.keras.Model` class.
         flat_losses = tf.nest.flatten(task.losses)
-        # names = list(task.losses.keys())
         names = list(task.losses.keys())
         losses = list(task.losses.values())
 
@@ -48,13 +47,13 @@ class DistalTeacher(tf.keras.Model, ABC):
         output_names = [names[losses.index(loss)] for loss in flat_losses]
         loss_names = [task.loss_names[name] for name in output_names]
 
-        # the name assigned to losses will be used as output instead of the actual state output names
-        self.output_names = loss_names
-
         # now we remove the names for the non-defined losses (loss=None cases)
         for k, loss in enumerate(flat_losses):
             if loss is None:
-                self.output_names[k] = None
+                loss_names[k] = None
+
+        # the name assigned to losses will be used as output instead of the actual state output names
+        self.output_names = loss_names
 
     def train_step(self, data):
         """The logic for one training step. Compared to the default method, this overriding method allows for
