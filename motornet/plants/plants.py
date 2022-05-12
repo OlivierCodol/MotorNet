@@ -121,6 +121,7 @@ class Plant:
         self.muscle_index = None
         self.muscle_transitions = None
         self.row_splits = None
+        self._muscle_config_is_empty = True
 
         self.default_endpoint_load = tf.constant(
             value=tf.zeros((1, self.skeleton.space_dim), dtype=tf.float32),
@@ -224,6 +225,48 @@ class Plant:
 
         name = name if name is not None else 'muscle_' + str(self.n_muscles)
         self.muscle_name.append(name)
+        self._muscle_config_is_empty = False
+
+    def get_muscle_cfg(self):
+        """Gets the wrapping configuration of muscles added through the :meth:`add_muscle` method.
+
+        Returns:
+            A `dictionary` containing a key for each muscle name, associated to a nested dictionary containing
+            information fo that muscle.
+        """
+        cfg = {}
+        for m in range(self.n_muscles):
+            ix = np.where(self._muscle_index == (m + 1))[0]
+
+            d = {
+                "n_fixation_points": len(ix),
+                "fixation body": [int(k) for k in self._path_fixation_body.squeeze()[ix].tolist()],
+                "coordinates": [self._path_coordinates.squeeze()[:, k].tolist() for k in ix],
+            }
+
+            for param, value in self.tobuild__muscle.items():
+                d[param] = value[m]
+
+            cfg[self.muscle_name[m]] = d
+        if not cfg:
+            cfg = {"Placeholder Message": "No muscles were added using the `add_muscle` method."}
+        return cfg
+
+    def print_muscle_wrappings(self):
+        """Prints the wrapping configuration of the muscles added using the :meth:`add_muscle` method in a readable
+        format."""
+
+        cfg = self.get_muscle_cfg()
+        if self._muscle_config_is_empty:
+            print(cfg)
+            return
+
+        for muscle, params in cfg.items():
+            print("MUSCLE NAME: " + muscle)
+            print("-" * (13 + len(muscle)))
+            for key, param in params.items():
+                print(key + ": ", param)
+            print("\n")
 
     def __call__(self, muscle_input, joint_state, muscle_state, geometry_state, **kwargs):
         endpoint_load = kwargs.get('endpoint_load', self.default_endpoint_load)
@@ -428,7 +471,8 @@ class Plant:
             A `dictionary` containing the skeleton and muscle configurations as nested `dictionary` objects, and
             parameters of the plant's configuration. Specifically, the size of the timestep (sec), the name
             of each muscle added via the :meth:`add_muscle` method, the number of muscles, the visual and proprioceptive
-            delay, and the standard deviation of the excitation noise.
+            delay, the standard deviation of the excitation noise, and the muscle wrapping configuration as returned by
+            :meth:`get_muscle_cfg`.
         """
         muscle_cfg = self.muscle.get_save_config()
         skeleton_cfg = self.skeleton.get_save_config()
@@ -436,7 +480,8 @@ class Plant:
                'Skeleton': skeleton_cfg,
                'dt': self.dt, 'muscle_names': self.muscle_name,
                'excitation_noise_sd': self.excitation_noise_sd, 'n_muscles': self.n_muscles,
-               'proprioceptive_delay': self.proprioceptive_delay, 'visual_delay': self.visual_delay}
+               'proprioceptive_delay': self.proprioceptive_delay, 'visual_delay': self.visual_delay,
+               'muscle_wrapping_cfg': self.get_muscle_cfg()}
         return cfg
 
     def get_geometry(self, joint_state):
