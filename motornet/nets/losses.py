@@ -245,7 +245,7 @@ def _l2_activation_muscle_vel_loss(y_true, y_pred, max_iso_force, deriv_weight):
 def _l2_xdx_activation_loss(y_true, y_pred, max_iso_force, deriv_weight, dt):
     activation = tf.slice(y_pred, [0, 0, 0, 0], [-1, -1, 1, -1])
     activation_scaled = _scale_activation(activation, max_iso_force)
-    d_activation = tf.reduce_mean(tf.abs((activation_scaled[:, :, 1:, :, :] -
+    d_activation = tf.reduce_mean(tf.square((activation_scaled[:, :, 1:, :, :] -
                                           activation_scaled[:, :, :-1, :, :]) / dt))
     return tf.reduce_mean(tf.square(activation_scaled)) + deriv_weight * d_activation
 
