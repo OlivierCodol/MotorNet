@@ -2,14 +2,14 @@
 <html class="no-js">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="motornet.nets.layers" href="motornet.nets.layers.html" /><link rel="prev" title="motornet.nets" href="motornet.nets.html" />
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="motornet.nets.layers" href="motornet.nets.layers.html" /><link rel="prev" title="motornet.nets" href="motornet.nets.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
         <title>motornet.nets.callbacks - MotorNet 1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
     
     
 
@@ -186,6 +186,7 @@
 <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="md/install.html">How to install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation/changelog.html">Changelog</a></li>
 </ul>
 
 </div>
@@ -218,7 +219,7 @@
           </label>
         </div>
         <article role="main">
-          <section id="module-motornet.nets.callbacks">
+          <div class="section" id="module-motornet.nets.callbacks">
 <span id="motornet-nets-callbacks"></span><h1>motornet.nets.callbacks<a class="headerlink" href="#module-motornet.nets.callbacks" title="Permalink to this headline">#</a></h1>
 <p>This module implements <cite>tensorflow.keras.callbacks.Callback</cite> subclasses.
 For more information from the tensorflow package on what callbacks are and what they can achieve, feel free to refer to
@@ -226,7 +227,7 @@ the tensorflow documentation on callbacks at: <a class="reference external" href
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.BatchLogger">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">BatchLogger</span></span><a class="headerlink" href="#motornet.nets.callbacks.BatchLogger" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">keras.callbacks.Callback</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.callbacks.Callback</span></code></p>
 <p>In tensorflow, the default callbacks log performance metrics at the end of each epoch.
 This callback logs performance metrics at the end of each batch instead, providing more frequent logging of training
 performance.</p>
@@ -251,7 +252,7 @@ Logs the initial model weights.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.BatchwiseLearningRateScheduler">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">BatchwiseLearningRateScheduler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scheduler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.BatchwiseLearningRateScheduler" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">keras.callbacks.LearningRateScheduler</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.callbacks.LearningRateScheduler</span></code></p>
 <p>The parent class adjusts the learning rate at the start of each epoch. This subclass instead applies the learning
 rate adjustement routine at the end of each batch, allowing for more frequent learning rate adjustements to occur.</p>
 <dl class="field-list simple">
@@ -288,7 +289,7 @@ This method is empty to overwrite the learning rate adjustement routine at the b
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.TensorflowFix">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">TensorflowFix</span></span><a class="headerlink" href="#motornet.nets.callbacks.TensorflowFix" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">keras.callbacks.Callback</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.callbacks.Callback</span></code></p>
 <p>This callback implements a fix for saving some tensorflow objects.
 See this github issue for more details.
 <a class="reference external" href="https://github.com/tensorflow/tensorflow/issues/42872">https://github.com/tensorflow/tensorflow/issues/42872</a></p>
@@ -323,7 +324,7 @@ See this github issue for more details.
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.TrainingPlotter">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">TrainingPlotter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_n_t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_loss</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_trials</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.TrainingPlotter" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">keras.callbacks.Callback</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.callbacks.Callback</span></code></p>
 <p>This callback plots the loss history and/or some test trials every <cite>plot_freq</cite> batches, to help monitor the
 model’s behaviour during the training session.</p>
 <p>If <cite>plot_loss</cite> is toggled on, the losses will be displayed, including the total loss and contributing losses.</p>
@@ -370,7 +371,7 @@ if the user interrupts an ongoing training session.</p>
 </dl>
 </dd></dl>
 </dd></dl>
-</section>
+</div>
 
         </article>
       </div>
