@@ -30,20 +30,16 @@ A Tensorflow-powered python toolbox to train deep neural networks to perform rea
    :caption: Tutorials
    :glob:
 
-   tutorials/1-build-plant
+   tutorials/colab-tutorials
 
-   md/tutorial1
-
-   nb/testnb
-
-   md/tutorial2
+   tutorials/testnb
 
 
 .. toctree::
    :maxdepth: 1
    :caption: Documentation
 
-   md/install
+   documentation/install
 
    documentation/changelog
 

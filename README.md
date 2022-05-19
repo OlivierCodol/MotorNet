@@ -25,8 +25,8 @@ https://oliviercodol.github.io/MotorNet/build/html/index.html
 ## Dependencies
 
 There are no dependencies outside of Python 3. The packages required for MotorNet to function are:
-- Tensorflow (successfully tested with v2.7)
-- NumPy (successfully tested with v1.21)
+- Tensorflow (successfully tested with v2.9.0)
+- NumPy (successfully tested with v1.22.3)
 
 ## Tutorials
 
