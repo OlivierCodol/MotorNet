@@ -1,0 +1,1022 @@
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
+
+    <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+        <title>Running a network - MotorNet 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">MotorNet 1.0.0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">MotorNet 1.0.0 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Reference Manual</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../motornet.html">MotorNet</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../motornet.nets.html">motornet.nets</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../motornet.nets.callbacks.html">motornet.nets.callbacks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../motornet.nets.layers.html">motornet.nets.layers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../motornet.nets.losses.html">motornet.nets.losses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../motornet.nets.models.html">motornet.nets.models</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../motornet.plants.html">motornet.plants</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../motornet.plants.muscles.html">motornet.plants.muscles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../motornet.plants.skeletons.html">motornet.plants.skeletons</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../motornet.utils.html">motornet.utils</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../motornet.utils.plotor.html">motornet.utils.plotor</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../motornet.task.html">motornet.task</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-build-plant.html">Build a plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../md/tutorial1.html">How to do foo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../nb/testnb.html">Test notebook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../md/tutorial2.html">How to do bar</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../md/install.html">How to install</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt *,
+div.nbinput.container div.input_area pre,
+div.nboutput.container div.output_area pre,
+div.nbinput.container div.input_area .highlight,
+div.nboutput.container div.output_area .highlight {
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+div.nbinput.container > div[class*=highlight],
+div.nboutput.container > div[class*=highlight] {
+    margin: 0;
+}
+
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt * {
+    background: none;
+}
+
+div.nboutput.container div.output_area .highlight,
+div.nboutput.container div.output_area pre {
+    background: unset;
+}
+
+div.nboutput.container div.output_area div.highlight {
+    color: unset;  /* override Pygments text color */
+}
+
+/* avoid gaps between output lines */
+div.nboutput.container div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput.container,
+div.nboutput.container {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput.container,
+    div.nboutput.container {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput.container {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast.container {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput.container div.prompt pre {
+    color: #307FC1;
+}
+
+/* output prompt */
+div.nboutput.container div.prompt pre {
+    color: #BF5B3D;
+}
+
+/* all prompts */
+div.nbinput.container div.prompt,
+div.nboutput.container div.prompt {
+    width: 4.5ex;
+    padding-top: 5px;
+    position: relative;
+    user-select: none;
+}
+
+div.nbinput.container div.prompt > div,
+div.nboutput.container div.prompt > div {
+    position: absolute;
+    right: 0;
+    margin-right: 0.3ex;
+}
+
+@media (max-width: 540px) {
+    div.nbinput.container div.prompt,
+    div.nboutput.container div.prompt {
+        width: unset;
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput.container div.prompt.empty {
+        padding: 0;
+    }
+
+    div.nbinput.container div.prompt > div,
+    div.nboutput.container div.prompt > div {
+        position: unset;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput.container div.prompt pre,
+div.nboutput.container div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput.container div.input_area,
+div.nboutput.container div.output_area {
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput.container div.input_area,
+    div.nboutput.container div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput.container div.input_area {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    /*background: #f5f5f5;*/
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput.container div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput.container div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput.container div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+
+div.nbinput.container div.input_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight].math,
+div.nboutput.container div.output_area.rendered_html,
+div.nboutput.container div.output_area > div.output_javascript,
+div.nboutput.container div.output_area:not(.rendered_html) > img{
+    padding: 5px;
+    margin: 0;
+}
+
+/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+div.nbinput.container div.input_area > div[class^='highlight'],
+div.nboutput.container div.output_area > div[class^='highlight']{
+    overflow-y: hidden;
+}
+
+/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+.prompt .copybtn {
+    display: none;
+}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+div.rendered_html th {
+  font-weight: bold;
+}
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+</style>
+<section id="Running-a-network">
+<h1>Running a network<a class="headerlink" href="#Running-a-network" title="Permalink to this headline">#</a></h1>
+<p>The purpose of this notebook is to showcase how to train, save, and re-load a network, as well as how to produce predictions once training is done.</p>
+<p>For how to build a plant from scratch, feel free to look up the <code class="docutils literal notranslate"><span class="pre">1-build-plant.ipynb</span></code> notebook. For how to build a network, feel free to look up the <code class="docutils literal notranslate"><span class="pre">2-build-net.ipynb</span></code> notebook.</p>
+<p>Let’s start by importing what we need.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="n">file_dir</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">file_dir</span><span class="p">[:</span><span class="n">file_dir</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">'tutorials'</span><span class="p">)]))</span>
+
+<span class="kn">import</span> <span class="nn">motornet</span> <span class="k">as</span> <span class="nn">mn</span>
+
+<span class="o">%</span><span class="k">load_ext</span> autoreload
+<span class="o">%</span><span class="k">autoreload</span> 2
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'tensorflow version: '</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'numpy version: '</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+The autoreload extension is already loaded. To reload it, use:
+  %reload_ext autoreload
+
+
+tensorflow version: 2.7.0
+numpy version: 1.22.2
+</pre></div></div>
+</div>
+</section>
+<section id="I.-Introduction">
+<h1>I. Introduction<a class="headerlink" href="#I.-Introduction" title="Permalink to this headline">#</a></h1>
+<p>Since the purpose of this notebook is not to show how to build a plant, we will use a pre-built plant that comes with the <code class="docutils literal notranslate"><span class="pre">motornet</span></code> toolbox. This is a 4-muscles point mass plant, with <code class="docutils literal notranslate"><span class="pre">ReluMuscle</span></code> actuators.</p>
+<p>We will also use the default <code class="docutils literal notranslate"><span class="pre">motornet</span></code> network, which is a GRU network. Since we only specify an integer (rather than a list of integers) for <code class="docutils literal notranslate"><span class="pre">n_units</span></code>, this will end up being a one-layer GRU network.</p>
+<p>We will also recreate a network similar to that created in <code class="docutils literal notranslate"><span class="pre">2-build-net.ipynb</span></code></p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><span></span><span class="k">def</span> <span class="nf">create_network</span><span class="p">():</span>
+  <span class="n">plant</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">ReluPointMass24</span><span class="p">()</span>
+  <span class="n">network</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">nets</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">GRUNetwork</span><span class="p">(</span><span class="n">plant</span><span class="o">=</span><span class="n">plant</span><span class="p">,</span> <span class="n">n_units</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">kernel_regularizer</span><span class="o">=</span><span class="mi">10</span><span class="o">**-</span><span class="mi">6</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">'network'</span><span class="p">)</span>
+  <span class="n">task</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">RandomTargetReachWithLoads</span><span class="p">(</span><span class="n">network</span><span class="o">=</span><span class="n">network</span><span class="p">,</span> <span class="n">endpoint_load</span><span class="o">=</span><span class="mf">3.</span><span class="p">)</span>
+  <span class="n">rnn</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">RNN</span><span class="p">(</span><span class="n">cell</span><span class="o">=</span><span class="n">network</span><span class="p">,</span> <span class="n">return_sequences</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">'RNN'</span><span class="p">)</span>
+
+  <span class="n">input_dict</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">get_input_dict_layers</span><span class="p">()</span>
+  <span class="n">state0</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">get_initial_state_layers</span><span class="p">()</span>
+  <span class="n">states_out</span> <span class="o">=</span> <span class="n">rnn</span><span class="p">(</span><span class="n">input_dict</span><span class="p">,</span> <span class="n">initial_state</span><span class="o">=</span><span class="n">state0</span><span class="p">)</span>
+
+  <span class="n">nn</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">nets</span><span class="o">.</span><span class="n">MotorNetModel</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="n">input_dict</span><span class="p">,</span> <span class="n">state0</span><span class="p">],</span> <span class="n">outputs</span><span class="o">=</span><span class="n">states_out</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">'model'</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="n">task</span><span class="p">)</span>
+  <span class="n">nn</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">optimizer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">optimizers</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">clipnorm</span><span class="o">=</span><span class="mf">1.</span><span class="p">),</span> <span class="n">loss</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">losses</span><span class="p">,</span> <span class="n">loss_weights</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">loss_weights</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">nn</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">create_network</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Model: "model"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to
+==================================================================================================
+ endpoint_load (InputLayer)     [(None, None, 2)]    0           []
+
+ inputs (InputLayer)            [(None, None, 2)]    0           []
+
+ joint0 (InputLayer)            [(None, 4)]          0           []
+
+ cartesian0 (InputLayer)        [(None, 4)]          0           []
+
+ muscle0 (InputLayer)           [(None, 4, 4)]       0           []
+
+ geometry0 (InputLayer)         [(None, 4, 4)]       0           []
+
+ proprio_feedback0 (InputLayer)  [(None, 8, 1)]      0           []
+
+ visual_feedback0 (InputLayer)  [(None, 2, 1)]       0           []
+
+ gru0_hidden0 (InputLayer)      [(None, 50)]         0           []
+
+ RNN (RNN)                      {'joint position':   9804        ['endpoint_load[0][0]',
+                                (None, None, 4),                  'inputs[0][0]',
+                                 'cartesian positio               'joint0[0][0]',
+                                n': (None, None, 4)               'cartesian0[0][0]',
+                                , 'muscle state': (               'muscle0[0][0]',
+                                None, None, 4, 4),                'geometry0[0][0]',
+                                 'geometry state':                'proprio_feedback0[0][0]',
+                                (None, None, 4, 4),               'visual_feedback0[0][0]',
+                                 'proprioceptive fe               'gru0_hidden0[0][0]']
+                                edback': (None, Non
+                                e, 8, 1),
+                                 'visual feedback':
+                                 (None, None, 2, 1)
+                                , 'gru_hidden0': (N
+                                one, None, 50)}
+
+==================================================================================================
+Total params: 9,804
+Trainable params: 9,804
+Non-trainable params: 0
+__________________________________________________________________________________________________
+</pre></div></div>
+</div>
+</section>
+<section id="II.-Training-the-network">
+<h1>II. Training the network<a class="headerlink" href="#II.-Training-the-network" title="Permalink to this headline">#</a></h1>
+<p>The process for training a network is sensibly similar to that of <code class="docutils literal notranslate"><span class="pre">tensorflow</span></code>, from which <code class="docutils literal notranslate"><span class="pre">motornet</span></code> is built.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><span></span><span class="n">n_t</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">n_batches</span> <span class="o">=</span> <span class="mi">3000</span>
+<span class="n">batch_size</span> <span class="o">=</span> <span class="mi">32</span>
+
+<span class="c1"># this callback logs training information for each batch passed, rather than for each epoch.</span>
+<span class="n">callbacks</span> <span class="o">=</span> <span class="p">[</span><span class="n">mn</span><span class="o">.</span><span class="n">nets</span><span class="o">.</span><span class="n">callbacks</span><span class="o">.</span><span class="n">BatchLogger</span><span class="p">()]</span>
+
+<span class="p">[</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">init_states</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">task</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">n_timesteps</span><span class="o">=</span><span class="n">n_t</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">n_batches</span> <span class="o">*</span> <span class="n">batch_size</span><span class="p">)</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="p">[</span><span class="n">inputs</span><span class="p">,</span> <span class="n">init_states</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">targets</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="n">callbacks</span><span class="p">)</span>
+<br/><br/><br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+3000/3000 [==============================] - 389s 128ms/step - loss: 0.0941 - position_loss: 0.0892 - l2_activation_loss: 0.0244
+</pre></div></div>
+</div>
+<p>Using the training log, stored in the <code class="docutils literal notranslate"><span class="pre">BatchLogger</span></code> callback object, we can plot all losses over training iterations.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><span></span><span class="k">def</span> <span class="nf">print_training_log</span><span class="p">(</span><span class="n">log</span><span class="p">):</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span><span class="o">.</span><span class="n">set_tight_layout</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+  <span class="k">for</span> <span class="n">kk</span><span class="p">,</span> <span class="n">vv</span> <span class="ow">in</span> <span class="n">log</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">vv</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">kk</span><span class="p">)</span>
+
+  <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">"Loss"</span><span class="p">)</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">"Batch #"</span><span class="p">)</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="n">training_log</span> <span class="o">=</span> <span class="n">callbacks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">history</span>
+<span class="n">print_training_log</span><span class="p">(</span><span class="n">log</span><span class="o">=</span><span class="n">training_log</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_3-run-net_7_0.png" src="../_images/tutorials_3-run-net_7_0.png"/>
+</div>
+</div>
+</section>
+<section id="III.-Evaluating-performance">
+<h1>III. Evaluating performance<a class="headerlink" href="#III.-Evaluating-performance" title="Permalink to this headline">#</a></h1>
+<p>Again, this is fairly similar to what one would expect from a <code class="docutils literal notranslate"><span class="pre">tensorflow</span></code> model. A forward pass on the model (with <code class="docutils literal notranslate"><span class="pre">training=False</span></code>) will yield a dictionary containing all the states over time.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">init_states</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">task</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">n_timesteps</span><span class="o">=</span><span class="n">n_t</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">inputs</span><span class="p">,</span> <span class="n">init_states</span><span class="p">],</span> <span class="n">training</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"returned shape of each state:"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"-----------------------------"</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+  <span class="nb">print</span><span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="s2">": "</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+returned shape of each state:
+-----------------------------
+joint position:  (32, 100, 4)
+cartesian position:  (32, 100, 4)
+muscle state:  (32, 100, 4, 4)
+geometry state:  (32, 100, 4, 4)
+proprioceptive feedback:  (32, 100, 8, 1)
+visual feedback:  (32, 100, 2, 1)
+gru_hidden0:  (32, 100, 50)
+</pre></div></div>
+</div>
+<p>We can plot these states to quickly visualize what the network is doing.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><span></span><span class="n">plotor</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">plotor</span><span class="o">.</span><span class="n">plot_pos_over_time</span>
+
+<span class="k">def</span> <span class="nf">plot_simulations</span><span class="p">(</span><span class="n">xy</span><span class="p">,</span> <span class="n">target_xy</span><span class="p">):</span>
+  <span class="n">target_x</span> <span class="o">=</span> <span class="n">target_xy</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+  <span class="n">target_y</span> <span class="o">=</span> <span class="n">target_xy</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+
+  <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+
+  <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+  <span class="n">plotor</span><span class="p">(</span><span class="n">xy</span><span class="p">)</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">target_x</span><span class="p">,</span> <span class="n">target_y</span><span class="p">)</span>
+
+  <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+  <span class="n">plotor</span><span class="p">(</span><span class="n">xy</span> <span class="o">-</span> <span class="n">target_xy</span><span class="p">)</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">"grey"</span><span class="p">)</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">"grey"</span><span class="p">)</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">"X distance to target"</span><span class="p">)</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">"Y distance to target"</span><span class="p">)</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="n">plot_simulations</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">results</span><span class="p">[</span><span class="s2">"cartesian position"</span><span class="p">],</span> <span class="n">target_xy</span><span class="o">=</span><span class="n">targets</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_3-run-net_11_0.png" src="../_images/tutorials_3-run-net_11_0.png"/>
+</div>
+</div>
+</section>
+<section id="IV.-Saving-the-model">
+<h1>IV. Saving the model<a class="headerlink" href="#IV.-Saving-the-model" title="Permalink to this headline">#</a></h1>
+<p>Next, we can save the model using built-in methods. We will also save the training history as a <code class="docutils literal notranslate"><span class="pre">.json</span></code> file.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><span></span><span class="n">weight_file</span> <span class="o">=</span> <span class="s2">"save"</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">"weights"</span>
+<span class="n">log_file</span> <span class="o">=</span> <span class="s2">"save"</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">"log.json"</span>
+<span class="n">data_file</span> <span class="o">=</span> <span class="s2">"save"</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">"data.pickle"</span>
+<span class="n">cfg_file</span> <span class="o">=</span> <span class="s2">"save"</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">"cfg"</span>
+
+<span class="c1"># save model weights</span>
+<span class="n">model</span><span class="o">.</span><span class="n">save_weights</span><span class="p">(</span><span class="n">weight_file</span><span class="p">)</span>
+
+<span class="c1"># save model configuration</span>
+<span class="n">model</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span><span class="n">cfg_file</span><span class="p">)</span>
+
+<span class="c1"># save training history (log)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">log_file</span><span class="p">,</span> <span class="s1">'w'</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">training_log</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Done."</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Done.
+</pre></div></div>
+</div>
+</section>
+<section id="V.-Loading-the-model">
+<h1>V. Loading the model<a class="headerlink" href="#V.-Loading-the-model" title="Permalink to this headline">#</a></h1>
+<section id="V.-1.-The-configuration-file">
+<h2>V. 1. The configuration file<a class="headerlink" href="#V.-1.-The-configuration-file" title="Permalink to this headline">#</a></h2>
+<p>This file is what the <code class="docutils literal notranslate"><span class="pre">model.save_model</span></code> method produces. It contains a dictionary with all the parameter and configuration values used to create the model. Let’s look into its structure quickly.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><br/><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">cfg_file</span> <span class="o">+</span> <span class="s2">".json"</span><span class="p">,</span> <span class="s1">'r'</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+    <span class="n">cfg</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+
+<span class="k">for</span> <span class="n">k1</span><span class="p">,</span> <span class="n">v1</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+  <span class="nb">print</span><span class="p">(</span><span class="n">k1</span> <span class="o">+</span> <span class="s2">":"</span><span class="p">)</span>
+  <span class="k">for</span> <span class="n">k2</span><span class="p">,</span> <span class="n">v2</span> <span class="ow">in</span> <span class="n">v1</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">v2</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">dict</span><span class="p">:</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t\t</span><span class="s2">"</span> <span class="o">+</span> <span class="n">k2</span> <span class="o">+</span> <span class="s2">":"</span><span class="p">)</span>
+      <span class="k">for</span> <span class="n">k3</span><span class="p">,</span> <span class="n">v3</span> <span class="ow">in</span> <span class="n">v2</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t\t\t\t</span><span class="s2">"</span> <span class="o">+</span> <span class="n">k3</span> <span class="o">+</span> <span class="s2">": "</span><span class="p">,</span> <span class="n">v3</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t\t</span><span class="s2">"</span> <span class="o">+</span> <span class="n">k2</span> <span class="o">+</span> <span class="s2">": "</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Task:
+                task_kwargs:
+                name:  RandomTargetReachWithLoads
+                training_iterations:  1000
+                training_batch_size:  32
+                training_n_timesteps:  100
+                do_recompute_targets:  False
+                loss_weights:
+                                joint position:  0.0
+                                cartesian position:  1.0
+                                muscle state:  0.2
+                                geometry state:  0.0
+                                proprioceptive feedback:  0.0
+                                visual feedback:  0.0
+                                gru_hidden0:  0.0
+                initial_joint_state:  None
+Network:
+                proprioceptive_noise_sd:  0.0
+                visual_noise_sd:  0.0
+                hidden_noise_sd:  0.0
+                proprioceptive_delay:  1
+                visual_delay:  1
+                n_muscle:  4
+                n_ministeps:  1
+                kernel_regularizer_weight:  1e-06
+                recurrent_regularizer_weight:  0.0
+                n_units:  50
+                n_hidden_layers:  1
+                activation:  tanh
+Plant:
+                Muscle:
+                                name:  ReluMuscle
+                                state names:  ['excitation/activation', 'muscle length', 'muscle velocity', 'force']
+                Skeleton:
+                                dof:  2
+                                dt:  0.01
+                                space_dim:  2
+                                mass:  1.0
+                dt:  0.01
+                muscle_names:  ['UpperRight', 'UpperLeft', 'LowerRight', 'LowerLeft']
+                excitation_noise_sd:  0.0
+                n_muscles:  4
+                proprioceptive_delay:  1
+                visual_delay:  1
+</pre></div></div>
+</div>
+</section>
+<section id="V.-2.-Training-history">
+<h2>V. 2. Training history<a class="headerlink" href="#V.-2.-Training-history" title="Permalink to this headline">#</a></h2>
+<p>We can use the <code class="docutils literal notranslate"><span class="pre">.json</span></code> file containing the training history to retrieve and plot losses over time.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><span></span><span class="c1"># retrieve and plot training history</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">log_file</span><span class="p">,</span> <span class="s1">'r'</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+    <span class="n">loaded_training_log</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+<span class="n">print_training_log</span><span class="p">(</span><span class="n">log</span><span class="o">=</span><span class="n">loaded_training_log</span><span class="p">)</span>
+<br/><br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_3-run-net_17_0.png" src="../_images/tutorials_3-run-net_17_0.png"/>
+</div>
+</div>
+</section>
+<section id="V.-3.-The-model-itself">
+<h2>V. 3. The model itself<a class="headerlink" href="#V.-3.-The-model-itself" title="Permalink to this headline">#</a></h2>
+<p>Unfortunately there is no straightforward, one-liner way to save a model. This is to an extent due to limitations from the <code class="docutils literal notranslate"><span class="pre">tensorflow</span></code> saving routines, and also due to the fact that we use fairly non-conventional models, with plants, tasks, etc… nested into one object. Usually, reloading the model would involve re-creating the same model, and applying the trained weights to that model again. To re-create the model, one could re-use the same function as was used to create the original model
+(that’s what we will do here), or one could exploit the configuration file we saved and re-loaded above to recreate a model exhaustively. The latter method might be more tedious to implement but has the benefit of being more exhaustive on the long run.</p>
+<p>Note that the task object is contained in the network and so can be retried from there.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><span></span><span class="c1"># The model has to be re-created</span>
+<span class="n">model2</span> <span class="o">=</span> <span class="n">create_network</span><span class="p">()</span>
+<span class="n">task2</span> <span class="o">=</span> <span class="n">model2</span><span class="o">.</span><span class="n">task</span>
+
+<span class="c1"># We then load the weights obtained from the training process</span>
+<span class="n">model2</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="n">weight_file</span><span class="p">)</span><span class="o">.</span><span class="n">expect_partial</span><span class="p">()</span>
+<br/><br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;tensorflow.python.training.tracking.util.CheckpointLoadStatus at 0x2781173b5b0&gt;
+</pre></div></div>
+</div>
+</section>
+</section>
+<section id="VI.-Evaluate-the-loaded-model">
+<h1>VI. Evaluate the loaded model<a class="headerlink" href="#VI.-Evaluate-the-loaded-model" title="Permalink to this headline">#</a></h1>
+<p>We can then do a forward pass the loaded model like we did on the original model.</p>
+<p>We can also save the data resulting from the forward pass, for later analyses if desired. This could have been done following the evaluation of the original model as well, obviously.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">init_states</span><span class="p">]</span> <span class="o">=</span> <span class="n">task2</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">n_timesteps</span><span class="o">=</span><span class="n">n_t</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+
+<span class="n">results</span> <span class="o">=</span> <span class="n">model2</span><span class="p">([</span><span class="n">inputs</span><span class="p">,</span> <span class="n">init_states</span><span class="p">],</span> <span class="n">training</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># convert results to numpy array for saving later.</span>
+<span class="c1"># (this is not mandatory)</span>
+<span class="n">inputs_np</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">inputs</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+<span class="n">results_np</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+<span class="c1"># save as a .pickle file</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">data_file</span><span class="p">,</span> <span class="s1">'wb'</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+  <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span>
+    <span class="n">obj</span><span class="o">=</span><span class="p">{</span><span class="s1">'results'</span><span class="p">:</span> <span class="n">results_np</span><span class="p">,</span>
+         <span class="s1">'inputs'</span><span class="p">:</span> <span class="n">inputs_np</span><span class="p">,</span>
+         <span class="s1">'targets'</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">targets</span><span class="p">),</span>
+         <span class="s1">'weights'</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">get_weights</span><span class="p">(),</span>
+         <span class="s1">'training_log'</span><span class="p">:</span> <span class="n">training_log</span><span class="p">,</span>
+         <span class="s1">'task'</span><span class="p">:</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">'Task'</span><span class="p">],</span>
+         <span class="s1">'controller'</span><span class="p">:</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">'Network'</span><span class="p">],</span>
+         <span class="s1">'plant'</span><span class="p">:</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">'Plant'</span><span class="p">]},</span>
+    <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
+  <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Done."</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Done.
+</pre></div></div>
+</div>
+</section>
+<section id="VII.-Analyze-saved-data">
+<h1>VII. Analyze saved data<a class="headerlink" href="#VII.-Analyze-saved-data" title="Permalink to this headline">#</a></h1>
+<p>We can reload the saved data to perform analyses on it at any later time.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><br/><span></span><span class="c1"># open data file</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">data_file</span><span class="p">,</span> <span class="s1">'rb'</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+  <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+<span class="c1"># plot data from data file</span>
+<span class="n">plot_simulations</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">"results"</span><span class="p">][</span><span class="s2">"cartesian position"</span><span class="p">],</span> <span class="n">target_xy</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">"targets"</span><span class="p">])</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_3-run-net_23_0.png" src="../_images/tutorials_3-run-net_23_0.png"/>
+</div>
+</div>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022, Olivier Codol
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            Contents
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Running a network</a></li>
+<li><a class="reference internal" href="#I.-Introduction">I. Introduction</a></li>
+<li><a class="reference internal" href="#II.-Training-the-network">II. Training the network</a></li>
+<li><a class="reference internal" href="#III.-Evaluating-performance">III. Evaluating performance</a></li>
+<li><a class="reference internal" href="#IV.-Saving-the-model">IV. Saving the model</a></li>
+<li><a class="reference internal" href="#V.-Loading-the-model">V. Loading the model</a><ul>
+<li><a class="reference internal" href="#V.-1.-The-configuration-file">V. 1. The configuration file</a></li>
+<li><a class="reference internal" href="#V.-2.-Training-history">V. 2. Training history</a></li>
+<li><a class="reference internal" href="#V.-3.-The-model-itself">V. 3. The model itself</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#VI.-Evaluate-the-loaded-model">VI. Evaluate the loaded model</a></li>
+<li><a class="reference internal" href="#VII.-Analyze-saved-data">VII. Analyze saved data</a></li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/scripts/furo.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </body>
+</html>

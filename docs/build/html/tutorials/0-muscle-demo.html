@@ -1,0 +1,1818 @@
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
+
+    <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+        <title>I. Intro - MotorNet 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">MotorNet 1.0.0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">MotorNet 1.0.0 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Reference Manual</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../motornet.html">MotorNet</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../motornet.nets.html">motornet.nets</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../motornet.nets.callbacks.html">motornet.nets.callbacks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../motornet.nets.layers.html">motornet.nets.layers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../motornet.nets.losses.html">motornet.nets.losses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../motornet.nets.models.html">motornet.nets.models</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../motornet.plants.html">motornet.plants</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../motornet.plants.muscles.html">motornet.plants.muscles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../motornet.plants.skeletons.html">motornet.plants.skeletons</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../motornet.utils.html">motornet.utils</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../motornet.utils.plotor.html">motornet.utils.plotor</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../motornet.task.html">motornet.task</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-build-plant.html">Build a plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../md/tutorial1.html">How to do foo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../nb/testnb.html">Test notebook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../md/tutorial2.html">How to do bar</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../md/install.html">How to install</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt *,
+div.nbinput.container div.input_area pre,
+div.nboutput.container div.output_area pre,
+div.nbinput.container div.input_area .highlight,
+div.nboutput.container div.output_area .highlight {
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+div.nbinput.container > div[class*=highlight],
+div.nboutput.container > div[class*=highlight] {
+    margin: 0;
+}
+
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt * {
+    background: none;
+}
+
+div.nboutput.container div.output_area .highlight,
+div.nboutput.container div.output_area pre {
+    background: unset;
+}
+
+div.nboutput.container div.output_area div.highlight {
+    color: unset;  /* override Pygments text color */
+}
+
+/* avoid gaps between output lines */
+div.nboutput.container div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput.container,
+div.nboutput.container {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput.container,
+    div.nboutput.container {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput.container {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast.container {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput.container div.prompt pre {
+    color: #307FC1;
+}
+
+/* output prompt */
+div.nboutput.container div.prompt pre {
+    color: #BF5B3D;
+}
+
+/* all prompts */
+div.nbinput.container div.prompt,
+div.nboutput.container div.prompt {
+    width: 4.5ex;
+    padding-top: 5px;
+    position: relative;
+    user-select: none;
+}
+
+div.nbinput.container div.prompt > div,
+div.nboutput.container div.prompt > div {
+    position: absolute;
+    right: 0;
+    margin-right: 0.3ex;
+}
+
+@media (max-width: 540px) {
+    div.nbinput.container div.prompt,
+    div.nboutput.container div.prompt {
+        width: unset;
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput.container div.prompt.empty {
+        padding: 0;
+    }
+
+    div.nbinput.container div.prompt > div,
+    div.nboutput.container div.prompt > div {
+        position: unset;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput.container div.prompt pre,
+div.nboutput.container div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput.container div.input_area,
+div.nboutput.container div.output_area {
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput.container div.input_area,
+    div.nboutput.container div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput.container div.input_area {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    /*background: #f5f5f5;*/
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput.container div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput.container div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput.container div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+
+div.nbinput.container div.input_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight].math,
+div.nboutput.container div.output_area.rendered_html,
+div.nboutput.container div.output_area > div.output_javascript,
+div.nboutput.container div.output_area:not(.rendered_html) > img{
+    padding: 5px;
+    margin: 0;
+}
+
+/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+div.nbinput.container div.input_area > div[class^='highlight'],
+div.nboutput.container div.output_area > div[class^='highlight']{
+    overflow-y: hidden;
+}
+
+/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+.prompt .copybtn {
+    display: none;
+}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+div.rendered_html th {
+  font-weight: bold;
+}
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+</style>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="c1"># find root directory and add to path</span>
+<span class="n">root_index</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">'tutorials'</span><span class="p">)</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()[:</span><span class="n">root_index</span><span class="p">]))</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">motornet</span> <span class="k">as</span> <span class="nn">mn</span>
+
+<span class="o">%</span><span class="k">load_ext</span> autoreload
+<span class="o">%</span><span class="k">autoreload</span> 2
+
+
+<span class="k">def</span> <span class="nf">simulate_motion</span><span class="p">(</span><span class="n">plant</span><span class="p">,</span> <span class="n">excitation_pattern</span><span class="p">,</span> <span class="n">movement_duration</span><span class="p">):</span>
+    <span class="n">j_state</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">m_state</span><span class="p">,</span> <span class="n">g_state</span> <span class="o">=</span> <span class="n">plant</span><span class="o">.</span><span class="n">get_initial_state</span><span class="p">(</span><span class="n">joint_state</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">)))</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="n">j_state</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">m_state</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">g_state</span>
+
+    <span class="n">t_fn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">movement_duration</span><span class="p">,</span> <span class="n">plant</span><span class="o">.</span><span class="n">dt</span><span class="p">)</span>
+    <span class="n">excitation</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">plant</span><span class="o">.</span><span class="n">n_muscles</span><span class="p">))</span> <span class="o">*</span> <span class="n">excitation_pattern</span>
+
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">t_fn</span><span class="p">)):</span>
+        <span class="n">j</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">g</span> <span class="o">=</span> <span class="n">plant</span><span class="p">(</span><span class="n">excitation</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">g</span><span class="p">)</span>
+        <span class="n">j_state</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">j_state</span><span class="p">,</span> <span class="n">j</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">m_state</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">m_state</span><span class="p">,</span> <span class="n">m</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">g_state</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">g_state</span><span class="p">,</span> <span class="n">g</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">j_state</span><span class="p">,</span> <span class="n">m_state</span><span class="p">,</span> <span class="n">g_state</span>
+
+
+<span class="k">def</span> <span class="nf">plot_motion</span><span class="p">(</span><span class="n">j_state</span><span class="p">,</span> <span class="n">g_state</span><span class="p">,</span> <span class="n">plant</span><span class="p">,</span> <span class="n">movement_duration</span><span class="p">):</span>
+    <span class="n">t_fn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">movement_duration</span> <span class="o">+</span> <span class="n">plant</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span> <span class="n">plant</span><span class="o">.</span><span class="n">dt</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">131</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_fn</span><span class="p">,</span> <span class="n">j_state</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">'x'</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_fn</span><span class="p">,</span> <span class="n">j_state</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">'y'</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">':'</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'position (m)'</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'time (sec)'</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">132</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_fn</span><span class="p">,</span> <span class="n">g_state</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">plant</span><span class="o">.</span><span class="n">muscle_name</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_fn</span><span class="p">,</span> <span class="n">g_state</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">plant</span><span class="o">.</span><span class="n">muscle_name</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_fn</span><span class="p">,</span> <span class="n">g_state</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">plant</span><span class="o">.</span><span class="n">muscle_name</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">':'</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_fn</span><span class="p">,</span> <span class="n">g_state</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">plant</span><span class="o">.</span><span class="n">muscle_name</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'musculotendon length (m)'</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'time (sec)'</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">133</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_fn</span><span class="p">,</span> <span class="n">g_state</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">plant</span><span class="o">.</span><span class="n">muscle_name</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_fn</span><span class="p">,</span> <span class="n">g_state</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">plant</span><span class="o">.</span><span class="n">muscle_name</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_fn</span><span class="p">,</span> <span class="n">g_state</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">plant</span><span class="o">.</span><span class="n">muscle_name</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">'--'</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_fn</span><span class="p">,</span> <span class="n">g_state</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">plant</span><span class="o">.</span><span class="n">muscle_name</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">':'</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'musculotendon velocity (m/sec)'</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'time (sec)'</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">print_muscle_states</span><span class="p">(</span><span class="n">plant</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+    <span class="n">state_idx</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">plant</span><span class="o">.</span><span class="n">n_muscles</span><span class="p">):</span>
+        <span class="n">muscle</span> <span class="o">=</span> <span class="n">plant</span><span class="o">.</span><span class="n">muscle</span>
+        <span class="n">muscle_name</span> <span class="o">=</span> <span class="n">plant</span><span class="o">.</span><span class="n">muscle_name</span><span class="p">[</span><span class="n">m</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">initial '</span> <span class="o">+</span> <span class="n">muscle_name</span> <span class="o">+</span> <span class="s1">' state:</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span>
+        <span class="n">state_m</span> <span class="o">=</span> <span class="n">states</span><span class="p">[:,</span> <span class="n">state_idx</span><span class="p">:</span><span class="n">state_idx</span> <span class="o">+</span> <span class="n">plant</span><span class="o">.</span><span class="n">muscle_state_dim</span><span class="p">]</span>
+        <span class="n">state_idx</span> <span class="o">+=</span> <span class="n">plant</span><span class="o">.</span><span class="n">muscle_state_dim</span>
+
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">plant</span><span class="o">.</span><span class="n">muscle_state_dim</span><span class="p">):</span>
+            <span class="n">state_name</span> <span class="o">=</span> <span class="n">muscle</span><span class="o">.</span><span class="n">state_name</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">state_name</span> <span class="o">+</span> <span class="s1">' = '</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">states</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()))</span>
+
+
+<span class="k">def</span> <span class="nf">plot_muscle_states</span><span class="p">(</span><span class="n">plant</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">movement_duration</span><span class="p">):</span>
+    <span class="n">n_muscle_states</span> <span class="o">=</span> <span class="n">plant</span><span class="o">.</span><span class="n">muscle_state_dim</span>
+    <span class="n">t_plot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">movement_duration</span> <span class="o">+</span> <span class="n">plant</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span> <span class="n">plant</span><span class="o">.</span><span class="n">dt</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_muscle_states</span><span class="p">):</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_plot</span><span class="p">,</span> <span class="n">states</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">plant</span><span class="o">.</span><span class="n">muscle_name</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_plot</span><span class="p">,</span> <span class="n">states</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">plant</span><span class="o">.</span><span class="n">muscle_name</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">':'</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">3.</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">plant</span><span class="o">.</span><span class="n">muscle</span><span class="o">.</span><span class="n">state_name</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'time (sec)'</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">'All packages imported.'</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+The autoreload extension is already loaded. To reload it, use:
+  %reload_ext autoreload
+All packages imported.
+</pre></div></div>
+</div>
+<section id="I.-Intro">
+<h1>I. Intro<a class="headerlink" href="#I.-Intro" title="Permalink to this headline">#</a></h1>
+<p>In this notebook, we will build a 2D point-mass system for each muscle type and see how each muscle type behave to ensure they work properly. The point-mass will be tied to 4 muscles forming a X shaped, as illustrated below.</p>
+<p><img alt="drawing" class="no-scaled-link" src="../_images/pointmass.png" style="width: 300px;"/></p>
+<p>The 2D point-mass is the simplest skeleton possible, making it a good toy model to assess how each muscle class works. It is recommended to check the <code class="docutils literal notranslate"><span class="pre">build-plant.ipynb</span></code> notebook for a more detailed explanation on how to build a full plant.</p>
+</section>
+<section id="II.-ReLu-muscles">
+<h1>II. ReLu muscles<a class="headerlink" href="#II.-ReLu-muscles" title="Permalink to this headline">#</a></h1>
+<p>Each muscles is a simple one-segment muscle so we have two fixation points (start and end). The last fixation point is the same for all four muscles since they all contact the same point-mass at its center, but their first fixation point is different because they link to different points on the worldspace.</p>
+<p>For the fourth muscle, we will use three fixation points, with the first two linked to the worldspace. In effect this should not change the moment arms, but it should increase muscle lengths. This will allow us to test if the plant geometry is working properly.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><br/><span></span><span class="c1"># create the point-mass and associated muscles</span>
+<span class="n">skeleton</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">skeletons</span><span class="o">.</span><span class="n">PointMass</span><span class="p">(</span><span class="n">space_dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">muscle_type</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">muscles</span><span class="o">.</span><span class="n">ReluMuscle</span><span class="p">()</span>
+<span class="n">relu_plant</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">Plant</span><span class="p">(</span><span class="n">skeleton</span><span class="o">=</span><span class="n">skeleton</span><span class="p">,</span> <span class="n">muscle_type</span><span class="o">=</span><span class="n">muscle_type</span><span class="p">)</span>
+
+
+<span class="c1"># PointMass skeletons only have one "bone", which is the point itself.</span>
+<span class="n">relu_plant</span><span class="o">.</span><span class="n">add_muscle</span><span class="p">(</span><span class="n">path_fixation_body</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">path_coordinates</span><span class="o">=</span><span class="p">[[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">name</span><span class="o">=</span><span class="s1">'UpRight'</span><span class="p">,</span> <span class="n">max_isometric_force</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+<span class="n">relu_plant</span><span class="o">.</span><span class="n">add_muscle</span><span class="p">(</span><span class="n">path_fixation_body</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">path_coordinates</span><span class="o">=</span><span class="p">[[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">name</span><span class="o">=</span><span class="s1">'UpLeft'</span><span class="p">,</span> <span class="n">max_isometric_force</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+<span class="n">relu_plant</span><span class="o">.</span><span class="n">add_muscle</span><span class="p">(</span><span class="n">path_fixation_body</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">path_coordinates</span><span class="o">=</span><span class="p">[[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">name</span><span class="o">=</span><span class="s1">'DownLeft'</span><span class="p">,</span> <span class="n">max_isometric_force</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+
+<span class="c1"># Three-points muscle</span>
+<span class="n">relu_plant</span><span class="o">.</span><span class="n">add_muscle</span><span class="p">(</span><span class="n">path_fixation_body</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">path_coordinates</span><span class="o">=</span><span class="p">[[</span><span class="mi">4</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">name</span><span class="o">=</span><span class="s1">'DownRight'</span><span class="p">,</span> <span class="n">max_isometric_force</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Plant model created.'</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Plant model created.
+</pre></div></div>
+</div>
+<section id="II.-1.-Inspecting-initial-muscle-states">
+<h2>II. 1. Inspecting initial muscle states<a class="headerlink" href="#II.-1.-Inspecting-initial-muscle-states" title="Permalink to this headline">#</a></h2>
+<p>Muscle states should have a shape of <code class="docutils literal notranslate"><span class="pre">(batch_size,</span> <span class="pre">n_features,</span> <span class="pre">n_muscles)</span></code>. The (ordered) list of features is always available in the <code class="docutils literal notranslate"><span class="pre">Muscle.state_name</span></code> attribute.</p>
+<p>First let’s try random starting positions (the default when you use <code class="docutils literal notranslate"><span class="pre">plant.get_initial_state</span></code>). All values should be 0, except for the muscle lenght, which should vary randomly depending on the (randomly drawn) starting position.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><span></span><span class="n">states</span> <span class="o">=</span> <span class="n">relu_plant</span><span class="o">.</span><span class="n">get_initial_state</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="c1"># joint_state, cartesian_state, muscle_state, geometry_state = states</span>
+<span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">muscle_state</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">states</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Features for a ReLu muscle:</span><span class="se">\n</span><span class="s1">'</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">relu_plant</span><span class="o">.</span><span class="n">muscle</span><span class="o">.</span><span class="n">state_name</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'</span><span class="se">\n\n</span><span class="s1">'</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'initial muscle state:</span><span class="se">\n</span><span class="s1">'</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">muscle_state</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Features for a ReLu muscle:
+['excitation/activation', 'muscle length', 'muscle velocity', 'force']
+
+
+initial muscle state:
+tf.Tensor(
+[[[0.        0.        0.        0.       ]
+  [3.7358372 3.1028736 1.9286845 4.8369837]
+  [0.        0.        0.        0.       ]
+  [0.        0.        0.        0.       ]]
+
+ [[0.        0.        0.        0.       ]
+  [3.3587582 2.374677  2.3903413 5.369851 ]
+  [0.        0.        0.        0.       ]
+  [0.        0.        0.        0.       ]]], shape=(2, 4, 4), dtype=float32)
+
+</pre></div></div>
+</div>
+<p>Now let us try when we manually enforce a starting position at the center of the workspace (<code class="docutils literal notranslate"><span class="pre">[x,</span> <span class="pre">y]</span> <span class="pre">=</span> <span class="pre">[0,</span> <span class="pre">0]</span></code>). The muscle length should be identical for all batches and all muscles.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><span></span><span class="n">states</span> <span class="o">=</span> <span class="n">relu_plant</span><span class="o">.</span><span class="n">get_initial_state</span><span class="p">(</span><span class="n">joint_state</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'initial muscle state:</span><span class="se">\n</span><span class="s1">'</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">+</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+initial muscle state:
+tf.Tensor(
+[[[0.        0.        0.        0.       ]
+  [2.828427  2.828427  2.828427  4.8284273]
+  [0.        0.        0.        0.       ]
+  [0.        0.        0.        0.       ]]
+
+ [[0.        0.        0.        0.       ]
+  [2.828427  2.828427  2.828427  4.8284273]
+  [0.        0.        0.        0.       ]
+  [0.        0.        0.        0.       ]]
+
+ [[0.        0.        0.        0.       ]
+  [2.828427  2.828427  2.828427  4.8284273]
+  [0.        0.        0.        0.       ]
+  [0.        0.        0.        0.       ]]], shape=(3, 4, 4), dtype=float32)
+
+</pre></div></div>
+</div>
+</section>
+<section id="II.-2.-Simulating-motion">
+<h2>II. 2. Simulating motion<a class="headerlink" href="#II.-2.-Simulating-motion" title="Permalink to this headline">#</a></h2>
+<p>In the 1st simulation run we excite only the muscle pulling to the up-right corner. Let’s do a half-second movement.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><span></span><span class="c1"># up-right movement</span>
+<span class="c1">#--------------------------------</span>
+
+<span class="n">t_end</span> <span class="o">=</span> <span class="mf">0.15</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span><span class="o">.</span><span class="n">set_tight_layout</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">joint_state</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">geometry_state</span> <span class="o">=</span> <span class="n">simulate_motion</span><span class="p">(</span><span class="n">relu_plant</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">t_end</span><span class="p">)</span>
+<span class="n">plot_motion</span><span class="p">(</span><span class="n">joint_state</span><span class="p">,</span> <span class="n">geometry_state</span><span class="p">,</span> <span class="n">relu_plant</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">'up-right movement'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_0-muscle-demo_8_0.png" src="../_images/tutorials_0-muscle-demo_8_0.png"/>
+</div>
+</div>
+<p>In the 2nd simulation run we excite the muscles pulling to the right and down simultaneously. When the final position (down-right corner) is reached, the down and right muscles should have the same length as in the start, and the up and left muscles should have more than twice the legnth they had at the start.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><span></span><span class="c1"># rightward movement</span>
+<span class="c1">#--------------------------------</span>
+
+<span class="n">t_end</span> <span class="o">=</span> <span class="mf">0.15</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span><span class="o">.</span><span class="n">set_tight_layout</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">joint_state</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">geometry_state</span> <span class="o">=</span> <span class="n">simulate_motion</span><span class="p">(</span><span class="n">relu_plant</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">t_end</span><span class="p">)</span>
+<span class="n">plot_motion</span><span class="p">(</span><span class="n">joint_state</span><span class="p">,</span> <span class="n">geometry_state</span><span class="p">,</span> <span class="n">relu_plant</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">'rightward movement'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_0-muscle-demo_10_0.png" src="../_images/tutorials_0-muscle-demo_10_0.png"/>
+</div>
+</div>
+<p>In the 3rd simulation run we excite all four muscles at the same time, for an isometric co-contraction. None of the path lengths should change.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Isometric co-contraction</span>
+<span class="c1">#--------------------------------</span>
+
+<span class="n">t_end</span> <span class="o">=</span> <span class="mf">0.15</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span><span class="o">.</span><span class="n">set_tight_layout</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">joint_state</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">geometry_state</span> <span class="o">=</span> <span class="n">simulate_motion</span><span class="p">(</span><span class="n">relu_plant</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">t_end</span><span class="p">)</span>
+<span class="n">plot_motion</span><span class="p">(</span><span class="n">joint_state</span><span class="p">,</span> <span class="n">geometry_state</span><span class="p">,</span> <span class="n">relu_plant</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">'isometric co-contraction'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_0-muscle-demo_12_0.png" src="../_images/tutorials_0-muscle-demo_12_0.png"/>
+</div>
+</div>
+</section>
+</section>
+<section id="III.-Hill-muscles-(Kistemaker-version)">
+<h1>III. Hill muscles (Kistemaker version)<a class="headerlink" href="#III.-Hill-muscles-(Kistemaker-version)" title="Permalink to this headline">#</a></h1>
+<p>The first Hill muscle type we look at is the implementation from <a class="reference external" href="https://www.physiology.org/doi/10.1152/jn.00983.2005">Kistemaker et al., 2006</a> and <a class="reference external" href="https://www.physiology.org/doi/10.1152/jn.00483.2010">Kistemaker et al., 2010</a>.</p>
+<section id="III.-1.-Muscle-states">
+<h2>III. 1. Muscle states<a class="headerlink" href="#III.-1.-Muscle-states" title="Permalink to this headline">#</a></h2>
+<p>Let’s look at the variables included in the muscle state. To do so, we first build the plant and create a dummy muscle.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><span></span><span class="n">skeleton</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">skeletons</span><span class="o">.</span><span class="n">PointMass</span><span class="p">(</span><span class="n">space_dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">muscle_type</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">muscles</span><span class="o">.</span><span class="n">RigidTendonHillMuscle</span><span class="p">()</span>
+<span class="n">plant</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">Plant</span><span class="p">(</span><span class="n">skeleton</span><span class="o">=</span><span class="n">skeleton</span><span class="p">,</span> <span class="n">muscle_type</span><span class="o">=</span><span class="n">muscle_type</span><span class="p">)</span>
+
+<span class="n">plant</span><span class="o">.</span><span class="n">add_muscle</span><span class="p">(</span>
+    <span class="n">path_fixation_body</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="n">path_coordinates</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span>
+    <span class="n">max_isometric_force</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">tendon_length</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+    <span class="n">optimal_muscle_length</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
+<span class="n">muscle</span> <span class="o">=</span> <span class="n">plant</span><span class="o">.</span><span class="n">muscle</span>
+
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Features for a ReLu muscle:</span><span class="se">\n</span><span class="s1">'</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">muscle</span><span class="o">.</span><span class="n">state_name</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'</span><span class="se">\n\n</span><span class="s1">'</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Features for a ReLu muscle:
+['activation', 'muscle length', 'muscle velocity', 'force-length PE', 'force-length CE', 'force-velocity CE', 'force']
+
+
+</pre></div></div>
+</div>
+</section>
+<section id="III.-2.-Muscle-force-curves">
+<h2>III. 2. Muscle force curves<a class="headerlink" href="#III.-2.-Muscle-force-curves" title="Permalink to this headline">#</a></h2>
+<p>Next, let’s assess what the force production curves look like. Hill-type muscles consist of an active and passive length-force relationship.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><br/><br/><span></span><span class="n">n_points</span> <span class="o">=</span> <span class="mi">100</span>
+
+<span class="n">m</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_points</span><span class="p">,</span> <span class="n">plant</span><span class="o">.</span><span class="n">muscle_state_dim</span><span class="p">,</span> <span class="n">plant</span><span class="o">.</span><span class="n">n_muscles</span><span class="p">))</span>
+<span class="n">deriv</span> <span class="o">=</span> <span class="n">muscle</span><span class="o">.</span><span class="n">update_ode</span><span class="p">(</span><span class="n">excitation</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">muscle_state</span><span class="o">=</span><span class="n">m</span><span class="p">)</span>
+
+<span class="c1"># Each batch entry contains a different musculotendon length.</span>
+<span class="c1"># Since the tendon length is set to 0, the musculotendon length is the same as</span>
+<span class="c1">#  the muscle length in this particular example.</span>
+<span class="n">muscle_len</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span> <span class="n">n_points</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">zeros</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_points</span><span class="p">,</span> <span class="n">plant</span><span class="o">.</span><span class="n">geometry_state_dim</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">plant</span><span class="o">.</span><span class="n">n_muscles</span><span class="p">))</span>
+<span class="n">g</span> <span class="o">=</span>  <span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">muscle_len</span><span class="p">,</span> <span class="n">zeros</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="n">states</span> <span class="o">=</span> <span class="n">muscle</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">dt</span><span class="o">=</span><span class="n">plant</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span> <span class="n">state_derivative</span><span class="o">=</span><span class="n">deriv</span><span class="p">,</span> <span class="n">muscle_state</span><span class="o">=</span><span class="n">m</span><span class="p">,</span> <span class="n">geometry_state</span><span class="o">=</span><span class="n">g</span><span class="p">)</span>
+
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span><span class="o">.</span><span class="n">set_tight_layout</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">'force curves'</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">muscle_len</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">121</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">states</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">,</span> <span class="p">:])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'muscle length'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'active force-length (normalized)'</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">122</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">states</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">,</span> <span class="p">:])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'muscle length'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'passive force-length (normalized)'</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_0-muscle-demo_16_0.png" src="../_images/tutorials_0-muscle-demo_16_0.png"/>
+</div>
+</div>
+</section>
+<section id="III.-3.-Inspecting-initial-states">
+<h2>III. 3. Inspecting initial states<a class="headerlink" href="#III.-3.-Inspecting-initial-states" title="Permalink to this headline">#</a></h2>
+<p>First, let’s try random starting positions (the default when you use <code class="docutils literal notranslate"><span class="pre">plant.get_initial_state</span></code>).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><span></span><span class="n">skeleton</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">skeletons</span><span class="o">.</span><span class="n">PointMass</span><span class="p">(</span><span class="n">space_dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">muscle_type</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">muscles</span><span class="o">.</span><span class="n">RigidTendonHillMuscle</span><span class="p">()</span>
+<span class="n">plant</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">Plant</span><span class="p">(</span><span class="n">skeleton</span><span class="o">=</span><span class="n">skeleton</span><span class="p">,</span> <span class="n">muscle_type</span><span class="o">=</span><span class="n">muscle_type</span><span class="p">,</span> <span class="n">timestep</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
+
+<span class="n">plant</span><span class="o">.</span><span class="n">add_muscle</span><span class="p">(</span>
+    <span class="n">path_fixation_body</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="n">path_coordinates</span><span class="o">=</span><span class="p">[[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span>
+    <span class="n">max_isometric_force</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">tendon_length</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+    <span class="n">optimal_muscle_length</span><span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)),</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">'UpRight'</span><span class="p">)</span>
+
+<span class="n">plant</span><span class="o">.</span><span class="n">add_muscle</span><span class="p">(</span>
+    <span class="n">path_fixation_body</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="n">path_coordinates</span><span class="o">=</span><span class="p">[[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span>
+    <span class="n">max_isometric_force</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">tendon_length</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+    <span class="n">optimal_muscle_length</span><span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)),</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">'UpLeft'</span><span class="p">)</span>
+
+<span class="n">plant</span><span class="o">.</span><span class="n">add_muscle</span><span class="p">(</span>
+    <span class="n">path_fixation_body</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="n">path_coordinates</span><span class="o">=</span><span class="p">[[</span><span class="mi">2</span><span class="p">,</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span>
+    <span class="n">max_isometric_force</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">tendon_length</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+    <span class="n">optimal_muscle_length</span><span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)),</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">'DownRight'</span><span class="p">)</span>
+
+<span class="n">plant</span><span class="o">.</span><span class="n">add_muscle</span><span class="p">(</span>
+    <span class="n">path_fixation_body</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="n">path_coordinates</span><span class="o">=</span><span class="p">[[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span>
+    <span class="n">max_isometric_force</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">tendon_length</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+    <span class="n">optimal_muscle_length</span><span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)),</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">'DownLeft'</span><span class="p">)</span>
+
+
+<span class="n">states</span> <span class="o">=</span> <span class="n">plant</span><span class="o">.</span><span class="n">get_initial_state</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">print_muscle_states</span><span class="p">(</span><span class="n">plant</span><span class="p">,</span> <span class="n">states</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+initial UpRight state:
+
+activation = [0.001 0.001 0.001 0.001]
+muscle length = [2.6677809 2.8510551 2.6917017 3.6359644]
+muscle velocity = [0. 0. 0. 0.]
+force-length PE = [0.0000000e+00 1.4693226e-04 0.0000000e+00 1.8713172e-01]
+force-length CE = [0.9925943  0.999853   0.9946356  0.81286824]
+force-velocity CE = [0.00099259 0.00099985 0.00099464 0.00081287]
+force = [0.04962973 0.05733926 0.04973178 9.397229  ]
+
+initial UpLeft state:
+
+activation = [0.001 0.001 0.001 0.001]
+muscle length = [3.4292433 2.8601108 3.3690956 3.549848 ]
+muscle velocity = [0. 0. 0. 0.]
+force-length PE = [0.10358707 0.00028807 0.083885   0.14934814]
+force-length CE = [0.89641297 0.9997118  0.9161151  0.85065204]
+force-velocity CE = [0.00089641 0.00099971 0.00091612 0.00085065]
+force = [5.2241745  0.06438895 4.2400556  7.509939  ]
+
+initial DownRight state:
+
+activation = [0.001 0.001 0.001 0.001]
+muscle length = [2.2467043 2.7969215 2.3010457 2.3124545]
+muscle velocity = [0. 0. 0. 0.]
+force-length PE = [0. 0. 0. 0.]
+force-length CE = [0.9028922  0.9997151  0.92018735 0.9236032 ]
+force-velocity CE = [0.00090289 0.00099972 0.00092019 0.0009236 ]
+force = [0.04514462 0.04998576 0.04600937 0.04618016]
+
+initial DownLeft state:
+
+activation = [0.001 0.001 0.001 0.001]
+muscle length = [3.1129305 2.8061519 3.0660005 2.1745417]
+muscle velocity = [0. 0. 0. 0.]
+force-length PE = [0.02322723 0.         0.01619637 0.        ]
+force-length CE = [0.9767728  0.99985754 0.9838036  0.87730545]
+force-velocity CE = [0.00097677 0.00099986 0.0009838  0.00087731]
+force = [1.2102     0.04999288 0.8590089  0.04386528]
+</pre></div></div>
+</div>
+<p>Now let us try when the point mass starts in the center of the workspace (<code class="docutils literal notranslate"><span class="pre">[x,</span> <span class="pre">y]</span> <span class="pre">=</span> <span class="pre">[0,</span> <span class="pre">0]</span></code>).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><br/><span></span><span class="n">states</span> <span class="o">=</span> <span class="n">plant</span><span class="o">.</span><span class="n">get_initial_state</span><span class="p">(</span><span class="n">joint_state</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">)))</span>
+<span class="n">print_muscle_states</span><span class="p">(</span><span class="n">plant</span><span class="p">,</span> <span class="n">states</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+initial UpRight state:
+
+activation = [0.001 0.001 0.001]
+muscle length = [2.828427 2.828427 2.828427]
+muscle velocity = [0. 0. 0.]
+force-length PE = [0. 0. 0.]
+force-length CE = [1. 1. 1.]
+force-velocity CE = [0.001 0.001 0.001]
+force = [0.05 0.05 0.05]
+
+initial UpLeft state:
+
+activation = [0.001 0.001 0.001]
+muscle length = [2.828427 2.828427 2.828427]
+muscle velocity = [0. 0. 0.]
+force-length PE = [0. 0. 0.]
+force-length CE = [1. 1. 1.]
+force-velocity CE = [0.001 0.001 0.001]
+force = [0.05 0.05 0.05]
+
+initial DownRight state:
+
+activation = [0.001 0.001 0.001]
+muscle length = [2.828427 2.828427 2.828427]
+muscle velocity = [0. 0. 0.]
+force-length PE = [0. 0. 0.]
+force-length CE = [1. 1. 1.]
+force-velocity CE = [0.001 0.001 0.001]
+force = [0.05 0.05 0.05]
+
+initial DownLeft state:
+
+activation = [0.001 0.001 0.001]
+muscle length = [2.828427 2.828427 2.828427]
+muscle velocity = [0. 0. 0.]
+force-length PE = [0. 0. 0.]
+force-length CE = [1. 1. 1.]
+force-velocity CE = [0.001 0.001 0.001]
+force = [0.05 0.05 0.05]
+</pre></div></div>
+</div>
+</section>
+<section id="III.-4.-Simulating-motion">
+<h2>III. 4. Simulating motion<a class="headerlink" href="#III.-4.-Simulating-motion" title="Permalink to this headline">#</a></h2>
+<p>In the 1st simulation run, we excite only the muscle pulling to the upper right corner.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><span></span><span class="n">t_end</span> <span class="o">=</span> <span class="mf">0.25</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span><span class="o">.</span><span class="n">set_tight_layout</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">joint_state</span><span class="p">,</span> <span class="n">muscle_state</span><span class="p">,</span> <span class="n">geometry_state</span> <span class="o">=</span> <span class="n">simulate_motion</span><span class="p">(</span><span class="n">plant</span><span class="p">,</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span> <span class="n">t_end</span><span class="p">)</span>
+<span class="n">plot_motion</span><span class="p">(</span><span class="n">joint_state</span><span class="p">,</span> <span class="n">geometry_state</span><span class="p">,</span> <span class="n">plant</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">'rightward movement'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_0-muscle-demo_24_0.png" src="../_images/tutorials_0-muscle-demo_24_0.png"/>
+</div>
+</div>
+<p>We can observe the states changing over time below. Only the upper right and upper left muscles are plotted for the sake of simplicity.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><br/><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span><span class="o">.</span><span class="n">set_tight_layout</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plot_muscle_states</span><span class="p">(</span><span class="n">plant</span><span class="p">,</span> <span class="n">muscle_state</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_0-muscle-demo_26_0.png" src="../_images/tutorials_0-muscle-demo_26_0.png"/>
+</div>
+</div>
+<p>In the second simulation run we excite all four muscles at the same time, for an isometric co-contraction. Here none of the path lengths should change.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><span></span><span class="n">joint_state</span><span class="p">,</span> <span class="n">muscle_state</span><span class="p">,</span> <span class="n">geometry_state</span> <span class="o">=</span> <span class="n">simulate_motion</span><span class="p">(</span><span class="n">plant</span><span class="p">,</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">],</span> <span class="n">t_end</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span><span class="o">.</span><span class="n">set_tight_layout</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plot_motion</span><span class="p">(</span><span class="n">joint_state</span><span class="p">,</span> <span class="n">geometry_state</span><span class="p">,</span> <span class="n">plant</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span><span class="o">.</span><span class="n">set_tight_layout</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plot_muscle_states</span><span class="p">(</span><span class="n">plant</span><span class="p">,</span> <span class="n">muscle_state</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_0-muscle-demo_28_0.png" src="../_images/tutorials_0-muscle-demo_28_0.png"/>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_0-muscle-demo_28_1.png" src="../_images/tutorials_0-muscle-demo_28_1.png"/>
+</div>
+</div>
+</section>
+</section>
+<section id="IV.-Hill-muscles-(Thelen-version)">
+<h1>IV. Hill muscles (Thelen version)<a class="headerlink" href="#IV.-Hill-muscles-(Thelen-version)" title="Permalink to this headline">#</a></h1>
+<p>The Thelen version of a Hill-type muscle is detailed in <a class="reference external" href="https://simtk-confluence.stanford.edu:8443/display/OpenSim/Thelen+2003+Muscle+Model">Thelen et al., 2003</a>.</p>
+<section id="IV.-1.-Muscle-states">
+<h2>IV. 1. Muscle states<a class="headerlink" href="#IV.-1.-Muscle-states" title="Permalink to this headline">#</a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><span></span><span class="n">skeleton</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">skeletons</span><span class="o">.</span><span class="n">PointMass</span><span class="p">(</span><span class="n">space_dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">muscle_type</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">muscles</span><span class="o">.</span><span class="n">RigidTendonHillMuscleThelen</span><span class="p">()</span>
+<span class="n">plant</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">Plant</span><span class="p">(</span><span class="n">skeleton</span><span class="o">=</span><span class="n">skeleton</span><span class="p">,</span> <span class="n">muscle_type</span><span class="o">=</span><span class="n">muscle_type</span><span class="p">)</span>
+
+<span class="n">plant</span><span class="o">.</span><span class="n">add_muscle</span><span class="p">(</span>
+    <span class="n">path_fixation_body</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="n">path_coordinates</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span>
+    <span class="n">max_isometric_force</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">tendon_length</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+    <span class="n">optimal_muscle_length</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
+<span class="n">muscle</span> <span class="o">=</span> <span class="n">plant</span><span class="o">.</span><span class="n">muscle</span>
+
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Features for a Thelen Hill  muscle:</span><span class="se">\n</span><span class="s1">'</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">muscle</span><span class="o">.</span><span class="n">state_name</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'</span><span class="se">\n\n</span><span class="s1">'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Features for a Thelen Hill  muscle:
+['activation', 'muscle length', 'muscle velocity', 'force-length PE', 'force-length CE', 'force-velocity CE', 'force']
+
+
+</pre></div></div>
+</div>
+</section>
+<section id="IV.-2.Muscle-force-curves">
+<h2>IV. 2.Muscle force curves<a class="headerlink" href="#IV.-2.Muscle-force-curves" title="Permalink to this headline">#</a></h2>
+<p>Two key differences can be observed compared to the <em>Kistemaker</em> Hill-type muscle. - The force-length curve does not reach 0 in the Thelen muscle. - Passive forces increase much faster in the Thelen muscle, as its formulation is an exponential function instead of a quadriatic function.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><br/><span></span><span class="n">n_points</span> <span class="o">=</span> <span class="mi">100</span>
+
+<span class="n">m</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_points</span><span class="p">,</span> <span class="n">plant</span><span class="o">.</span><span class="n">muscle_state_dim</span><span class="p">,</span> <span class="n">plant</span><span class="o">.</span><span class="n">n_muscles</span><span class="p">))</span>
+<span class="n">deriv</span> <span class="o">=</span> <span class="n">muscle</span><span class="o">.</span><span class="n">update_ode</span><span class="p">(</span><span class="n">excitation</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">muscle_state</span><span class="o">=</span><span class="n">m</span><span class="p">)</span>
+
+<span class="c1"># Each batch entry contains a different musculotendon length.</span>
+<span class="c1"># Since the tendon length is set to 0, the musculotendon length is the same as</span>
+<span class="c1">#  the muscle length in this particular example.</span>
+<span class="n">muscle_len</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span> <span class="n">n_points</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">zeros</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_points</span><span class="p">,</span> <span class="n">plant</span><span class="o">.</span><span class="n">geometry_state_dim</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">plant</span><span class="o">.</span><span class="n">n_muscles</span><span class="p">))</span>
+<span class="n">g</span> <span class="o">=</span>  <span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">muscle_len</span><span class="p">,</span> <span class="n">zeros</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="n">states</span> <span class="o">=</span> <span class="n">muscle</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">dt</span><span class="o">=</span><span class="n">plant</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span> <span class="n">state_derivative</span><span class="o">=</span><span class="n">deriv</span><span class="p">,</span> <span class="n">muscle_state</span><span class="o">=</span><span class="n">m</span><span class="p">,</span> <span class="n">geometry_state</span><span class="o">=</span><span class="n">g</span><span class="p">)</span>
+
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span><span class="o">.</span><span class="n">set_tight_layout</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">'force curves'</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">muscle_len</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">121</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">states</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">,</span> <span class="p">:])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'muscle length'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'active force-length (normalized)'</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">122</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">states</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">,</span> <span class="p">:])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'muscle length'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'passive force-length (normalized)'</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_0-muscle-demo_33_0.png" src="../_images/tutorials_0-muscle-demo_33_0.png"/>
+</div>
+</div>
+</section>
+<section id="IV.-3.-Inspecting-initial-states">
+<h2>IV. 3. Inspecting initial states<a class="headerlink" href="#IV.-3.-Inspecting-initial-states" title="Permalink to this headline">#</a></h2>
+<p>Similar to the Kistemaker Hill muscle, let us first look at random initial states.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><span></span><span class="n">skeleton</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">skeletons</span><span class="o">.</span><span class="n">PointMass</span><span class="p">(</span><span class="n">space_dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">muscle_type</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">muscles</span><span class="o">.</span><span class="n">RigidTendonHillMuscleThelen</span><span class="p">()</span>
+<span class="n">plant</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">Plant</span><span class="p">(</span><span class="n">skeleton</span><span class="o">=</span><span class="n">skeleton</span><span class="p">,</span> <span class="n">muscle_type</span><span class="o">=</span><span class="n">muscle_type</span><span class="p">,</span> <span class="n">timestep</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
+
+<span class="n">plant</span><span class="o">.</span><span class="n">add_muscle</span><span class="p">(</span>
+    <span class="n">path_fixation_body</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="n">path_coordinates</span><span class="o">=</span><span class="p">[[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span>
+    <span class="n">max_isometric_force</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">tendon_length</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+    <span class="n">optimal_muscle_length</span><span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)),</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">'UpRight'</span><span class="p">)</span>
+
+<span class="n">plant</span><span class="o">.</span><span class="n">add_muscle</span><span class="p">(</span>
+    <span class="n">path_fixation_body</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="n">path_coordinates</span><span class="o">=</span><span class="p">[[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span>
+    <span class="n">max_isometric_force</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">tendon_length</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+    <span class="n">optimal_muscle_length</span><span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)),</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">'UpLeft'</span><span class="p">)</span>
+
+<span class="n">plant</span><span class="o">.</span><span class="n">add_muscle</span><span class="p">(</span>
+    <span class="n">path_fixation_body</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="n">path_coordinates</span><span class="o">=</span><span class="p">[[</span><span class="mi">2</span><span class="p">,</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span>
+    <span class="n">max_isometric_force</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">tendon_length</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+    <span class="n">optimal_muscle_length</span><span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)),</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">'DownRight'</span><span class="p">)</span>
+
+<span class="n">plant</span><span class="o">.</span><span class="n">add_muscle</span><span class="p">(</span>
+    <span class="n">path_fixation_body</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="n">path_coordinates</span><span class="o">=</span><span class="p">[[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span>
+    <span class="n">max_isometric_force</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">tendon_length</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+    <span class="n">optimal_muscle_length</span><span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)),</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">'DownLeft'</span><span class="p">)</span>
+
+
+<span class="n">states</span> <span class="o">=</span> <span class="n">plant</span><span class="o">.</span><span class="n">get_initial_state</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">print_muscle_states</span><span class="p">(</span><span class="n">plant</span><span class="p">,</span> <span class="n">states</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+initial UpRight state:
+
+activation = [0.001 0.001 0.001 0.001]
+muscle length = [2.262868  2.9248374 2.6953733 2.529813 ]
+muscle velocity = [0. 0. 0. 0.]
+force-length PE = [0.        0.0019987 0.        0.       ]
+force-length CE = [0.9149836  0.9974214  0.99509454 0.9755347 ]
+force-velocity CE = [1. 1. 1. 1.]
+force = [0.04574918 0.14980613 0.04975473 0.04877673]
+
+initial UpLeft state:
+
+activation = [0.001 0.001 0.001 0.001]
+muscle length = [3.3848543 2.0144165 2.2769802 2.2072697]
+muscle velocity = [0. 0. 0. 0.]
+force-length PE = [0.02332673 0.         0.         0.        ]
+force-length CE = [0.91759133 0.8318865  0.9189988  0.89836687]
+force-velocity CE = [1. 1. 1. 1.]
+force = [1.212216   0.04159432 0.04594994 0.04491835]
+
+initial DownRight state:
+
+activation = [0.001 0.001 0.001 0.001]
+muscle length = [2.4109156 3.6425793 3.3933873 3.5045946]
+muscle velocity = [0. 0. 0. 0.]
+force-length PE = [0.         0.05326588 0.02402283 0.03471191]
+force-length CE = [0.95273256 0.8318332  0.91515565 0.880733  ]
+force-velocity CE = [1. 1. 1. 1.]
+force = [0.04763663 2.7048857  1.2468991  1.7796321 ]
+
+initial DownLeft state:
+
+activation = [0.001 0.001 0.001 0.001]
+muscle length = [3.4855678 2.9616861 3.0715923 3.2793705]
+muscle velocity = [0. 0. 0. 0.]
+force-length PE = [0.0326502  0.00290971 0.00622765 0.01591575]
+force-length CE = [0.8869613  0.9950794  0.98370934 0.94507957]
+force-velocity CE = [1. 1. 1. 1.]
+force = [1.6768578  0.19523956 0.3605678  0.8430415 ]
+</pre></div></div>
+</div>
+<p>Now let us try when the point mass starts in the center of the workspace (<code class="docutils literal notranslate"><span class="pre">[x,</span> <span class="pre">y]</span> <span class="pre">=</span> <span class="pre">[0,</span> <span class="pre">0]</span></code>).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><span></span><span class="n">states</span> <span class="o">=</span> <span class="n">plant</span><span class="o">.</span><span class="n">get_initial_state</span><span class="p">(</span><span class="n">joint_state</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">)))</span>
+<span class="n">print_muscle_states</span><span class="p">(</span><span class="n">plant</span><span class="p">,</span> <span class="n">states</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+initial UpRight state:
+
+activation = [0.001 0.001 0.001]
+muscle length = [2.828427 2.828427 2.828427]
+muscle velocity = [0. 0. 0.]
+force-length PE = [0. 0. 0.]
+force-length CE = [1. 1. 1.]
+force-velocity CE = [1. 1. 1.]
+force = [0.05 0.05 0.05]
+
+initial UpLeft state:
+
+activation = [0.001 0.001 0.001]
+muscle length = [2.828427 2.828427 2.828427]
+muscle velocity = [0. 0. 0.]
+force-length PE = [0. 0. 0.]
+force-length CE = [1. 1. 1.]
+force-velocity CE = [1. 1. 1.]
+force = [0.05 0.05 0.05]
+
+initial DownRight state:
+
+activation = [0.001 0.001 0.001]
+muscle length = [2.828427 2.828427 2.828427]
+muscle velocity = [0. 0. 0.]
+force-length PE = [0. 0. 0.]
+force-length CE = [1. 1. 1.]
+force-velocity CE = [1. 1. 1.]
+force = [0.05 0.05 0.05]
+
+initial DownLeft state:
+
+activation = [0.001 0.001 0.001]
+muscle length = [2.828427 2.828427 2.828427]
+muscle velocity = [0. 0. 0.]
+force-length PE = [0. 0. 0.]
+force-length CE = [1. 1. 1.]
+force-velocity CE = [1. 1. 1.]
+force = [0.05 0.05 0.05]
+</pre></div></div>
+</div>
+</section>
+<section id="IV.-4.-Simulating-motion">
+<h2>IV. 4. Simulating motion<a class="headerlink" href="#IV.-4.-Simulating-motion" title="Permalink to this headline">#</a></h2>
+<p>In the 1st simulation run, we excite only the muscle pulling to the upper right corner.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><span></span><span class="n">t_end</span> <span class="o">=</span> <span class="mf">0.25</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span><span class="o">.</span><span class="n">set_tight_layout</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">joint_state</span><span class="p">,</span> <span class="n">muscle_state</span><span class="p">,</span> <span class="n">geometry_state</span> <span class="o">=</span> <span class="n">simulate_motion</span><span class="p">(</span><span class="n">plant</span><span class="p">,</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span> <span class="n">t_end</span><span class="p">)</span>
+<span class="n">plot_motion</span><span class="p">(</span><span class="n">joint_state</span><span class="p">,</span> <span class="n">geometry_state</span><span class="p">,</span> <span class="n">plant</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">'rightward movement'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_0-muscle-demo_39_0.png" src="../_images/tutorials_0-muscle-demo_39_0.png"/>
+</div>
+</div>
+<p>We can observe the states changing over time below. Only the upper right and upper left muscles are plotted for the sake of simplicity.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span><span class="o">.</span><span class="n">set_tight_layout</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plot_muscle_states</span><span class="p">(</span><span class="n">plant</span><span class="p">,</span> <span class="n">muscle_state</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_0-muscle-demo_41_0.png" src="../_images/tutorials_0-muscle-demo_41_0.png"/>
+</div>
+</div>
+<p>And finally, we simulate an isometric co-contraction of all muscles in the system. Note that some variables are at floating point precision.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><span></span><span class="n">joint_state</span><span class="p">,</span> <span class="n">muscle_state</span><span class="p">,</span> <span class="n">geometry_state</span> <span class="o">=</span> <span class="n">simulate_motion</span><span class="p">(</span><span class="n">plant</span><span class="p">,</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">],</span> <span class="n">t_end</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span><span class="o">.</span><span class="n">set_tight_layout</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plot_motion</span><span class="p">(</span><span class="n">joint_state</span><span class="p">,</span> <span class="n">geometry_state</span><span class="p">,</span> <span class="n">plant</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span><span class="o">.</span><span class="n">set_tight_layout</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plot_muscle_states</span><span class="p">(</span><span class="n">plant</span><span class="p">,</span> <span class="n">muscle_state</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_0-muscle-demo_43_0.png" src="../_images/tutorials_0-muscle-demo_43_0.png"/>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_0-muscle-demo_43_1.png" src="../_images/tutorials_0-muscle-demo_43_1.png"/>
+</div>
+</div>
+</section>
+</section>
+<section id="V.-Compliant-tendon-Hill-type-muscle">
+<h1>V. Compliant tendon Hill-type muscle<a class="headerlink" href="#V.-Compliant-tendon-Hill-type-muscle" title="Permalink to this headline">#</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">CompliantTendonHillMuscle</span></code> class is an extention of the <code class="docutils literal notranslate"><span class="pre">RigidTendonHillMuscle</span></code> class to inclde a compliant tendon. In fact, the muscle model proposed in <a class="reference external" href="https://www.physiology.org/doi/10.1152/jn.00983.2005">Kistemaker et al., 2006</a> and <a class="reference external" href="https://www.physiology.org/doi/10.1152/jn.00483.2010">Kistemaker et al., 2010</a> includes a compliant tendon, and the <code class="docutils literal notranslate"><span class="pre">RigidTendonHillMuscle</span></code> class is a modified version of the original model formulation. Similarly, the
+<code class="docutils literal notranslate"><span class="pre">RigidTendonHillMuscleThelen</span></code> class is a modified version from the original, compliant-tendon version.</p>
+<section id="V.-1.-Muscle-states">
+<h2>V. 1. Muscle states<a class="headerlink" href="#V.-1.-Muscle-states" title="Permalink to this headline">#</a></h2>
+<p>Let us first look at the state features.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><span></span><span class="n">skeleton</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">skeletons</span><span class="o">.</span><span class="n">PointMass</span><span class="p">(</span><span class="n">space_dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">muscle_type</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">muscles</span><span class="o">.</span><span class="n">CompliantTendonHillMuscle</span><span class="p">()</span>
+<span class="n">plant</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">Plant</span><span class="p">(</span><span class="n">skeleton</span><span class="o">=</span><span class="n">skeleton</span><span class="p">,</span> <span class="n">muscle_type</span><span class="o">=</span><span class="n">muscle_type</span><span class="p">,</span> <span class="n">timestep</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">)</span>
+
+
+<span class="c1"># we make the tendon very long to reduce its stiffness</span>
+<span class="c1"># and allow looking at the force production curves in more details</span>
+<span class="n">plant</span><span class="o">.</span><span class="n">add_muscle</span><span class="p">(</span>
+    <span class="n">path_fixation_body</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="n">path_coordinates</span><span class="o">=</span><span class="p">[[</span><span class="mi">6</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span>
+    <span class="n">max_isometric_force</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">tendon_length</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">optimal_muscle_length</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="n">muscle</span> <span class="o">=</span> <span class="n">plant</span><span class="o">.</span><span class="n">muscle</span>
+
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Features for a compliant tendon muscle:</span><span class="se">\n</span><span class="s1">'</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">muscle</span><span class="o">.</span><span class="n">state_name</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'</span><span class="se">\n\n</span><span class="s1">'</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Features for a compliant tendon muscle:
+['activation', 'muscle length', 'muscle velocity', 'force-length PE', 'force-length SE', 'active force', 'force']
+
+
+</pre></div></div>
+</div>
+</section>
+<section id="V.-2.-Muscle-force-curves">
+<h2>V. 2. Muscle force curves<a class="headerlink" href="#V.-2.-Muscle-force-curves" title="Permalink to this headline">#</a></h2>
+<p>Compliant tendon muscles do not compute force-length curves directly. Rather, they make use of tendon forces and assume equilibrium between tendon and muscle forces to obtain output forces for a given muscle. Below we look at the tendon, muscle passive and active forces as a function of muscle length.</p>
+<p>Note that the tendon is much stiffer than the passive muscle forces. Additionally, the tendon forces are capped at 1 to prevent the muscle from outputing more than its maximum isometric force. Finally, note how the active force reaches 0 faster than the tendon force, due to the overlap between tendon and passive forces leading to them cancelling each other in that region.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><span></span><span class="n">n_points</span> <span class="o">=</span> <span class="mi">100</span>
+
+<span class="c1"># create muscle state</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_points</span><span class="p">,</span> <span class="n">plant</span><span class="o">.</span><span class="n">muscle_state_dim</span><span class="p">,</span> <span class="n">plant</span><span class="o">.</span><span class="n">n_muscles</span><span class="p">))</span>
+<span class="n">muscle_len</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.75</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="n">n_points</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">m</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">muscle_len</span>
+<span class="n">deriv</span> <span class="o">=</span> <span class="n">muscle</span><span class="o">.</span><span class="n">update_ode</span><span class="p">(</span><span class="n">excitation</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">muscle_state</span><span class="o">=</span><span class="n">m</span><span class="p">)</span>
+
+<span class="c1"># create geometry state</span>
+<span class="n">zeros</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_points</span><span class="p">,</span> <span class="n">plant</span><span class="o">.</span><span class="n">geometry_state_dim</span><span class="p">,</span> <span class="n">plant</span><span class="o">.</span><span class="n">n_muscles</span><span class="p">))</span>
+<span class="n">zeros</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">6</span>  <span class="c1"># the musculotendon length is 6 m due to the way it was built above.</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">zeros</span><span class="p">)</span>
+
+<span class="n">states</span> <span class="o">=</span> <span class="n">muscle</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">dt</span><span class="o">=</span><span class="n">plant</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span> <span class="n">state_derivative</span><span class="o">=</span><span class="n">deriv</span><span class="p">,</span> <span class="n">muscle_state</span><span class="o">=</span><span class="n">m</span><span class="p">,</span> <span class="n">geometry_state</span><span class="o">=</span><span class="n">g</span><span class="p">)</span>
+
+<span class="c1">#-----------</span>
+<span class="c1"># plot</span>
+<span class="c1">#-----------</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="s1">'all'</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="s1">'all'</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_tight_layout</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">'force curves'</span><span class="p">)</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">muscle_len</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">states</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">,</span> <span class="p">:])</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'tendon force'</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'force (normalized)'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">states</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">,</span> <span class="p">:])</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'muscle length'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'passive force-length'</span><span class="p">)</span>
+
+<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">states</span><span class="p">[:,</span> <span class="mi">5</span><span class="p">,</span> <span class="p">:])</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'active force'</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_0-muscle-demo_47_0.png" src="../_images/tutorials_0-muscle-demo_47_0.png"/>
+</div>
+</div>
+</section>
+<section id="V.-3.-Inspecting-initial-states">
+<h2>V. 3. Inspecting initial states<a class="headerlink" href="#V.-3.-Inspecting-initial-states" title="Permalink to this headline">#</a></h2>
+<p>Let’s use the pre-built <code class="docutils literal notranslate"><span class="pre">CompliantTendonArm26</span></code> plant object.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><span></span><span class="n">plant</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">CompliantTendonArm26</span><span class="p">()</span>
+<span class="n">states</span> <span class="o">=</span> <span class="n">plant</span><span class="o">.</span><span class="n">get_initial_state</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">print_muscle_states</span><span class="p">(</span><span class="n">plant</span><span class="p">,</span> <span class="n">states</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+initial pectoralis state:
+
+activation = [0.01 0.01 0.01 0.01]
+muscle length = [0.09707291 0.14477389 0.09912601 0.14702442]
+muscle velocity = [-0.18640545 -0.22575001 -0.19066    -0.22570212]
+force-length PE = [0.         0.01485293 0.         0.02170308]
+force-length SE = [0.         0.014853   0.         0.02170375]
+active force = [0.0000000e+00 6.7055225e-08 0.0000000e+00 6.7055225e-07]
+force = [ 0.       12.446812  0.       18.187742]
+
+initial deltoid state:
+
+activation = [0.01 0.01 0.01 0.01]
+muscle length = [0.17990911 0.13307567 0.17791636 0.13075387]
+muscle velocity = [-0.23555346 -0.23454097 -0.23586378 -0.2335044 ]
+force-length PE = [0.18659613 0.         0.16842915 0.        ]
+force-length SE = [0.18659924 0.         0.16842538 0.        ]
+active force = [3.1143427e-06 0.0000000e+00 0.0000000e+00 0.0000000e+00]
+force = [225.22528   0.      203.28943   0.     ]
+
+initial brachioradialis state:
+
+activation = [0.01 0.01 0.01 0.01]
+muscle length = [0.10589143 0.10068922 0.08331726 0.05332582]
+muscle velocity = [-0.15497962 -0.15499619 -0.15182906 -0.09212404]
+force-length PE = [0.05236301 0.02049313 0.         0.        ]
+force-length SE = [0.0523633  0.02049276 0.         0.        ]
+active force = [2.9429793e-07 0.0000000e+00 0.0000000e+00 0.0000000e+00]
+force = [74.46062 29.14071  0.       0.     ]
+
+initial tricepslat state:
+
+activation = [0.01 0.01 0.01 0.01]
+muscle length = [0.05840311 0.06543332 0.08145472 0.0969943 ]
+muscle velocity = [-0.10690919 -0.12508346 -0.15114048 -0.15668094]
+force-length PE = [0.         0.         0.         0.00424139]
+force-length SE = [0.         0.         0.         0.00424099]
+active force = [0. 0. 0. 0.]
+force = [0.        0.        0.        6.5692873]
+
+initial biceps state:
+
+activation = [0.01 0.01 0.01 0.01]
+muscle length = [0.10643201 0.14658958 0.07846385 0.08796396]
+muscle velocity = [-0.20443757 -0.23078215 -0.13408576 -0.1629364 ]
+force-length PE = [0.         0.01125871 0.         0.        ]
+force-length SE = [0.         0.01125905 0.         0.        ]
+active force = [0.0000000e+00 3.4086406e-07 0.0000000e+00 0.0000000e+00]
+force = [0.        4.6612487 0.        0.       ]
+
+initial tricepslong state:
+
+activation = [0.01 0.01 0.01 0.01]
+muscle length = [0.10861099 0.06880802 0.13245255 0.10168898]
+muscle velocity = [-0.20366852 -0.11084406 -0.21396214 -0.19445793]
+force-length PE = [0.         0.         0.00423825 0.        ]
+force-length SE = [0.         0.         0.00423799 0.        ]
+active force = [0. 0. 0. 0.]
+force = [0.        0.        2.5555108 0.       ]
+</pre></div></div>
+</div>
+<p>And with fixed starting positions:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><span></span><span class="n">states</span> <span class="o">=</span> <span class="n">plant</span><span class="o">.</span><span class="n">get_initial_state</span><span class="p">(</span><span class="n">joint_state</span><span class="o">=</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">)))</span>
+<span class="n">print_muscle_states</span><span class="p">(</span><span class="n">plant</span><span class="p">,</span> <span class="n">states</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+initial pectoralis state:
+
+activation = [0.01 0.01 0.01]
+muscle length = [0.1355095 0.1355095 0.1355095]
+muscle velocity = [-0.22575533 -0.22575533 -0.22575533]
+force-length PE = [0.00029307 0.00029307 0.00029307]
+force-length SE = [0.00029283 0.00029283 0.00029283]
+active force = [0. 0. 0.]
+force = [0.24539474 0.24539474 0.24539474]
+
+initial deltoid state:
+
+activation = [0.01 0.01 0.01]
+muscle length = [0.14255574 0.14255574 0.14255574]
+muscle velocity = [-0.23585105 -0.23585105 -0.23585105]
+force-length PE = [0.00076788 0.00076788 0.00076788]
+force-length SE = [0.00076804 0.00076804 0.00076804]
+active force = [1.5646219e-07 1.5646219e-07 1.5646219e-07]
+force = [0.927022 0.927022 0.927022]
+
+initial brachioradialis state:
+
+activation = [0.01 0.01 0.01]
+muscle length = [0.09957521 0.09957521 0.09957521]
+muscle velocity = [-0.15499091 -0.15499091 -0.15499091]
+force-length PE = [0.01557695 0.01557695 0.01557695]
+force-length SE = [0.01557705 0.01557705 0.01557705]
+active force = [9.778887e-08 9.778887e-08 9.778887e-08]
+force = [22.150564 22.150564 22.150564]
+
+initial tricepslat state:
+
+activation = [0.01 0.01 0.01]
+muscle length = [0.06677533 0.06677533 0.06677533]
+muscle velocity = [-0.1280854 -0.1280854 -0.1280854]
+force-length PE = [0. 0. 0.]
+force-length SE = [0. 0. 0.]
+active force = [0. 0. 0.]
+force = [0. 0. 0.]
+
+initial biceps state:
+
+activation = [0.01 0.01 0.01]
+muscle length = [0.1363749 0.1363749 0.1363749]
+muscle velocity = [-0.23079863 -0.23079863 -0.23079863]
+force-length PE = [0. 0. 0.]
+force-length SE = [0. 0. 0.]
+active force = [0. 0. 0.]
+force = [0. 0. 0.]
+
+initial tricepslong state:
+
+activation = [0.01 0.01 0.01]
+muscle length = [0.07992316 0.07992316 0.07992316]
+muscle velocity = [-0.14647792 -0.14647792 -0.14647792]
+force-length PE = [0. 0. 0.]
+force-length SE = [0. 0. 0.]
+active force = [0. 0. 0.]
+force = [0. 0. 0.]
+</pre></div></div>
+</div>
+</section>
+<section id="V.-4.-Simulating-motion">
+<h2>V. 4. Simulating motion<a class="headerlink" href="#V.-4.-Simulating-motion" title="Permalink to this headline">#</a></h2>
+<p>In the 1st simulation run, we create a tug-of-war plant and excite the muscle pulling to the right.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><br/><span></span><span class="n">skeleton</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">skeletons</span><span class="o">.</span><span class="n">PointMass</span><span class="p">(</span><span class="n">space_dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">muscle_type</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">muscles</span><span class="o">.</span><span class="n">CompliantTendonHillMuscle</span><span class="p">()</span>
+<span class="n">plant</span> <span class="o">=</span> <span class="n">mn</span><span class="o">.</span><span class="n">plants</span><span class="o">.</span><span class="n">Plant</span><span class="p">(</span><span class="n">skeleton</span><span class="o">=</span><span class="n">skeleton</span><span class="p">,</span> <span class="n">muscle_type</span><span class="o">=</span><span class="n">muscle_type</span><span class="p">,</span> <span class="n">timestep</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span> <span class="n">integration_method</span><span class="o">=</span><span class="s1">'rk4'</span><span class="p">)</span>
+
+<span class="c1"># we create a tug-of-war plant</span>
+<span class="n">plant</span><span class="o">.</span><span class="n">add_muscle</span><span class="p">(</span><span class="n">path_fixation_body</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">path_coordinates</span><span class="o">=</span><span class="p">[[</span><span class="mi">6</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span>
+                 <span class="n">max_isometric_force</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">tendon_length</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">optimal_muscle_length</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+
+<span class="n">plant</span><span class="o">.</span><span class="n">add_muscle</span><span class="p">(</span><span class="n">path_fixation_body</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">path_coordinates</span><span class="o">=</span><span class="p">[[</span><span class="o">-</span><span class="mi">6</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span>
+                 <span class="n">max_isometric_force</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">tendon_length</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">optimal_muscle_length</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+
+
+<span class="c1"># custom plotting function</span>
+<span class="k">def</span> <span class="nf">plot_tow</span><span class="p">(</span><span class="n">j_state</span><span class="p">,</span> <span class="n">m_state</span><span class="p">,</span> <span class="n">plant</span><span class="p">,</span> <span class="n">movement_duration</span><span class="p">):</span>
+    <span class="n">t_fn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">movement_duration</span> <span class="o">+</span> <span class="n">plant</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span> <span class="n">plant</span><span class="o">.</span><span class="n">dt</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">131</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_fn</span><span class="p">,</span> <span class="n">j_state</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">'x'</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_fn</span><span class="p">,</span> <span class="n">j_state</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">'y'</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">':'</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'position (m)'</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'time (sec)'</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">132</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_fn</span><span class="p">,</span> <span class="n">m_state</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">plant</span><span class="o">.</span><span class="n">muscle_name</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_fn</span><span class="p">,</span> <span class="n">m_state</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">plant</span><span class="o">.</span><span class="n">muscle_name</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'muscle length (m)'</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'time (sec)'</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">133</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_fn</span><span class="p">,</span> <span class="n">m_state</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">plant</span><span class="o">.</span><span class="n">muscle_name</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_fn</span><span class="p">,</span> <span class="n">m_state</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">plant</span><span class="o">.</span><span class="n">muscle_name</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'muscle velocity (m/sec)'</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'time (sec)'</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+
+
+<span class="n">t_end</span> <span class="o">=</span> <span class="mf">0.2</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span><span class="o">.</span><span class="n">set_tight_layout</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">joint_state</span><span class="p">,</span> <span class="n">muscle_state</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">simulate_motion</span><span class="p">(</span><span class="n">plant</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span> <span class="n">t_end</span><span class="p">)</span>
+<span class="n">plot_tow</span><span class="p">(</span><span class="n">joint_state</span><span class="p">,</span> <span class="n">muscle_state</span><span class="p">,</span> <span class="n">plant</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">'rightward movement'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_0-muscle-demo_53_0.png" src="../_images/tutorials_0-muscle-demo_53_0.png"/>
+</div>
+</div>
+<p>And finally, we create an isometric co-contraction. Muscle lengths and velocities vary over time, while position does not move. This indicates that the musculotendon complex tenses up in an isometric fashion.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre><br/><span></span><span class="n">t_end</span> <span class="o">=</span> <span class="mf">0.2</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span><span class="o">.</span><span class="n">set_tight_layout</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">joint_state</span><span class="p">,</span> <span class="n">muscle_state</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">simulate_motion</span><span class="p">(</span><span class="n">plant</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span> <span class="n">t_end</span><span class="p">)</span>
+<span class="n">plot_tow</span><span class="p">(</span><span class="n">joint_state</span><span class="p">,</span> <span class="n">muscle_state</span><span class="p">,</span> <span class="n">plant</span><span class="p">,</span> <span class="n">t_end</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">'rightward movement'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_0-muscle-demo_55_0.png" src="../_images/tutorials_0-muscle-demo_55_0.png"/>
+</div>
+</div>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022, Olivier Codol
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            Contents
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">I. Intro</a></li>
+<li><a class="reference internal" href="#II.-ReLu-muscles">II. ReLu muscles</a><ul>
+<li><a class="reference internal" href="#II.-1.-Inspecting-initial-muscle-states">II. 1. Inspecting initial muscle states</a></li>
+<li><a class="reference internal" href="#II.-2.-Simulating-motion">II. 2. Simulating motion</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#III.-Hill-muscles-(Kistemaker-version)">III. Hill muscles (Kistemaker version)</a><ul>
+<li><a class="reference internal" href="#III.-1.-Muscle-states">III. 1. Muscle states</a></li>
+<li><a class="reference internal" href="#III.-2.-Muscle-force-curves">III. 2. Muscle force curves</a></li>
+<li><a class="reference internal" href="#III.-3.-Inspecting-initial-states">III. 3. Inspecting initial states</a></li>
+<li><a class="reference internal" href="#III.-4.-Simulating-motion">III. 4. Simulating motion</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#IV.-Hill-muscles-(Thelen-version)">IV. Hill muscles (Thelen version)</a><ul>
+<li><a class="reference internal" href="#IV.-1.-Muscle-states">IV. 1. Muscle states</a></li>
+<li><a class="reference internal" href="#IV.-2.Muscle-force-curves">IV. 2.Muscle force curves</a></li>
+<li><a class="reference internal" href="#IV.-3.-Inspecting-initial-states">IV. 3. Inspecting initial states</a></li>
+<li><a class="reference internal" href="#IV.-4.-Simulating-motion">IV. 4. Simulating motion</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#V.-Compliant-tendon-Hill-type-muscle">V. Compliant tendon Hill-type muscle</a><ul>
+<li><a class="reference internal" href="#V.-1.-Muscle-states">V. 1. Muscle states</a></li>
+<li><a class="reference internal" href="#V.-2.-Muscle-force-curves">V. 2. Muscle force curves</a></li>
+<li><a class="reference internal" href="#V.-3.-Inspecting-initial-states">V. 3. Inspecting initial states</a></li>
+<li><a class="reference internal" href="#V.-4.-Simulating-motion">V. 4. Simulating motion</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/scripts/furo.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </body>
+</html>

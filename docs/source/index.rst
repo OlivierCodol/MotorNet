@@ -30,6 +30,8 @@ A Tensorflow-powered python toolbox to train deep neural networks to perform rea
    :caption: Tutorials
    :glob:
 
+   tutorials/1-build-plant
+
    md/tutorial1
 
    nb/testnb
