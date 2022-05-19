@@ -135,7 +135,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -213,7 +213,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -221,27 +221,55 @@
         <article role="main">
           <section id="colab-tutorials">
 <h1>COLAB tutorials<a class="headerlink" href="#colab-tutorials" title="Permalink to this headline">#</a></h1>
-<section id="how-muscle-objects-work">
-<h2>How Muscle objects work<a class="headerlink" href="#how-muscle-objects-work" title="Permalink to this headline">#</a></h2>
-<p><a class="reference external" href="https://github.com/OlivierCodol/MotorNet/blob/master/tutorials/0-muscle-demo.ipynb">[On GitHub]</a>
-<a class="reference external" href="https://githubtocolab.com/OlivierCodol/MotorNet/blob/master/tutorials/0-muscle-demo.ipynb">[On COLAB]</a></p>
-</section>
-<section id="how-to-build-a-plant">
-<h2>How to build a plant<a class="headerlink" href="#how-to-build-a-plant" title="Permalink to this headline">#</a></h2>
-<p><a class="reference external" href="https://github.com/OlivierCodol/MotorNet/blob/master/tutorials/1-build-plant.ipynb">[On GitHub]</a>
-<a class="reference external" href="https://githubtocolab.com/OlivierCodol/MotorNet/blob/master/tutorials/1-build-plant.ipynb">[On COLAB]</a></p>
-</section>
-<section id="how-to-build-a-controller-network">
-<h2>How to build a controller network<a class="headerlink" href="#how-to-build-a-controller-network" title="Permalink to this headline">#</a></h2>
-<p><a class="reference external" href="https://github.com/OlivierCodol/MotorNet/blob/master/tutorials/2-build-net.ipynb">[On GitHub]</a>
-<a class="reference external" href="https://githubtocolab.com/OlivierCodol/MotorNet/blob/master/tutorials/2-build-net.ipynb">[On COLAB]</a></p>
-</section>
-<section id="how-to-run-a-network">
-<h2>How to run a network<a class="headerlink" href="#how-to-run-a-network" title="Permalink to this headline">#</a></h2>
-<p><a class="reference external" href="https://github.com/OlivierCodol/MotorNet/blob/master/tutorials/3-run-net.ipynb">[On GitHub]</a>
-<a class="reference external" href="https://githubtocolab.com/OlivierCodol/MotorNet/blob/master/tutorials/3-run-net.ipynb">[On COLAB]</a></p>
-</section>
-</section>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css" rel="stylesheet"/>
+<h4>How Muscle objects work</h4>
+<div style="margin-bottom: 30px; margin-left: 12px;">
+<p>
+<a href="https://github.com/OlivierCodol/MotorNet/blob/master/tutorials/0-muscle-demo.ipynb">
+<i class="fab fa-github"></i> On GitHub
+    </a>
+<a href="https://githubtocolab.com/OlivierCodol/MotorNet/blob/master/tutorials/0-muscle-demo.ipynb">
+<img alt="colab-icon" src="../_static/img/icons/colab.svg" width="16px"/> On COLAB
+    </a>
+</p>
+<p><i>Some description here.</i></p>
+</div>
+<h4>How to build a plant</h4>
+<div style="margin-bottom: 30px; margin-left: 12px;">
+<p>
+<a href="https://github.com/OlivierCodol/MotorNet/blob/master/tutorials/1-build-plant.ipynb">
+<i class="fab fa-github"></i> On GitHub
+    </a>
+<a href="https://githubtocolab.com/OlivierCodol/MotorNet/blob/master/tutorials/1-build-plant.ipynb">
+<img alt="colab-icon" src="../_static/img/icons/colab.svg" width="16px"/> On COLAB
+    </a>
+</p>
+<p><i>Some description here.</i></p>
+</div>
+<h4>How to build a controller network</h4>
+<div style="margin-bottom: 30px; margin-left: 12px;">
+<p>
+<a href="https://github.com/OlivierCodol/MotorNet/blob/master/tutorials/2-build-net.ipynb">
+<i class="fab fa-github"></i> On GitHub
+    </a>
+<a href="https://githubtocolab.com/OlivierCodol/MotorNet/blob/master/tutorials/2-build-net.ipynb">
+<img alt="colab-icon" src="../_static/img/icons/colab.svg" width="16px"/> On COLAB
+    </a>
+</p>
+<p><i>Some description here.</i></p>
+</div>
+<h4>How to run a network</h4>
+<div style="margin-bottom: 30px; margin-left: 12px;">
+<p>
+<a href="https://github.com/OlivierCodol/MotorNet/blob/master/tutorials/3-run-net.ipynb">
+<i class="fab fa-github"></i> On GitHub
+    </a>
+<a href="https://githubtocolab.com/OlivierCodol/MotorNet/blob/master/tutorials/3-run-net.ipynb">
+<img alt="colab-icon" src="../_static/img/icons/colab.svg" width="16px"/> On COLAB
+    </a>
+</p>
+<p><i>Some description here.</i></p>
+</div></section>
 
         </article>
       </div>
@@ -288,30 +316,8 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer">
+    <aside class="toc-drawer no-toc">
       
-      
-      <div class="toc-sticky toc-scroll">
-        <div class="toc-title-container">
-          <span class="toc-title">
-            Contents
-          </span>
-        </div>
-        <div class="toc-tree-container">
-          <div class="toc-tree">
-            <ul>
-<li><a class="reference internal" href="#">COLAB tutorials</a><ul>
-<li><a class="reference internal" href="#how-muscle-objects-work">How Muscle objects work</a></li>
-<li><a class="reference internal" href="#how-to-build-a-plant">How to build a plant</a></li>
-<li><a class="reference internal" href="#how-to-build-a-controller-network">How to build a controller network</a></li>
-<li><a class="reference internal" href="#how-to-run-a-network">How to run a network</a></li>
-</ul>
-</li>
-</ul>
-
-          </div>
-        </div>
-      </div>
       
       
     </aside>
