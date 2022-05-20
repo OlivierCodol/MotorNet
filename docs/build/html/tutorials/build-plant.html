@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Test notebook" href="testnb.html" /><link rel="prev" title="motornet.task" href="../motornet.task.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Create tasks" href="tasks.html" /><link rel="prev" title="How Muscle objects work" href="muscle-demo.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
-        <title>COLAB tutorials - MotorNet 1.0.0 documentation</title>
+        <title>Build a plant - MotorNet 1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
@@ -178,15 +178,25 @@
 </ul>
 </li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
-<ul class="current">
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">COLAB tutorials</a></li>
-<li class="toctree-l1"><a class="reference internal" href="testnb.html">Test notebook</a></li>
-</ul>
 <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../documentation/install.html">How to install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation/getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation/runflow.html">Running flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation/bp-hardware-usage.html">Best practices: hardware usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../documentation/bp-loss-selection.html">Best practices: loss selection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../documentation/changelog.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="states.html">Structure of State tensors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="muscle-demo.html">How Muscle objects work</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Build a plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tasks.html">Create tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="losses.html">Create and declare losses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build-net.html">Build a network</a></li>
+<li class="toctree-l1"><a class="reference internal" href="train-net.html">Train a network</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testnb.html">Test notebook</a></li>
 </ul>
 
 </div>
@@ -219,80 +229,48 @@
           </label>
         </div>
         <article role="main">
-          <section id="colab-tutorials">
-<h1>COLAB tutorials<a class="headerlink" href="#colab-tutorials" title="Permalink to this headline">#</a></h1>
+          <section id="build-a-plant">
+<h1>Build a plant<a class="headerlink" href="#build-a-plant" title="Permalink to this headline">#</a></h1>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css" rel="stylesheet"/>
-<h4>How Muscle objects work</h4>
-<div style="margin-bottom: 30px; margin-left: 12px;">
-<p>
-<a href="https://github.com/OlivierCodol/MotorNet/blob/master/tutorials/0-muscle-demo.ipynb">
-<i class="fab fa-github"></i> On GitHub
-    </a>
-<a href="https://githubtocolab.com/OlivierCodol/MotorNet/blob/master/tutorials/0-muscle-demo.ipynb">
-<img alt="colab-icon" src="../_static/img/icons/colab.svg" width="16px"/> On COLAB
-    </a>
-</p>
-<p><i>Some description here.</i></p>
-</div>
-<h4>How to build a plant</h4>
 <div style="margin-bottom: 30px; margin-left: 12px;">
 <p>
 <a href="https://github.com/OlivierCodol/MotorNet/blob/master/tutorials/1-build-plant.ipynb">
 <i class="fab fa-github"></i> On GitHub
     </a>
+</p>
+<p>
 <a href="https://githubtocolab.com/OlivierCodol/MotorNet/blob/master/tutorials/1-build-plant.ipynb">
 <img alt="colab-icon" src="../_static/img/icons/colab.svg" width="16px"/> On COLAB
     </a>
 </p>
+</div>
+<div style="margin-bottom: 30px; margin-left: 12px;">
 <p><i>Some description here.</i></p>
 </div>
-<h4>How to build a controller network</h4>
-<div style="margin-bottom: 30px; margin-left: 12px;">
-<p>
-<a href="https://github.com/OlivierCodol/MotorNet/blob/master/tutorials/2-build-net.ipynb">
-<i class="fab fa-github"></i> On GitHub
-    </a>
-<a href="https://githubtocolab.com/OlivierCodol/MotorNet/blob/master/tutorials/2-build-net.ipynb">
-<img alt="colab-icon" src="../_static/img/icons/colab.svg" width="16px"/> On COLAB
-    </a>
-</p>
-<p><i>Some description here.</i></p>
-</div>
-<h4>How to run a network</h4>
-<div style="margin-bottom: 30px; margin-left: 12px;">
-<p>
-<a href="https://github.com/OlivierCodol/MotorNet/blob/master/tutorials/3-run-net.ipynb">
-<i class="fab fa-github"></i> On GitHub
-    </a>
-<a href="https://githubtocolab.com/OlivierCodol/MotorNet/blob/master/tutorials/3-run-net.ipynb">
-<img alt="colab-icon" src="../_static/img/icons/colab.svg" width="16px"/> On COLAB
-    </a>
-</p>
-<p><i>Some description here.</i></p>
-</div></section>
+</section>
 
         </article>
       </div>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="testnb.html">
+          <a class="next-page" href="tasks.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Test notebook</div>
+                <div class="title">Create tasks</div>
               </div>
               <svg><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="../motornet.task.html">
+          <a class="prev-page" href="muscle-demo.html">
               <svg><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">motornet.task</div>
+                <div class="title">How Muscle objects work</div>
                 
               </div>
             </a>

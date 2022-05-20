@@ -6,7 +6,7 @@
 MotorNet
 ========
 
-A Tensorflow-powered python toolbox to train deep neural networks to perform reaching movements.
+A Tensorflow-powered python toolbox to train deep neural networks to perform motor tasks.
 
 ..
    -----------------------------------------------------------------------------------------------
@@ -27,27 +27,46 @@ A Tensorflow-powered python toolbox to train deep neural networks to perform rea
 
 .. toctree::
    :maxdepth: 1
-   :caption: Tutorials
-   :glob:
-
-   tutorials/colab-tutorials
-
-   tutorials/testnb
-
-
-.. toctree::
-   :maxdepth: 1
    :caption: Documentation
 
    documentation/install
 
+   documentation/getting-started
+
+   documentation/runflow
+
+   documentation/bp-hardware-usage
+
+   documentation/bp-loss-selection
+
    documentation/changelog
 
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Tutorials
+   :glob:
+
+   tutorials/states
+
+   tutorials/muscle-demo
+
+   tutorials/build-plant
+
+   tutorials/tasks
+
+   tutorials/losses
+
+   tutorials/build-net
+
+   tutorials/train-net
+
+   tutorials/testnb
 
 
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
