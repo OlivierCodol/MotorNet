@@ -6,10 +6,10 @@ from typing import Union
 
 
 class Network(Layer):
-    """Base class for controller `Network` objects. It implements a network whose function is to control the plant
-    provided as input at initialization. This object can be subclassed to implement virtually anything that `tensorflow`
-    can implement as a deep neural network, so long as it abides by the state structure used in `motornet` (see below
-    for details).
+    """Base class for controller :class:`Network` objects. It implements a network whose function is to control the
+    plant provided as input at initialization. This object can be subclassed to implement virtually anything that
+    `tensorflow` can implement as a deep neural network, so long as it abides by the state structure used in `motornet`
+    (see below for details).
 
     Args:
         plant: A :class:`motornet.plants.plants.Plant` object class or subclass. This is the plant that the
@@ -232,7 +232,7 @@ class Network(Layer):
             - visual feedback array
             - excitation state
 
-        This method should be called in the :meth:`get_initial_states` method to provide a base for the output of that
+        This method should be called in the :meth:`get_initial_state` method to provide a base for the output of that
         method.
 
         Args:
@@ -379,17 +379,17 @@ class GRUNetwork(Network):
     def get_initial_state(self, inputs=None, batch_size: int = 1, dtype=tf.float32):
         """Creates the initial states for the first timestep of the network training procedure. This method
         provides the states for the full :class:`Network` class, that is the default states from the
-        :meth:`get_base_initial_state` method followed by the states specific to this subclass.
+        :meth:`Network.get_base_initial_state` method followed by the states specific to this subclass.
 
         Args:
             inputs: The joint state from which the other state values are inferred. This is passed as-is to the
-                :meth:`motornet.plants.Plant.get_initial_state` method, and therefore obeys the structure documented
+                :meth:`motornet.plants.plants.Plant.get_initial_state` method, and therefore obeys the structure documented
                 there.
             batch_size: `Integer`, the batch size defining the size of each state's first dimension.
             dtype: A `dtype` from the `tensorflow.dtypes` module.
 
         Returns:
-            A 'list' containing the output of the :meth:`get_base_initial_state` method, followed by the hidden states
+            A `list` containing the output of the :meth:`Network.get_base_initial_state` method, followed by the hidden states
             of each GRU layer as `tensor` arrays.
         """
         states = self.get_base_initial_state(inputs=inputs, batch_size=batch_size, dtype=dtype)
