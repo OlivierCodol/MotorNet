@@ -2,7 +2,6 @@
 """
 
 import numpy as np
-import scipy.io
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from matplotlib import animation
@@ -28,7 +27,7 @@ def compute_limits(data, margin=0.1):
     return minval, maxval
 
 
-def _plot_line_collection(segments, cmap: str = 'viridis', linewidth: int = 1, figure=plt.gcf(), **kwargs):
+def _plot_line_collection(axis, segments, cmap: str = 'viridis', linewidth: int = 1, **kwargs):
     n_gradient = kwargs.get('n_gradient', segments.shape[0])
 
     norm = plt.Normalize(0, n_gradient)  # Create a continuous norm to map from data points to colors
@@ -36,19 +35,19 @@ def _plot_line_collection(segments, cmap: str = 'viridis', linewidth: int = 1, f
     lc.set_array(np.arange(0, n_gradient))  # Set the values used for colormapping
     lc.set_linewidth(linewidth)
 
-    axes = plt.gca()
-    axes.add_collection(lc)
+    axis.add_collection(lc)
 
-    clb = figure.colorbar(lc, ax=axes)
+    fig = axis.get_figure()
+    clb = fig.colorbar(lc, ax=axis)
     clb.set_label('timestep')
-    return axes
 
 
-def plot_pos_over_time(cart_results):
+def plot_pos_over_time(cart_results, axis):
     """Plots trajectory position over time, giving a darker color to the early part of a trajectory, and a lighter color
     to the later part of the trajectory.
 
     Args:
+        axis: A `matplotlib` axis handle to plot the trajectories.
         cart_results: A `numpy.ndarray` containing the trajectories. Its dimensionality should be
             `n_batches * n_timesteps * (2 . n_dim)`, with `n_dim` being the trajectory's dimensionality. For instance,
             for a planar reach, since the movement is in 2D space, we have`n_dim = 2`, meaning the third dimension of
@@ -56,10 +55,10 @@ def plot_pos_over_time(cart_results):
     """
     n_timesteps = cart_results.shape[1]
     segments, points = _results_to_line_collection(cart_results)
-    axes = _plot_line_collection(segments, n_gradient=n_timesteps - 1)
-    axes.set_xlabel('cartesian x')
-    axes.set_ylabel('cartesian y')
-    axes.set_aspect('equal', adjustable='box')
+    _plot_line_collection(axis, segments, n_gradient=n_timesteps - 1)
+    axis.set_xlabel('cartesian x')
+    axis.set_ylabel('cartesian y')
+    axis.set_aspect('equal', adjustable='box')
     # plt.scatter(0., 0., label='shoulder fixation', zorder=np.inf, marker='+')
 
 
@@ -78,18 +77,18 @@ def _results_to_line_collection(results):
     return segments_all_batches, points
 
 
-def plot_2dof_arm_over_time(arm, joint_state, cmap: str = 'viridis', linewidth: int = 1, figure=plt.gcf(), **kwargs):
+def plot_2dof_arm_over_time(axis, arm, joint_state, cmap: str = 'viridis', linewidth: int = 1):
     """Plots an arm26 over time, with earlier and later arm configuration in the movement being represented as darker
     and brighter colors, respectively.
 
     Args:
+        axis: A `matplotlib` axis handle.
         arm: :class:`motornet.plants.skeletons.TwoDofArm` object to plot.
         joint_state: A `numpy.ndarray` containing the trajectory. Its dimensionality should be
             `1 * n_timesteps * (2 . n_dim)`, with `n_dim` being the trajectory's dimensionality. For an `arm26`,
             since the arm has 2 degrees of freedom, we have`n_dim = 2`, meaning the third dimension of
             the array is `4` (shoulder position, elbow position, shoulder velocity, elbow velocity).
         cmap: `String`, colormap supported by `matplotlib`.
-        figure: `matplotlib.figure.Figure` handle.
         linewidth: `Integer`, line width of the arm segments being plotted.
     """
 
@@ -112,15 +111,13 @@ def plot_2dof_arm_over_time(arm, joint_state, cmap: str = 'viridis', linewidth: 
     lower_arm = np.stack([lower_arm_x, lower_arm_y], axis=2)
 
     segments = np.squeeze(np.concatenate([upper_arm, lower_arm], axis=0))
-    _, axes, clb = _plot_line_collection(
-        segments, cmap=cmap, linewidth=linewidth, figure=figure,
-        n_gradient=n_timesteps, **kwargs)
+    _plot_line_collection(axis, segments, cmap=cmap, linewidth=linewidth, n_gradient=n_timesteps)
 
-    axes.set_xlim(compute_limits(segments[:, :, 0]))
-    axes.set_ylim(compute_limits(segments[:, :, 1]))
-    axes.set_xlabel('cartesian x')
-    axes.set_ylabel('cartesian y')
-    axes.set_aspect('equal', adjustable='box')
+    axis.set_xlim(compute_limits(segments[:, :, 0]))
+    axis.set_ylim(compute_limits(segments[:, :, 1]))
+    axis.set_xlabel('cartesian x')
+    axis.set_ylabel('cartesian y')
+    axis.set_aspect('equal', adjustable='box')
 
 
 def animate_arm_trajectory(joint_position, plant, path_name='./Arm_animation.mp4'):
@@ -136,7 +133,7 @@ def animate_arm_trajectory(joint_position, plant, path_name='./Arm_animation.mp4
     L2, = ax.plot([], [], lw=4)  # L1
 
     # plt.title('Desired Title')
-    # Axis control 
+    # Axis control
     plt.axis('off')
     plt.gca().set_aspect('equal', adjustable='box')  # Make axis equal
     plt.style.use('dark_background')
@@ -159,7 +156,7 @@ def animate_arm_trajectory(joint_position, plant, path_name='./Arm_animation.mp4
 
     # Initialization of data lists
     def init():
-        # creating void frame 
+        # creating void frame
         line.set_data([], [])
         L1.set_data([], [])
         L2.set_data([], [])
@@ -177,12 +174,12 @@ def animate_arm_trajectory(joint_position, plant, path_name='./Arm_animation.mp4
         # Get the position of end_point, L1, and L2
         end_pos_x_l1, end_pos_y_l1, end_pos_x_l2, end_pos_y_l2 = my_joint2cartesian(plant, joint_position[i:i + 1, :])
 
-        # Append the endpoint position 
+        # Append the endpoint position
         xdata.append(end_pos_x_l1 + end_pos_x_l2)
         ydata.append(end_pos_y_l1 + end_pos_y_l2)
         line.set_data(xdata, ydata)
 
-        # Append the L1 position 
+        # Append the L1 position
         L1_xdata = [0, end_pos_x_l1]
         L1_ydata = [0, end_pos_y_l1]
         L1.set_data(L1_xdata, L1_ydata)
@@ -194,7 +191,7 @@ def animate_arm_trajectory(joint_position, plant, path_name='./Arm_animation.mp4
 
         return line, L1, L2
 
-    # call animation	 
+    # call animation
     anim = animation.FuncAnimation(fig, animate, init_func=init,
                                    frames=joint_position.shape[0], interval=plant.dt, blit=True)
 
