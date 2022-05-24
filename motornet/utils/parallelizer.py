@@ -33,10 +33,9 @@ def _f(run_iter):
 
     import tensorflow as tf
     import scipy.io
-    from tensorflow.keras.layers import Input
     from motornet.plants import RigidTendonArm26
     from motornet.nets.layers import GRUNetwork
-    from motornet.nets.callbacks import TensorflowFix, BatchLogger
+    from motornet.nets.callbacks import BatchLogger
     from motornet.nets.models import MotorNetModel
     print('tensorflow version: ' + tf.__version__)
     os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -48,12 +47,8 @@ def _f(run_iter):
     muscle_type = cfg['Plant']['Muscle']['name']
     task_type = cfg['Task']['name']
     exec('from motornet.plants.muscles import ' + muscle_type)
-    exec('from motornet.tasks import ' + task_type)
-
-    #cfg['Plant']['excitation_noise_sd'] = 0.
-    #cfg['Network']['proprioceptive_noise_sd'] = 0.
-    #cfg['Network']['visual_noise_sd'] = 0.
-    #cfg['Network']['hidden_noise_sd'] = 0.
+    #exec('from motornet.tasks import ' + task_type)
+    exec('from tasklocal import ' + task_type)
 
     arm = RigidTendonArm26(muscle_type=eval(muscle_type + '()'), timestep=float(cfg['Plant']['Skeleton']['dt']),
                            proprioceptive_delay=cfg['Plant']['proprioceptive_delay'] *
@@ -67,24 +62,15 @@ def _f(run_iter):
                       visual_noise_sd=cfg['Network']['visual_noise_sd'],
                       hidden_noise_sd=cfg['Network']['hidden_noise_sd'],
                       activation=cfg['Network']['activation'])
-    task_kwargs = cfg['Task']['task_kwargs']
-    task_kwargs['run_mode'] = task_run_mode
+    cfg['Task']['run_mode'] = task_run_mode
     task = eval(task_type +
-                "(cell, initial_joint_state=cfg['Task']['initial_joint_state'],**task_kwargs)")
+                "(cell, **cfg['Task'])")
 
-    # declare inputs
-    inputs = {key: Input((None, val,), name=key) for key, val in task.get_input_dim().items()}
-    state0 = [Input((arm.state_dim,), name='joint0'),
-              Input((arm.state_dim,), name='cartesian0'),
-              Input((arm.muscle_state_dim, arm.n_muscles,), name='muscle0'),
-              Input((arm.geometry_state_dim, arm.n_muscles,), name='geometry0'),
-              Input((arm.n_muscles * 2, arm.proprioceptive_delay,), name='proprio_feedback0'),
-              Input((arm.space_dim, arm.visual_delay,), name='visual_feedback0')]
-    state0.extend([Input((n,), name='gru' + str(k) + '_hidden0') for k, n in enumerate(cell.n_units)])
-
-    # wrap cell in an RNN layer
-    states_out = tf.keras.layers.RNN(cell=cell, return_sequences=True, name='RNN')(inputs, initial_state=state0)
-    control_rnn = MotorNetModel(inputs=[inputs, state0], outputs=states_out, name='controller', task=task)
+    rnn = tf.keras.layers.RNN(cell=cell, return_sequences=True, name='RNN')
+    input_dict = task.get_input_dict_layers()
+    state0 = task.get_initial_state_layers()
+    states_out = rnn(input_dict, initial_state=state0)
+    control_rnn = MotorNetModel(inputs=[input_dict, state0], outputs=states_out, name='model', task=task)
 
     # pull the losses from the task itself
     [losses, loss_weights] = task.get_losses()
@@ -92,13 +78,9 @@ def _f(run_iter):
     # compile
     control_rnn.compile(optimizer=tf.optimizers.Adam(learning_rate=0.0001), loss=losses,
                         loss_weights=loss_weights, run_eagerly=False)
-    tensorflowfix_callback = TensorflowFix()
     batchlog_callback = BatchLogger()
 
     control_rnn.summary()
-
-    ## SPECIAL
-    cell.layers[1].bias = tf.convert_to_tensor([-5.04, -4.86, -4.55, -5.25, -4.81, -5.09])
 
     if run_mode == 'train':
         # load trained weights
@@ -106,13 +88,12 @@ def _f(run_iter):
             control_rnn.load_weights(file_name).expect_partial()
         # train it up
         task.set_training_params(batch_size=cfg['Task']['training_batch_size'],
-                                 n_timesteps=cfg['Task']['training_n_timesteps'],
-                                 iterations=iters_per_batch)
+                                 n_timesteps=cfg['Task']['training_n_timesteps'])
         [inputs, targets, init_states] = task.generate(n_timesteps=cfg['Task']['training_n_timesteps'],
-                                                       batch_size=iters_per_batch * cfg['Task']['training_batch_size'])
+                                                       batch_size=cfg['Task']['training_batch_size'] * iters_per_batch)
         control_rnn.fit([inputs, init_states], targets, verbose=1, epochs=1,
                         batch_size=cfg['Task']['training_batch_size'],
-                        callbacks=[tensorflowfix_callback, batchlog_callback], shuffle=False)
+                        callbacks=[batchlog_callback], shuffle=False)
         # save weights of the model
         control_rnn.save_weights(file_name)
         # add any info generated during the training process
@@ -168,7 +149,7 @@ if __name__ == '__main__':
     # input 4 - total training iterations
     total_training_iterations = int(sys.argv[4])
 
-    iters_per_batch = 200
+    iters_per_batch = 500
     total_repeats = int(total_training_iterations / iters_per_batch)
 
     run_list = []
