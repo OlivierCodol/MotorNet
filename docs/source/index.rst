@@ -3,8 +3,20 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to MotorNet's documentation!
-=========================================
+MotorNet
+========
+
+A Tensorflow-powered python toolbox to train deep neural networks to perform reaching movements.
+
+..
+   -----------------------------------------------------------------------------------------------
+
+..
+   raw:: html
+
+..
+   :file: _static/home.html
+
 
 .. toctree::
    :maxdepth: 1
@@ -18,18 +30,18 @@ Welcome to MotorNet's documentation!
    :caption: Tutorials
    :glob:
 
-   md/tutorial1
+   tutorials/colab-tutorials
 
-   nb/testnb
-
-   md/tutorial2
+   tutorials/testnb
 
 
 .. toctree::
    :maxdepth: 1
    :caption: Documentation
 
-   md/install
+   documentation/install
+
+   documentation/changelog
 
 
 
