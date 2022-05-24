@@ -185,6 +185,34 @@ class L2ActivationMuscleVelLoss(LossFunctionWrapper):
                          deriv_weight=deriv_weight)
 
 
+class L2ActivationL1MuscleVelIndLoss(LossFunctionWrapper):
+    """Applies a L2 penalty to muscle activation and an L1 penalty to muscle velocity.
+    Must be applied to the `muscle state` output state.
+    The L2 penalty on muscle activation is normalized by the maximum isometric force of each muscle.
+    If ``a`` is the normalized muscle activation and ``dx`` the muscle velocity, then the penalty would evaluate at:
+
+    .. code-block:: python
+
+        loss = activation_weight * tf.reduce_mean(a ** 2) + deriv_weight * tf.reduce_mean(tf.abs(dx))
+
+    Args:
+        max_iso_force: `Float` or `list`, the maximum isometric force of each muscle in the order they are declared in
+            the :class:`motornet.plants.plants.Plant` object class or subclass.
+        activation_weight: `Float`, the weight of the activation's penalty compared to the value itself.
+        deriv_weight: `Float`, the weight of the derivative's penalty compared to the value itself.
+        name: `String`, the name (label) to give to the compounded loss object. This is used to print, plot, and save
+            losses during training.
+        reduction: The reduction method used. The default value is
+           ``tensorflow.python.keras.utils.losses_utils.ReductionV2.AUTO``.
+           See the `Tensoflow` documentation for more details.
+    """
+
+    def __init__(self, max_iso_force: float, activation_weight: float, deriv_weight: float,
+                 name: str = 'l2_activation_muscle_vel', reduction=auto_reduction):
+        super().__init__(_l2_activation_l1_muscle_vel_ind_loss, name=name, reduction=reduction,
+                         max_iso_force=max_iso_force, activation_weight=activation_weight, deriv_weight=deriv_weight)
+
+
 class L2xDxActivationLoss(LossFunctionWrapper):
     """Applies a L2 penalty to muscle activation and its derivative. Must be applied to the ``muscle state`` output
     state. The L2 penalty is normalized by the maximum isometric force of each muscle.
@@ -238,8 +266,15 @@ def _l2_activation_muscle_vel_loss(y_true, y_pred, max_iso_force, deriv_weight):
     activation = tf.slice(y_pred, [0, 0, 0, 0], [-1, -1, 1, -1])
     muscle_vel = tf.slice(y_pred, [0, 0, 2, 0], [-1, -1, 1, -1])
     activation_scaled = _scale_activation(activation, max_iso_force)
-    # return muscle_loss * tf.reduce_mean(activation_scaled ** 2) + deriv_weight * tf.reduce_mean(tf.abs(muscle_vel))
     return tf.reduce_mean(activation_scaled ** 2) + deriv_weight * tf.reduce_mean(muscle_vel ** 2)
+
+
+def _l2_activation_l1_muscle_vel_ind_loss(y_true, y_pred, max_iso_force, activation_weight, deriv_weight):
+    activation = tf.slice(y_pred, [0, 0, 0, 0], [-1, -1, 1, -1])
+    muscle_vel = tf.slice(y_pred, [0, 0, 2, 0], [-1, -1, 1, -1])
+    activation_scaled = _scale_activation(activation, max_iso_force)
+    return activation_weight * tf.reduce_mean(tf.square(activation_scaled)) + \
+           deriv_weight * tf.reduce_mean(tf.abs(muscle_vel))
 
 
 def _l2_xdx_activation_loss(y_true, y_pred, max_iso_force, deriv_weight, dt):
