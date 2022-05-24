@@ -342,7 +342,7 @@ class TwoDofArm(Skeleton):
         coriolis_2 = (self.coriolis_2 * s2 * vel0) * vel0 + self.c_viscosity * vel1
         coriolis = tf.stack([coriolis_1, coriolis_2], axis=1)
 
-        # jacobian to distribute external loads (torques) applied at endpoint to the two rigid links
+        # jacobian to distribute external loads (forces) applied at endpoint to the two rigid links
         jacobian_11 = -self.L1*s1 - self.L2*s12
         jacobian_12 = -self.L2*s12
         jacobian_21 = self.L1*c1 + self.L2*c12
