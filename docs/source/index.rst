@@ -31,12 +31,6 @@ A Tensorflow-powered python toolbox to train deep neural networks to perform mot
 
    documentation/install
 
-   documentation/getting-started
-
-   documentation/runflow
-
-   documentation/bp-hardware-usage
-
    documentation/bp-loss-selection
 
    documentation/changelog
@@ -47,22 +41,13 @@ A Tensorflow-powered python toolbox to train deep neural networks to perform mot
    :caption: Tutorials
    :glob:
 
-   tutorials/states
-
    tutorials/muscle-demo
 
    tutorials/build-plant
 
-   tutorials/tasks
-
-   tutorials/losses
-
    tutorials/build-net
 
    tutorials/train-net
-
-   tutorials/testnb
-
 
 
 Indices and tables
