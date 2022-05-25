@@ -1,4 +1,4 @@
-How Muscle objects work
+How Muscle Objects Work
 =======================
 
 .. raw:: html

@@ -1,4 +1,4 @@
-# How to install
+# How to Install
 
 ## Do foo
 

@@ -1,5 +1,5 @@
-Build a network
-======================
+Build a Network
+===============
 
 .. raw:: html
   :file: build-net.html
