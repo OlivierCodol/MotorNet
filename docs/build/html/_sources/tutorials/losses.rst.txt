@@ -1,4 +1,4 @@
-Create and declare a loss
+Create and Declare a Loss
 =========================
 
 .. raw:: html

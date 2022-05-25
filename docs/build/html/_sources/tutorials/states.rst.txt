@@ -1,4 +1,4 @@
-Structure of State tensors
+Structure of State Tensors
 ==========================
 
 .. raw:: html
