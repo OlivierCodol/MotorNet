@@ -1,4 +1,4 @@
-Best practices: loss selection
+Best Practices: Loss Selection
 ==============================
 
 .. raw:: html
