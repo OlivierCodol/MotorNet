@@ -164,7 +164,7 @@ class TrainingPlotter(Callback):
                 plt.ylabel('muscle velocity (m/sec)')
 
                 plt.subplot(144)
-                plt.plot(np.array(results['gru_hidden0'][trial, :, :]).squeeze())
+                plt.plot(np.array(results['gru_hidden_0'][trial, :, :]).squeeze())
                 plt.xlabel('time (ms)')
                 plt.ylabel('hidden unit activity')
 
