@@ -1,4 +1,4 @@
-Best practices: hardware usage
+Best Practices: Hardware Usage
 ==============================
 
 .. raw:: html
