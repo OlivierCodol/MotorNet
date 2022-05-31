@@ -259,10 +259,8 @@ last layer of the network (<cite>i.e.</cite>, the output layer).</p></li>
 <dd><p>Creates the variables of the layer (optional, for subclass implementers).</p>
 <p>This is a method that implementers of subclasses of <cite>Layer</cite> or <cite>Model</cite>
 can override if they need a state-creation step in-between
-layer instantiation and layer call. It is invoked automatically before
-the first execution of <cite>call()</cite>.</p>
-<p>This is typically used to create the weights of <cite>Layer</cite> subclasses
-(at the discretion of the subclass implementer).</p>
+layer instantiation and layer call.</p>
+<p>This is typically used to create the weights of <cite>Layer</cite> subclasses.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>input_shape</strong> – Instance of <cite>TensorShape</cite>, or list of instances of

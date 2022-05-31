@@ -6,7 +6,7 @@
 MotorNet
 ========
 
-A Tensorflow-powered python toolbox to train deep neural networks to perform motor tasks.
+A TensorFlow-powered python toolbox to train deep neural networks to perform motor tasks.
 
 ..
    -----------------------------------------------------------------------------------------------
