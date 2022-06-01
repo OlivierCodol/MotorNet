@@ -45,9 +45,11 @@ A TensorFlow-powered python toolbox to train deep neural networks to perform mot
 
    tutorials/build-plant
 
+   tutorials/build-net
+
    tutorials/states
 
-   tutorials/build-net
+   tutorials/tasks
 
    tutorials/train-net
 
