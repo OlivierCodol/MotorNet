@@ -1,5 +1,5 @@
-Create and Declare a Loss
-=========================
+Create and Declare a Custom Loss
+================================
 
 .. raw:: html
   :file: losses.html
