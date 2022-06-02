@@ -1,5 +1,5 @@
-Create a custom Task
-=============
+Create a Custom Task
+====================
 
 .. raw:: html
   :file: tasks.html
