@@ -1,4 +1,4 @@
-Create and Declare a Custom Loss
+Create a Custom Loss
 ================================
 
 .. raw:: html
