@@ -51,6 +51,8 @@ A TensorFlow-powered python toolbox to train deep neural networks to perform mot
 
    tutorials/tasks
 
+   tutorials/losses
+
    tutorials/train-net
 
 

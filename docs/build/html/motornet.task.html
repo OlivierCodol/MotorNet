@@ -190,7 +190,8 @@
 <li class="toctree-l1"><a class="reference internal" href="tutorials/build-plant.html">Build a Plant</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/build-net.html">Build a Network</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/states.html">Structure of State Tensors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/tasks.html">Create a custom Task</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/tasks.html">Create a Custom Task</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/losses.html">Create and Declare a Custom Loss</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/train-net.html">Train a Network</a></li>
 </ul>
 
@@ -468,13 +469,13 @@ argument.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>assigned_output</strong> – <cite>String</cite>, the output state that the loss will be applied to. This should correspond to a
+<li><p><strong>assigned_output</strong> – <cite>String</cite>, the output state that the loss will be applied to. This should correspond to
 an output name from the <code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code> object instance passed at initialization. The output names
-can be retrived in <code class="xref py py-attr docutils literal notranslate"><span class="pre">motornet.nets.layers.Network.output_names</span></code>.</p></li>
-<li><p><strong>loss</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.losses.Loss</span></code> object class or subclass. <cite>MotorNet</cite> specific <cite>Loss</cite>
-subclasses are available in <a class="reference internal" href="motornet.nets.losses.html#module-motornet.nets.losses" title="motornet.nets.losses"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.nets.losses</span></code></a>.</p></li>
+can be retrieved via the <code class="xref py py-attr docutils literal notranslate"><span class="pre">motornet.nets.layers.Network.output_names</span></code> attribute.</p></li>
+<li><p><strong>loss</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.losses.Loss</span></code> object class or subclass. <cite>Loss</cite>
+subclasses specific to <cite>MotorNet</cite> are available in the <a class="reference internal" href="motornet.nets.losses.html#module-motornet.nets.losses" title="motornet.nets.losses"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.nets.losses</span></code></a> module.</p></li>
 <li><p><strong>loss_weight</strong> – <cite>Float</cite>, the weight of the loss when all contributing losses are added to the total loss.</p></li>
-<li><p><strong>name</strong> – <cite>String</cite>, the name (label) to give to the compounded loss object. This is used to print, plot, and
+<li><p><strong>name</strong> – <cite>String</cite>, the name (label) to give to the loss object. This is used to print, plot, and
 save losses during training.</p></li>
 </ul>
 </dd>
