@@ -55,13 +55,13 @@ class Task(tf.keras.utils.Sequence):
         """Add a loss to optimize during training.
 
         Args:
-            assigned_output: `String`, the output state that the loss will be applied to. This should correspond to a
+            assigned_output: `String`, the output state that the loss will be applied to. This should correspond to
                 an output name from the :class:`Network` object instance passed at initialization. The output names
-                can be retrived in :attr:`motornet.nets.layers.Network.output_names`.
-            loss: :class:`tensorflow.python.keras.losses.Loss` object class or subclass. `MotorNet` specific `Loss`
-                subclasses are available in :class:`motornet.nets.losses`.
+                can be retrieved via the :attr:`motornet.nets.layers.Network.output_names` attribute.
+            loss: :class:`tensorflow.python.keras.losses.Loss` object class or subclass. `Loss`
+                subclasses specific to `MotorNet` are available in the :class:`motornet.nets.losses` module.
             loss_weight: `Float`, the weight of the loss when all contributing losses are added to the total loss.
-            name: `String`, the name (label) to give to the compounded loss object. This is used to print, plot, and
+            name: `String`, the name (label) to give to the loss object. This is used to print, plot, and
                 save losses during training.
 
         Raises:
