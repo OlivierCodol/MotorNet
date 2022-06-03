@@ -1,4 +1,4 @@
-"""This module contains the classes and subclasses used to create the plants that a model will be trained to control.
+"""This package contains the classes and subclasses used to create the plants that a model will be trained to control.
 Plants are implemented as subclasses of the :class:`motornet.plants.plants.Plant` object. They all contain a single
 :class:`motornet.plants.skeletons.Skeleton` and :class:`motornet.plants.muscles.Muscle` subclass defining the
 biomechanical properties of that `Plant` object. The `Plant` object itself implements the numerical integration
