@@ -20,8 +20,8 @@ commenting, and cleaning the code. For now, the package is available "as-is" but
 alpha and beta stage. Please feel free to log an issue if you think you found a bug, we appreciate any contribution. 
 Stay tuned for more!
 
-An online documentation is currently being built. It is available here:
-https://oliviercodol.github.io/MotorNet/build/html/index.html
+An [online documentation](https://oliviercodol.github.io/MotorNet/build/html/index.html) is currently being built. Feel 
+free to check it out.
 
 ## How to Install
 
@@ -69,3 +69,9 @@ There are several tutorials available to get you started, available in the
 [<em>examples</em>](https://github.com/OlivierCodol/MotorNet/tree/master/examples) folder, as well as on the 
 [documentation website](https://oliviercodol.github.io/MotorNet/build/html/index.html). Hopefully they will give a sense
 of how the  API is supposed to work.
+
+
+## Changelog
+
+See [here](https://oliviercodol.github.io/MotorNet/build/html/documentation/changelog.html) for a curated log of update 
+contents.
