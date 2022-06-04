@@ -227,13 +227,40 @@
         <article role="main">
           <section id="how-to-install">
 <h1>How to Install<a class="headerlink" href="#how-to-install" title="Permalink to this headline">#</a></h1>
-<section id="do-foo">
-<h2>Do foo<a class="headerlink" href="#do-foo" title="Permalink to this headline">#</a></h2>
-<p>Lorem.</p>
+<section id="install-with-pip">
+<h2>Install with <code class="docutils literal notranslate"><span class="pre">pip</span></code><a class="headerlink" href="#install-with-pip" title="Permalink to this headline">#</a></h2>
+<p>First, please make sure that the latest <code class="docutils literal notranslate"><span class="pre">pip</span></code> version is installed in your working environment.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python3</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">U</span> <span class="n">pip</span>
+</pre></div>
+</div>
+<p>Then you can install MotorNet using a simple <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span></code> command.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python3</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">motornet</span>
+</pre></div>
+</div>
 </section>
-<section id="then-do-bar">
-<h2>Then do bar<a class="headerlink" href="#then-do-bar" title="Permalink to this headline">#</a></h2>
-<p>Ipsum.</p>
+<section id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">#</a></h2>
+<p>There is no third-party software required to run MotorNet. However, some freely available python dependencies are
+required.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.tensorflow.org/">TensorFlow</a>: MotorNet is first and foremost built on TensorFlow. However, the standard
+TensorFlow toolbox is not compatible with recent Apple machines equipped with M1 silicon chips, and users must rely on
+an adapted version called <a class="reference external" href="https://pypi.org/project/tensorflow-macos/">tensorflow-macos</a>. When installing MotorNet, the
+<code class="docutils literal notranslate"><span class="pre">setup.py</span></code> routine will automatically check the machine’ OS platform and hardware to assess whether to solve for the
+<code class="docutils literal notranslate"><span class="pre">tensorflow</span></code> or <code class="docutils literal notranslate"><span class="pre">tensorflow-macos</span></code> dependency.</p></li>
+<li><p><a class="reference external" href="https://numpy.org/">NumPy</a>: For array and matrix computations when not using tensors.</p></li>
+<li><p><a class="reference external" href="https://matplotlib.org/">Matplotlib</a>: For plotting utilities, mainly in the
+<a class="reference external" href="https://github.com/OlivierCodol/MotorNet/blob/master/motornet/utils/plotor.py">plotor</a> module.</p></li>
+<li><p><a class="reference external" href="https://ipython.org/">IPython</a>: Mainly for
+<a class="reference external" href="https://github.com/OlivierCodol/MotorNet/blob/master/motornet/nets/callbacks.py">callbacks</a> that output training
+metrics during model training.</p></li>
+<li><p><a class="reference external" href="https://joblib.readthedocs.io/en/latest/">joblib</a>: For parallelization routines in the
+<a class="reference external" href="https://github.com/OlivierCodol/MotorNet/blob/master/motornet/utils/parallelizer.py">parallelizer</a> script.</p></li>
+</ul>
+</section>
+<section id="install-with-anaconda">
+<h2>Install with Anaconda<a class="headerlink" href="#install-with-anaconda" title="Permalink to this headline">#</a></h2>
+<p>Installation via Anaconda is currently not supported.</p>
 </section>
 </section>
 
@@ -295,8 +322,9 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">How to Install</a><ul>
-<li><a class="reference internal" href="#do-foo">Do foo</a></li>
-<li><a class="reference internal" href="#then-do-bar">Then do bar</a></li>
+<li><a class="reference internal" href="#install-with-pip">Install with <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
+<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#install-with-anaconda">Install with Anaconda</a></li>
 </ul>
 </li>
 </ul>
