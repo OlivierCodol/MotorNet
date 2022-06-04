@@ -13,6 +13,7 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join('..', '..', '..', 'motornet')))
+from motornet import __version__ as version
 
 
 # -- Project information -----------------------------------------------------
@@ -22,7 +23,7 @@ copyright = '2022, Olivier Codol'
 author = 'Olivier Codol'
 
 # The full version, including alpha/beta/rc tags
-release = '1.0.0'
+release = version
 
 
 # -- General configuration ---------------------------------------------------
