@@ -34,8 +34,6 @@ A TensorFlow-powered python toolbox to train deep neural networks to perform mot
 
    documentation/install
 
-   documentation/bp-loss-selection
-
    documentation/changelog
 
 
