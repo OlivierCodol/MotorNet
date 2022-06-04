@@ -2,41 +2,27 @@
  "cells": [
   {
    "cell_type": "markdown",
-   "metadata": {
-    "collapsed": false
-   },
    "source": [
     "# Best Practices: Loss Selection"
-   ]
+   ],
+   "metadata": {
+    "collapsed": false
+   }
   },
   {
    "cell_type": "code",
-   "execution_count": 1,
    "metadata": {
     "collapsed": true,
-    "execution": {
-     "iopub.execute_input": "2022-06-04T13:55:48.200369Z",
-     "iopub.status.busy": "2022-06-04T13:55:48.199368Z",
-     "iopub.status.idle": "2022-06-04T13:55:48.215372Z",
-     "shell.execute_reply": "2022-06-04T13:55:48.215372Z"
-    },
     "pycharm": {
      "name": "#%%\n"
     }
    },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "hello world!\n"
-     ]
-    }
-   ],
    "source": [
     "\n",
     "print(\"hello world!\")\n"
-   ]
+   ],
+   "execution_count": null,
+   "outputs": []
   }
  ],
  "metadata": {
@@ -48,14 +34,14 @@
   "language_info": {
    "codemirror_mode": {
     "name": "ipython",
-    "version": 3
+    "version": 2
    },
    "file_extension": ".py",
    "mimetype": "text/x-python",
    "name": "python",
    "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.8.6"
+   "pygments_lexer": "ipython2",
+   "version": "2.7.6"
   }
  },
  "nbformat": 4,
