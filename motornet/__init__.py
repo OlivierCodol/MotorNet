@@ -3,7 +3,7 @@ A TensorFlow-powered python toolbox to train deep neural networks to perform mot
 """
 
 __name__ = "motornet"
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __author__ = 'Olivier Codol'
 
 from . import nets
