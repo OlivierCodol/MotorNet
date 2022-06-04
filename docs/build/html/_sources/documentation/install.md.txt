@@ -21,7 +21,7 @@ required.
 - [TensorFlow](https://www.tensorflow.org/): MotorNet is first and foremost built on TensorFlow. However, the standard
 TensorFlow toolbox is not compatible with recent Apple machines equipped with M1 silicon chips, and users must rely on 
 an adapted version called [tensorflow-macos](https://pypi.org/project/tensorflow-macos/). When installing MotorNet, the 
-`setup.py` routine will automatically check the machine' OS platform and hardware to assess whether to solve for the 
+`setup.py` routine will automatically check the machine's OS platform and hardware to assess whether to solve for the 
 `tensorflow` or `tensorflow-macos` dependency. 
 - [NumPy](https://numpy.org/): For array and matrix computations when not using tensors.
 - [Matplotlib](https://matplotlib.org/): For plotting utilities, mainly in the 
