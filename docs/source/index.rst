@@ -23,7 +23,7 @@ A TensorFlow-powered python toolbox to train deep neural networks to perform mot
 
 .. toctree::
    :maxdepth: 1
-   :caption: Reference Manual
+   :caption: API Reference Manual
 
    modules
 
@@ -33,6 +33,8 @@ A TensorFlow-powered python toolbox to train deep neural networks to perform mot
    :caption: Documentation
 
    documentation/install
+
+   documentation/overview
 
    documentation/changelog
 
