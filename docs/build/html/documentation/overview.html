@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Changelog" href="changelog.html" /><link rel="prev" title="How to Install" href="install.html" />
 
     <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
-        <title>Best Practices: Hardware Usage - MotorNet 0.1.1 documentation</title>
+        <title>Functional Overview - MotorNet 0.1.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
@@ -155,7 +155,7 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <p class="caption" role="heading"><span class="caption-text">Reference Manual</span></p>
+  <p class="caption" role="heading"><span class="caption-text">API Reference Manual</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../motornet.html">MotorNet</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../motornet.nets.html">motornet.nets</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -179,8 +179,9 @@
 </li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="install.html">How to Install</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Functional Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
@@ -224,20 +225,115 @@
           </label>
         </div>
         <article role="main">
-          <section id="best-practices-hardware-usage">
-<h1>Best Practices: Hardware Usage<a class="headerlink" href="#best-practices-hardware-usage" title="Permalink to this headline">#</a></h1>
-<p>Parallelization to increase speed</p>
-<p>Overhead of GPU usage</p>
-<p>Network param size for making GPU usage worth it</p>
-<p>Batch size for making GPU usage worth it</p></section>
+          <section id="functional-overview">
+<h1>Functional Overview<a class="headerlink" href="#functional-overview" title="Permalink to this headline">#</a></h1>
+<h2>MotorNet Classes</h2>
+<p>Being built in Python, Motornet is an object-oriented toolbox. There are six object classes to consider.</p>
+<ul>
+<li><code class="docutils literal notranslate"><span class="pre">Muscle</span></code> objects.</li>
+<li><code class="docutils literal notranslate"><span class="pre">Skeleton</span></code> objects.</li>
+<li><code class="docutils literal notranslate"><span class="pre">Plant</span></code> objects.</li>
+<li><code class="docutils literal notranslate"><span class="pre">Network</span></code> objects.</li>
+<li><code class="docutils literal notranslate"><span class="pre">Task</span></code> objects.</li>
+<li><code class="docutils literal notranslate"><span class="pre">Loss</span></code> objects.</li>
+</ul>
+<p>In addition, a <code class="docutils literal notranslate"><span class="pre">MotorNetModel</span></code> class will
+  wrap all these objects into a model instance, which TensorFlow can use like any
+  <a href="https://www.tensorflow.org/api_docs/python/tf/keras/Model">TensorFlow model</a> instance for training and
+  inference. In fact, <code class="docutils literal notranslate"><span class="pre">MotorNetModel</span></code> is a
+  subclass of <code class="docutils literal notranslate"><span class="pre">tensorflow.keras.Model</span></code> (see the
+  <a href="../motornet.nets.models.html">API Documentation</a>
+  for more details).
+</p>
+<h4>Muscle class</h4>
+<p><code class="docutils literal notranslate"><span class="pre">Muscle</span></code> objects handle muscle dynamics,
+  and muscle state generation.</p>
+<h4>Skeleton class</h4>
+<p><code class="docutils literal notranslate"><span class="pre">Skeleton</span></code> objects hold skeleton and
+  geometry information, handle skeleton (motion) dynamics, generate joint states. and can convert joint states to
+  cartesian states.</p>
+<h4>Plant class</h4>
+<p><code class="docutils literal notranslate"><span class="pre">Plant</span></code> objects handle coordination of
+  information flow between <code class="docutils literal notranslate"><span class="pre">Muscle</span></code> and
+  <code class="docutils literal notranslate"><span class="pre">Skeleton</span></code> objects. They hold information
+  about how muscles wrap around the skeleton, apply moment arms to forces generated by muscles to compute
+  moment-adjusted (or generalized) forces that will be applied to skeletons. They also hold feedback delay properties.
+  </p>
+<h4>Network class</h4>
+<p><code class="docutils literal notranslate"><span class="pre">Network</span></code> objects hold network weights,
+  perform the forward pass, and apply the feedback delays based on feedback properties held by the plant. They can
+  also send a request to the Task object to recompute the target states online. This is useful if one wants the
+  inputs to adjust based on some variable whose value changes over the trial.</p>
+<h4>Task class</h4>
+<p><code class="docutils literal notranslate"><span class="pre">Task</span></code> objects holds loss information,
+  can produce initial inputs to the network offline, and can perform recomputation of inputs online if the user
+  desires.</p>
+<h4>Loss class</h4>
+<p><code class="docutils literal notranslate"><span class="pre">Loss</span></code> objects compute penalty values for
+  training the network free parameters (the weights). They also hold routines for compounding losses when several losses
+  are assigned to the same output state.</p>
+<h2>Class Hierarchy</h2>
+<p>The classes presented above rely on each other to function correctly. Consequently, they must be declared in a 
+  sensible order, so that each instance retains as attribute the instances on which they rely. This leads to a 
+  hierarchical class structure, where each instance lives in the computer memory in a nested fahsion with other 
+  instances. The illustration below displays how this hierarchy is organized.</p>
+<div class="centered" style="margin-top: 40px; margin-bottom: 40px">
+<p><img alt="hierarchy" src="../_static/img/hierarchy.png" style="width: 90%"/></p>
+<p><i>Representation of the hierarchical relationship between class instances in MotorNet.</i></p>
+</div>
+<h2>Information Flow at Runtime</h2>
+<h3>Computation Steps</h3>
+<p>The figure below summarizes the operations performed at runtime, as well as what how information flows between class
+  instances.
+</p>
+<ul style="list-style: none; margin-top: 40px; margin-bottom: 40px">
+<li><img alt="blue1" src="../_static/img/icons/blue-1.png" width="18"/> Recompute inputs [optional]</li>
+<li><img alt="blue2" src="../_static/img/icons/blue-2.png" width="18"/> Send new motor commands</li>
+<li><img alt="red1" src="../_static/img/icons/red-1.png" width="18"/> Pass on motor commands</li>
+<li><img alt="red2" src="../_static/img/icons/red-2.png" width="18"/> Return forces</li>
+<li><img alt="red3" src="../_static/img/icons/red-3.png" width="18"/> Send moment-adjusted (generalized) forces</li>
+<li><img alt="red4" src="../_static/img/icons/red-4.png" width="18"/> Return new joint &amp; cartesian states</li>
+<li><img alt="red5" src="../_static/img/icons/red-5.png" width="18"/> Return feedback states</li>
+</ul>
+<div class="centered" style="margin-top: 40px; margin-bottom: 40px">
+<p><img alt="serial" src="../_static/img/serial.png"/></p>
+<p><i>Representation of information flow at runtime in MotorNet.</i></p>
+</div>
+<h3>State Flow</h3>
+<p>A dedicated tutorial (available <a href="../tutorials/states.html">here</a>) breaks down how states are generated and
+  how they flow during computation. This is summarized in the illustration below, which is reproduced here for
+  convenience.</p>
+<div class="centered" style="margin-top: 40px; margin-bottom: 40px">
+<p><img alt="states" src="../_static/img/states.png"/></p>
+<p><i>Representation of the state flow at runtime in MotorNet.</i></p>
+</div>
+</section>
 
         </article>
       </div>
       <footer>
         
         <div class="related-pages">
-          
-          
+          <a class="next-page" href="changelog.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Changelog</div>
+              </div>
+              <svg><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="install.html">
+              <svg><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">How to Install</div>
+                
+              </div>
+            </a>
         </div>
         <div class="bottom-of-page">
           <div class="left-details">
