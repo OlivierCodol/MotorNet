@@ -20,8 +20,8 @@ commenting, and cleaning the code. For now, the package is available "as-is" but
 alpha and beta stage. Please feel free to log an issue if you think you found a bug, we appreciate any contribution. 
 Stay tuned for more!
 
-An [online documentation](https://oliviercodol.github.io/MotorNet/build/html/index.html) is currently being built. Feel 
-free to check it out.
+An [online documentation](https://oliviercodol.github.io/MotorNet/build/html/index.html) is available. Feel free to 
+check it out.
 
 ## How to Install
 
