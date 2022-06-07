@@ -120,82 +120,131 @@ def plot_2dof_arm_over_time(axis, arm, joint_state, cmap: str = 'viridis', linew
     axis.set_aspect('equal', adjustable='box')
 
 
-def animate_arm_trajectory(joint_position, plant, path_name='./Arm_animation.mp4'):
-    assert joint_position.shape[0] == 1
-    joint_position = tf.reshape(joint_position, (-1, plant.state_dim))
+def animate_trajectory(joint_position, model, path_name='./Arm_animation.mp4'):
+    
+    state_dim = model.task.network.plant.skeleton.state_dim
+    dt = model.task.network.plant.skeleton.dt.numpy()
+    skeleton_type = model.task.network.plant.skeleton.__name__
 
-    plant = plant.skeleton
+    assert joint_position.shape[0] == 1    
+    joint_position = tf.reshape(joint_position, (-1, state_dim)).numpy()
 
-    fig = plt.figure()
-    ax = plt.axes(xlim=(-1, 1), ylim=(-1, 1))
-    line, = ax.plot([], [], lw=2, alpha=0.7, color='red')  # Movement path
-    L1, = ax.plot([], [], lw=4)  # L1
-    L2, = ax.plot([], [], lw=4)  # L1
 
-    # plt.title('Desired Title')
-    # Axis control
-    plt.axis('off')
-    plt.gca().set_aspect('equal', adjustable='box')  # Make axis equal
-    plt.style.use('dark_background')
+    if skeleton_type == 'point_mass':
+        fig = plt.figure()
+        ax = plt.axes(xlim=(-1, 1), ylim=(-1, 1))
+        line, = ax.plot([], [], lw=2, alpha=0.2, color='red')  # Movement path
+        EndPoint = ax.scatter([], []) 
 
-    def my_joint2cartesian(plant, joint_pos):
-        joint_pos = tf.reshape(joint_pos, (-1, plant.state_dim))
-        joint_angle_sum = joint_pos[:, 0] + joint_pos[:, 1]
+        
+        plt.axis('off')
+        plt.gca().set_aspect('equal', adjustable='box')  # Make axis equal
+        plt.style.use('dark_background')
 
-        c1 = tf.cos(joint_pos[:, 0])
-        s1 = tf.sin(joint_pos[:, 0])
-        c12 = tf.cos(joint_angle_sum)
-        s12 = tf.sin(joint_angle_sum)
-
-        end_pos_x_l1 = plant.L1 * c1
-        end_pos_y_l1 = plant.L1 * s1
-        end_pos_x_l2 = plant.L2 * c12
-        end_pos_y_l2 = plant.L2 * s12
-
-        return end_pos_x_l1, end_pos_y_l1, end_pos_x_l2, end_pos_y_l2
-
-    # Initialization of data lists
-    def init():
-        # creating void frame
-        line.set_data([], [])
-        L1.set_data([], [])
-        L2.set_data([], [])
-        ax.scatter([0], [0])
-        return line,
+        # Initialization of data lists
+        def init():
+            # creating void frame
+            line.set_data([], [])
+            EndPoint.set_offsets(np.array([0,0]).T)
+            ax.scatter([0], [0], marker='+')
+            return line,EndPoint
 
         # Empty List for trajectories and arm position
+        xdata, ydata = [], []
 
-    xdata, ydata = [], []
-    L1_xdata, L1_ydata = [], []
-    L2_xdata, L2_ydata = [], []
+        # animation
+        def animate(i):
+            # Append the endpoint position
+            X = joint_position[i:i + 1, 0]
+            Y = joint_position[i:i + 1, 1]
+            xdata.append(X)
+            ydata.append(Y)
+            line.set_data(xdata, ydata)
+            EndPoint.set_offsets(np.array([X,Y]).T)
 
-    # animation
-    def animate(i):
-        # Get the position of end_point, L1, and L2
-        end_pos_x_l1, end_pos_y_l1, end_pos_x_l2, end_pos_y_l2 = my_joint2cartesian(plant, joint_position[i:i + 1, :])
+            return line, EndPoint
+        # call animation
+        anim = animation.FuncAnimation(fig, animate, init_func=init,
+                                    frames=joint_position.shape[0], interval=dt*1000, blit=False)
 
-        # Append the endpoint position
-        xdata.append(end_pos_x_l1 + end_pos_x_l2)
-        ydata.append(end_pos_y_l1 + end_pos_y_l2)
-        line.set_data(xdata, ydata)
+    elif 'two_dof_arm':
+        L1_len = model.task.network.plant.skeleton.L1.numpy()
+        L2_len = model.task.network.plant.skeleton.L2.numpy()
+        fig = plt.figure()
+        ax = plt.axes(xlim=(-( L1_len + L2_len), L1_len + L2_len), ylim=(-.1, L1_len + L2_len))
+        line, = ax.plot([], [], lw=2, alpha=0.4, color='red')  # Movement path
+        L1, = ax.plot([], [], lw=4, color='C0')  # L1
+        L2, = ax.plot([], [], lw=4, color='C1')  # L2
 
-        # Append the L1 position
-        L1_xdata = [0, end_pos_x_l1]
-        L1_ydata = [0, end_pos_y_l1]
-        L1.set_data(L1_xdata, L1_ydata)
+        # plt.title('Desired Title')
+        # Axis control
+        plt.axis('off')
+        plt.margins(0,0)
+        plt.subplots_adjust(top = 1, bottom = 0, right = 1, left = 0, 
+            hspace = 0, wspace = 0)
+        plt.gca().set_aspect('equal', adjustable='box')  # Make axis equal
+        plt.style.use('dark_background')
 
-        # Append the L2 position
-        L2_xdata = [end_pos_x_l1, end_pos_x_l1 + end_pos_x_l2]
-        L2_ydata = [end_pos_y_l1, end_pos_y_l1 + end_pos_y_l2]
-        L2.set_data(L2_xdata, L2_ydata)
 
-        return line, L1, L2
+        def joint2cartesian(joint_pos):
+            joint_pos = tf.reshape(joint_pos, (-1, state_dim))
+            joint_angle_sum = joint_pos[:, 0] + joint_pos[:, 1]
 
-    # call animation
-    anim = animation.FuncAnimation(fig, animate, init_func=init,
-                                   frames=joint_position.shape[0], interval=plant.dt, blit=True)
+            c1 = tf.cos(joint_pos[:, 0])
+            s1 = tf.sin(joint_pos[:, 0])
+            c12 = tf.cos(joint_angle_sum)
+            s12 = tf.sin(joint_angle_sum)
 
-    # save the animated file, (Used pillow, since it is usually installed by default)
-    Writer = animation.writers['ffmpeg']
-    writer = Writer(fps=1. / plant.dt)
-    anim.save(path_name, writer=writer, dpi=100)
+            end_pos_x_l1 = L1_len * c1
+            end_pos_y_l1 = L1_len * s1
+            end_pos_x_l2 = L2_len * c12
+            end_pos_y_l2 = L2_len * s12
+
+            return end_pos_x_l1, end_pos_y_l1, end_pos_x_l2, end_pos_y_l2
+
+        # Initialization of data lists
+        def init():
+            # creating void frame
+            line.set_data([], [])
+            L1.set_data([], [])
+            L2.set_data([], [])
+            ax.scatter([0], [0])
+            return line,L1,L2
+
+        # Empty List for trajectories and arm position
+        xdata, ydata = [], []
+
+        # animation
+        def animate(i):
+            # Get the position of end_point, L1, and L2
+            end_pos_x_l1, end_pos_y_l1, end_pos_x_l2, end_pos_y_l2 = joint2cartesian(joint_position[i:i + 1, :])
+
+            # Append the endpoint position
+            xdata.append(end_pos_x_l1 + end_pos_x_l2)
+            ydata.append(end_pos_y_l1 + end_pos_y_l2)
+            line.set_data(xdata, ydata)
+
+            # Append the L1 position
+            L1_xdata = [0, end_pos_x_l1]
+            L1_ydata = [0, end_pos_y_l1]
+            L1.set_data(L1_xdata, L1_ydata)
+
+            # Append the L2 position
+            L2_xdata = [end_pos_x_l1, end_pos_x_l1 + end_pos_x_l2]
+            L2_ydata = [end_pos_y_l1, end_pos_y_l1 + end_pos_y_l2]
+            L2.set_data(L2_xdata, L2_ydata)
+
+            return line, L1, L2
+        # call animation
+        anim = animation.FuncAnimation(fig, animate, init_func=init,
+                                    frames=joint_position.shape[0], interval=int(dt*1000), blit=False)
+        
+    else:
+        print("Unknown Skeleton!")
+        return None
+            
+    # save the animated file
+    display_html(HTML(anim.to_jshtml()))  
+    writer = animation.FFMpegWriter(fps=1/dt)
+    anim.save(path_name, writer=writer, dpi=400)
+    plt.close()
