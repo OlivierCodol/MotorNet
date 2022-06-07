@@ -131,14 +131,12 @@ def animate_trajectory(joint_position, model, save_animation = False, path_name=
     assert joint_position.shape[0] == 1    
     joint_position = tf.reshape(joint_position, (-1, state_dim)).numpy()
 
-
     if skeleton_type == 'point_mass':
         fig = plt.figure()
         ax = plt.axes(xlim=(-1, 1), ylim=(-1, 1))
         line, = ax.plot([], [], lw=2, alpha=0.2, color='red')  # Movement path
-        EndPoint = ax.scatter([], []) 
+        endpoint = ax.scatter([], []) 
 
-        
         plt.axis('off')
         plt.gca().set_aspect('equal', adjustable='box')  # Make axis equal
         plt.style.use('dark_background')
@@ -147,9 +145,9 @@ def animate_trajectory(joint_position, model, save_animation = False, path_name=
         def init():
             # creating void frame
             line.set_data([], [])
-            EndPoint.set_offsets(np.array([0,0]).T)
+            endpoint.set_offsets(np.array([0, 0]).T)
             ax.scatter([0], [0], marker='+')
-            return line,EndPoint
+            return line, endpoint
 
         # Empty List for trajectories and arm position
         xdata, ydata = [], []
@@ -157,23 +155,29 @@ def animate_trajectory(joint_position, model, save_animation = False, path_name=
         # animation
         def animate(i):
             # Append the endpoint position
-            X = joint_position[i:i + 1, 0]
-            Y = joint_position[i:i + 1, 1]
-            xdata.append(X)
-            ydata.append(Y)
+            x = joint_position[i:i + 1, 0]
+            y = joint_position[i:i + 1, 1]
+            xdata.append(x)
+            ydata.append(y)
             line.set_data(xdata, ydata)
-            EndPoint.set_offsets(np.array([X,Y]).T)
+            endpoint.set_offsets(np.array([x, y]).T)
 
-            return line, EndPoint
+            return line, endpoint
         # call animation
-        anim = animation.FuncAnimation(fig, animate, init_func=init,
-                                    frames=joint_position.shape[0], interval=dt*1000, blit=False)
+        anim = animation.FuncAnimation(
+            fig,
+            animate,
+            init_func=init,
+            frames=joint_position.shape[0],
+            interval=dt*1000,
+            blit=False
+        )
 
-    elif 'two_dof_arm':
+    elif skeleton_type == 'two_dof_arm':
         L1_len = model.task.network.plant.skeleton.L1.numpy()
         L2_len = model.task.network.plant.skeleton.L2.numpy()
         fig = plt.figure()
-        ax = plt.axes(xlim=(-( L1_len + L2_len), L1_len + L2_len), ylim=(-.1, L1_len + L2_len))
+        ax = plt.axes(xlim=(-(L1_len + L2_len), L1_len + L2_len), ylim=(-.1, L1_len + L2_len))
         line, = ax.plot([], [], lw=2, alpha=0.4, color='red')  # Movement path
         L1, = ax.plot([], [], lw=4, color='C0')  # L1
         L2, = ax.plot([], [], lw=4, color='C1')  # L2
@@ -181,12 +185,10 @@ def animate_trajectory(joint_position, model, save_animation = False, path_name=
         # plt.title('Desired Title')
         # Axis control
         plt.axis('off')
-        plt.margins(0,0)
-        plt.subplots_adjust(top = 1, bottom = 0, right = 1, left = 0, 
-            hspace = 0, wspace = 0)
+        plt.margins(0, 0)
+        plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
         plt.gca().set_aspect('equal', adjustable='box')  # Make axis equal
         plt.style.use('dark_background')
-
 
         def joint2cartesian(joint_pos):
             joint_pos = tf.reshape(joint_pos, (-1, state_dim))
@@ -211,7 +213,7 @@ def animate_trajectory(joint_position, model, save_animation = False, path_name=
             L1.set_data([], [])
             L2.set_data([], [])
             ax.scatter([0], [0])
-            return line,L1,L2
+            return line, L1, L2
 
         # Empty List for trajectories and arm position
         xdata, ydata = [], []
@@ -238,8 +240,14 @@ def animate_trajectory(joint_position, model, save_animation = False, path_name=
 
             return line, L1, L2
         # call animation
-        anim = animation.FuncAnimation(fig, animate, init_func=init,
-                                    frames=joint_position.shape[0], interval=int(dt*1000), blit=False)
+        anim = animation.FuncAnimation(
+            fig,
+            animate,
+            init_func=init,
+            frames=joint_position.shape[0],
+            interval=int(dt*1000),
+            blit=False
+        )
         
     else:
         print("Unknown Skeleton!")
