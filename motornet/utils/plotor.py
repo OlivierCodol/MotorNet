@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 from matplotlib import animation
 from matplotlib.collections import LineCollection
+from IPython.display import HTML, display_html 
 
 
 def compute_limits(data, margin=0.1):
@@ -120,8 +121,9 @@ def plot_2dof_arm_over_time(axis, arm, joint_state, cmap: str = 'viridis', linew
     axis.set_aspect('equal', adjustable='box')
 
 
-def animate_trajectory(joint_position, model, path_name='./Arm_animation.mp4'):
+def animate_trajectory(joint_position, model, save_animation = False, path_name='./Arm_animation.mp4'):
     
+    # Get Plant and Skeleton info
     state_dim = model.task.network.plant.skeleton.state_dim
     dt = model.task.network.plant.skeleton.dt.numpy()
     skeleton_type = model.task.network.plant.skeleton.__name__
@@ -244,7 +246,9 @@ def animate_trajectory(joint_position, model, path_name='./Arm_animation.mp4'):
         return None
             
     # save the animated file
-    display_html(HTML(anim.to_jshtml()))  
-    writer = animation.FFMpegWriter(fps=1/dt)
-    anim.save(path_name, writer=writer, dpi=400)
+    if save_animation: 
+        writer = animation.FFMpegWriter(fps=1/dt)
+        anim.save(path_name, writer=writer, dpi=400)
+    else:
+        display_html(HTML(anim.to_jshtml())) 
     plt.close()
