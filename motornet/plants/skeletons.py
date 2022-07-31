@@ -308,6 +308,14 @@ class TwoDofArm(Skeleton):
         self.L1 = tf.constant(kwargs.get('L1', l1), name='skeleton_L1')  # length of links
         self.L2 = tf.constant(kwargs.get('L2', l2), name='skeleton_L2')
 
+        # for consistency with args & backward compatibility
+        self.l1g = self.L1g
+        self.l2g = self.L2g
+        self.i1 = self.I1
+        self.i2 = self.I2
+        self.l1 = self.L1
+        self.l2 = self.L2
+
         # pre-compute values for mass, coriolis, and gravity matrices
         inertia_11_c = self.m1 * self.L1g ** 2 + self.I1 + self.m2 * (self.L2g ** 2 + self.L1 ** 2) + self.I2
         inertia_12_c = self.m2 * (self.L2g ** 2) + self.I2
@@ -441,9 +449,6 @@ class TwoDofArm(Skeleton):
 
         bone_origin = tf.where(path_fixation_body == 2, tf.concat([elb_x, elb_y], axis=1), 0.)
         xy = tf.concat([dy_da, -dx_da], axis=1) + bone_origin
-        print(xy.shape)
-        print(dxy_dt.shape)
-        print(dxy_da.shape)
         return xy, dxy_dt, dxy_da
 
     def get_save_config(self):
