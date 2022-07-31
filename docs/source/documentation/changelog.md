@@ -2,6 +2,16 @@
 
 ## Development releases
 
+
+### <font size="4">Version 0.1.2</font>
+*2022, July 31st*
+- Some optional arguments, and associated attributes for `mn.plants.skeletons.TwoDofArm` at initialization are now 
+case-insensitive.
+
+- Removed a typo that resulted in printing of some state shapes in `mn.plants.skeletons.TwoDofArm.path2cartesian()` 
+method.
+
+
 ### <font size="4">Version 0.1.1</font>
 *2022, June 4th*
 - Fixed `setup.py` to allow for solving the `tensorflow` dependency on M1-chip equipped Apple devices. Instead of asking
