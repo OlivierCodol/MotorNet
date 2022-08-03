@@ -44,18 +44,25 @@
 
 body {
     --color-code-fa-github: black;
+    --color-code-fa-file-alt: black;
 }
 
 @media not print {
     body[data-theme="dark"] {
         --color-code-fa-github: #d0d0d0;
+        --color-code-fa-file-alt: #d0d0d0;
     }
 
     @media (prefers-color-scheme: dark) {
         body:not([data-theme="light"]) {
             --color-code-fa-github: #d0d0d0;
+            --color-code-fa-file-alt: #d0d0d0;
         }
     }
+}
+
+.fa-file-alt {
+    color: var(--color-code-fa-file-alt);
 }
 
 .fa-github {
