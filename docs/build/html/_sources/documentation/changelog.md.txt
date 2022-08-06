@@ -2,6 +2,13 @@
 
 ## Development releases
 
+### <font size="4">Version 0.1.2</font>
+*2022, August 6th*
+- Removed a numpy.ndarray from `CenterOutReach` attributes to allow for JSON serialization when saving models.
+
+- Added a warning in `Task` base class to inform users when their task contains a numpy.ndarray as attribute. This is 
+to make them aware that it might raise an error when saving models due to numpy.ndarray not being JSON serializable.
+
 
 ### <font size="4">Version 0.1.2</font>
 *2022, July 31st*

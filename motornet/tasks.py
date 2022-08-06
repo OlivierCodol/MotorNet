@@ -254,6 +254,12 @@ class Task(tf.keras.utils.Sequence):
         cfg = {'name': self.__name__}  # 'training_iterations': self.training_iterations,
         attributes, values = self.get_attributes()
         for attribute, value in zip(attributes, values):
+            if isinstance(value, np.ndarray):
+                print("WARNING: One of the attributes of the Task object whose configuration dictionary is being "
+                      "fetched is a numpy array, which is not JSON serializable. This may result in an error when "
+                      "trying to save the model containing this Task as a JSON file. This is likely to occur with a "
+                      "custom Task subclass that includes a custom attribute saved as a numpy array. To avoid this, it "
+                      "is recommended to ensure none of the attributes of the Task are numpy arrays.")
             cfg[attribute] = value
 
         # save all losses as a list of dictionaries, each containing the information for one contributing loss.
@@ -523,7 +529,7 @@ class CentreOutReach(Task):
             lb = np.array(self.network.plant.pos_lower_bound)
             ub = np.array(self.network.plant.pos_upper_bound)
             self.start_position = lb + (ub - lb) / 2
-        self.start_position = np.array(self.start_position).reshape(1, -1)
+        self.start_position = np.array(self.start_position).reshape(-1).tolist()
 
         muscle_loss = L2xDxActivationLoss(
             max_iso_force=self.network.plant.muscle.max_iso_force,
@@ -554,7 +560,7 @@ class CentreOutReach(Task):
             batch_size = reps * len(angle_set)
             catch_trial = np.zeros(batch_size, dtype='float32')
 
-            start_jpv = np.concatenate([self.start_position, np.zeros_like(self.start_position)], axis=1)
+            start_jpv = np.concatenate([self.start_position, np.zeros_like(self.start_position)])[np.newaxis, :]
             start_cpv = self.network.plant.joint2cartesian(start_jpv)
             end_cp = self.reaching_distance * np.stack([np.cos(angle), np.sin(angle)], axis=-1)
             init_states = self.network.get_initial_state(batch_size=batch_size, inputs=start_jpv)

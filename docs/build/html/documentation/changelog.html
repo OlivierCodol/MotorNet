@@ -242,6 +242,15 @@
 <h2>Development releases<a class="headerlink" href="#development-releases" title="Permalink to this headline">#</a></h2>
 <section id="font-size-4-version-0-1-2-font">
 <h3><span class="raw-html-m2r"><font size="4">Version 0.1.2</font></span><a class="headerlink" href="#font-size-4-version-0-1-2-font" title="Permalink to this headline">#</a></h3>
+<p><em>2022, August 6th</em></p>
+<ul class="simple">
+<li><p>Removed a numpy.ndarray from <code class="docutils literal notranslate"><span class="pre">CenterOutReach</span></code> attributes to allow for JSON serialization when saving models.</p></li>
+<li><p>Added a warning in <code class="docutils literal notranslate"><span class="pre">Task</span></code> base class to inform users when their task contains a numpy.ndarray as attribute. This is
+to make them aware that it might raise an error when saving models due to numpy.ndarray not being JSON serializable.</p></li>
+</ul>
+</section>
+<section id="id1">
+<h3><span class="raw-html-m2r"><font size="4">Version 0.1.2</font></span><a class="headerlink" href="#id1" title="Permalink to this headline">#</a></h3>
 <p><em>2022, July 31st</em></p>
 <ul class="simple">
 <li><p>Some optional arguments, and associated attributes for <code class="docutils literal notranslate"><span class="pre">mn.plants.skeletons.TwoDofArm</span></code> at initialization are now
@@ -329,6 +338,7 @@ TensorFlow on machines equipped with M1 chips, which is <a class="reference exte
 <li><a class="reference internal" href="#">Changelog</a><ul>
 <li><a class="reference internal" href="#development-releases">Development releases</a><ul>
 <li><a class="reference internal" href="#font-size-4-version-0-1-2-font"><span class="raw-html-m2r"><font size="4">Version 0.1.2</font></span></a></li>
+<li><a class="reference internal" href="#id1"><span class="raw-html-m2r"><font size="4">Version 0.1.2</font></span></a></li>
 <li><a class="reference internal" href="#font-size-4-version-0-1-1-font"><span class="raw-html-m2r"><font size="4">Version 0.1.1</font></span></a></li>
 <li><a class="reference internal" href="#font-size-4-version-0-1-0-font"><span class="raw-html-m2r"><font size="4">Version 0.1.0</font></span></a></li>
 </ul>
