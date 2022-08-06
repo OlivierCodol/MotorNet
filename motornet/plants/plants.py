@@ -244,8 +244,9 @@ class Plant:
                 "coordinates": [self._path_coordinates.squeeze()[:, k].tolist() for k in ix],
             }
 
-            for param, value in self.tobuild__muscle.items():
-                d[param] = value[m]
+            if not self._muscle_config_is_empty:
+                for param, value in self.tobuild__muscle.items():
+                    d[param] = value[m]
 
             cfg[self.muscle_name[m]] = d
         if not cfg:
