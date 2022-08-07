@@ -247,6 +247,8 @@
 <li><p>Removed a numpy.ndarray from <code class="docutils literal notranslate"><span class="pre">CenterOutReach</span></code> attributes to allow for JSON serialization when saving models.</p></li>
 <li><p>Added a warning in <code class="docutils literal notranslate"><span class="pre">Task</span></code> base class to inform users when their task contains a numpy.ndarray as attribute. This is
 to make them aware that it might raise an error when saving models due to numpy.ndarray not being JSON serializable.</p></li>
+<li><p>Fixed an error in <code class="docutils literal notranslate"><span class="pre">mn.plants.Plant.get_muscle_cfg()</span></code> which occured when the method is called and  the <code class="docutils literal notranslate"><span class="pre">add_muscle</span></code>
+method was not called before.</p></li>
 </ul>
 </section>
 <section id="id1">

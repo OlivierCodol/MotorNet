@@ -9,6 +9,9 @@
 - Added a warning in `Task` base class to inform users when their task contains a numpy.ndarray as attribute. This is 
 to make them aware that it might raise an error when saving models due to numpy.ndarray not being JSON serializable.
 
+- Fixed an error in `mn.plants.Plant.get_muscle_cfg()` which occured when the method is called and  the `add_muscle` 
+method was not called before. 
+
 
 ### <font size="4">Version 0.1.2</font>
 *2022, July 31st*
