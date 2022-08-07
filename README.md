@@ -14,10 +14,9 @@ The toolbox focuses on subclassing to allow users to implement their custom task
 
 ## State of the project
 
-The package is technically functional, and is used by several people to progress in their research.
-However we are still in testing and development (pre-alpha), and we are currently focusing on documenting,
-commenting, and cleaning the code. For now, the package is available "as-is" but we hope to soon move to an
-alpha and beta stage. Please feel free to log an issue if you think you found a bug, we appreciate any contribution. 
+The package is feature complete, and is used by several people to progress in their research.
+We are currently in beta phase, meaning the toolbox is publicly available but we are still on the lookout for potential
+bugs and fixes to apply. Please feel free to log an issue if you think you found a bug, we appreciate any contribution. 
 Stay tuned for more!
 
 An [online documentation](https://oliviercodol.github.io/MotorNet/build/html/index.html) is available. Feel free to 
