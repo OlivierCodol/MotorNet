@@ -1,8 +1,8 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-NSCHXS3MTN"></script>
@@ -14,10 +14,10 @@
     </script>
     <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="motornet.nets.layers" href="motornet.nets.layers.html" /><link rel="prev" title="motornet.nets" href="motornet.nets.html" />
 
-    <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.06.21"/>
         <title>motornet.nets.callbacks - MotorNet 0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
     
@@ -220,7 +220,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -235,14 +236,14 @@
         </div>
         <article role="main">
           <section id="module-motornet.nets.callbacks">
-<span id="motornet-nets-callbacks"></span><h1>motornet.nets.callbacks<a class="headerlink" href="#module-motornet.nets.callbacks" title="Permalink to this headline">#</a></h1>
+<span id="motornet-nets-callbacks"></span><h1>motornet.nets.callbacks<a class="headerlink" href="#module-motornet.nets.callbacks" title="Permalink to this heading">#</a></h1>
 <p>This module implements <cite>tensorflow.keras.callbacks.Callback</cite> subclasses.
 For more information from the tensorflow package on what callbacks are and what they can achieve, feel free to refer to
 the tensorflow documentation on callbacks at: <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/Callback">https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/Callback</a>.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.BatchLogger">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">BatchLogger</span></span><a class="headerlink" href="#motornet.nets.callbacks.BatchLogger" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">keras.callbacks.Callback</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Callback</span></code></p>
 <p>In tensorflow, the default callbacks log performance metrics at the end of each epoch.
 This callback logs performance metrics at the end of each batch instead, providing more frequent logging of training
 performance.</p>
@@ -252,26 +253,29 @@ performance.</p>
 <dd><p>Called at the end of each batch. This saves the performance metrics contained in <cite>logs</cite>, as well as the model
 weights.</p>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.BatchLogger.on_train_begin">
 <span class="sig-name descname"><span class="pre">on_train_begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.BatchLogger.on_train_begin" title="Permalink to this definition">#</a></dt>
 <dd><p>Called at the beginning of training. This should only be called on train mode.
 Logs the initial model weights.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>logs</strong> – <cite>Dictionary</cite>, currently no data is passed to this argument for this method.</p>
 </dd>
 </dl>
 </dd></dl>
+
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.BatchwiseLearningRateScheduler">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">BatchwiseLearningRateScheduler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scheduler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.BatchwiseLearningRateScheduler" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">keras.callbacks.LearningRateScheduler</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">LearningRateScheduler</span></code></p>
 <p>The parent class adjusts the learning rate at the start of each epoch. This subclass instead applies the learning
 rate adjustement routine at the end of each batch, allowing for more frequent learning rate adjustements to occur.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>scheduler</strong> – A (potentially custom-made) function that takes a batch index (<cite>integer</cite>, indexed from 0) and
 current learning rate (<cite>float</cite>) as inputs and returns a new learning rate as output (<cite>float</cite>).</p></li>
@@ -286,7 +290,7 @@ current learning rate (<cite>float</cite>) as inputs and returns a new learning 
 The learning rate adjustement routine implemented in the <cite>on_epoch_begin</cite> method for the parent class is now
 implemented here instead.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>batch</strong> – <cite>Integer</cite>, index of batch.</p></li>
 <li><p><strong>logs</strong> – <cite>Dictionary</cite>, currently no data is passed to this argument for this method.</p></li>
@@ -294,17 +298,20 @@ implemented here instead.</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.BatchwiseLearningRateScheduler.on_epoch_begin">
 <span class="sig-name descname"><span class="pre">on_epoch_begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.BatchwiseLearningRateScheduler.on_epoch_begin" title="Permalink to this definition">#</a></dt>
 <dd><p>Called at the start of each epoch.
 This method is empty to overwrite the learning rate adjustement routine at the beginning of each epoch.</p>
 </dd></dl>
+
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.TensorflowFix">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">TensorflowFix</span></span><a class="headerlink" href="#motornet.nets.callbacks.TensorflowFix" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">keras.callbacks.Callback</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Callback</span></code></p>
 <p>This callback implements a fix for saving some tensorflow objects.
 See this github issue for more details.
 <a class="reference external" href="https://github.com/tensorflow/tensorflow/issues/42872">https://github.com/tensorflow/tensorflow/issues/42872</a></p>
@@ -317,7 +324,7 @@ See this github issue for more details.
 <span class="sig-name descname"><span class="pre">on_train_batch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.TensorflowFix.on_train_batch_end" title="Permalink to this definition">#</a></dt>
 <dd><p>Called at the end a batch during training. This should only be called on train mode.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>batch</strong> – <cite>Integer</cite>, index of batch.</p></li>
 <li><p><strong>logs</strong> – <cite>Dictionary</cite>, currently no data is passed to this argument for this method.</p></li>
@@ -325,28 +332,31 @@ See this github issue for more details.
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.TensorflowFix.on_train_begin">
 <span class="sig-name descname"><span class="pre">on_train_begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.TensorflowFix.on_train_begin" title="Permalink to this definition">#</a></dt>
 <dd><p>Called at the beginning of training. This should only be called on train mode.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>logs</strong> – <cite>Dictionary</cite>, currently no data is passed to this argument for this method.</p>
 </dd>
 </dl>
 </dd></dl>
+
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.TrainingPlotter">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">TrainingPlotter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_n_t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_loss</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_trials</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.TrainingPlotter" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">keras.callbacks.Callback</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Callback</span></code></p>
 <p>This callback plots the loss history and/or some test trials every <cite>plot_freq</cite> batches, to help monitor the
 model’s behaviour during the training session.</p>
 <p>If <cite>plot_loss</cite> is toggled on, the losses will be displayed, including the total loss and contributing losses.</p>
 <p>If test trials are toggled on (<cite>plot_trials &gt; 0</cite>), cartesian position, muscle activation, muscle velocity and
 network unit activity will be displayed, each in their own subplot.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>task</strong> – <a class="reference internal" href="motornet.task.html#motornet.tasks.Task" title="motornet.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.tasks.Task</span></code></a> class or subclass, corresponding to the <cite>Task</cite> object that the <cite>Network</cite>
 controller is given.</p></li>
@@ -363,7 +373,7 @@ argument is ignored if <cite>plot_trials</cite> is set to <cite>0</cite>.</p></l
 <span class="sig-name descname"><span class="pre">on_batch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.TrainingPlotter.on_batch_end" title="Permalink to this definition">#</a></dt>
 <dd><p>Plot losses, as well as test trials if this option is toggled on at initialization.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>batch</strong> – <cite>Integer</cite>, index of batch.</p></li>
 <li><p><strong>logs</strong> – <cite>Dictionary</cite>, currently no data is passed to this argument for this method.</p></li>
@@ -371,6 +381,7 @@ argument is ignored if <cite>plot_trials</cite> is set to <cite>0</cite>.</p></l
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.callbacks.TrainingPlotter.on_train_begin">
 <span class="sig-name descname"><span class="pre">on_train_begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.callbacks.TrainingPlotter.on_train_begin" title="Permalink to this definition">#</a></dt>
@@ -380,12 +391,14 @@ This allows plotting training information of previous training sessions even on 
 <p>This routine is implemented here instead of in the <code class="xref py py-meth docutils literal notranslate"><span class="pre">on_training_end()</span></code> method to ensure logging occurs even
 if the user interrupts an ongoing training session.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>logs</strong> – <cite>Dictionary</cite>, currently no data is passed to this argument for this method.</p>
 </dd>
 </dl>
 </dd></dl>
+
 </dd></dl>
+
 </section>
 
         </article>
@@ -442,6 +455,7 @@ if the user interrupts an ongoing training session.</p>
 </div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/scripts/furo.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>

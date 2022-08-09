@@ -1,8 +1,8 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-NSCHXS3MTN"></script>
@@ -14,10 +14,10 @@
     </script>
     <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Changelog" href="changelog.html" /><link rel="prev" title="How to Install" href="install.html" />
 
-    <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.06.21"/>
         <title>Functional Overview - MotorNet 0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
     <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
     
@@ -220,7 +220,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -235,16 +236,17 @@
         </div>
         <article role="main">
           <section id="functional-overview">
-<h1>Functional Overview<a class="headerlink" href="#functional-overview" title="Permalink to this headline">#</a></h1>
+<h1>Functional Overview<a class="headerlink" href="#functional-overview" title="Permalink to this heading">#</a></h1>
+
 <h2>MotorNet Classes</h2>
 <p>Being built in Python, Motornet is an object-oriented toolbox. There are six object classes to consider.</p>
 <ul>
-<li><code class="docutils literal notranslate"><span class="pre">Muscle</span></code> objects.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Skeleton</span></code> objects.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Plant</span></code> objects.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Network</span></code> objects.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Task</span></code> objects.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Loss</span></code> objects.</li>
+  <li><code class="docutils literal notranslate"><span class="pre">Muscle</span></code> objects.</li>
+  <li><code class="docutils literal notranslate"><span class="pre">Skeleton</span></code> objects.</li>
+  <li><code class="docutils literal notranslate"><span class="pre">Plant</span></code> objects.</li>
+  <li><code class="docutils literal notranslate"><span class="pre">Network</span></code> objects.</li>
+  <li><code class="docutils literal notranslate"><span class="pre">Task</span></code> objects.</li>
+  <li><code class="docutils literal notranslate"><span class="pre">Loss</span></code> objects.</li>
 </ul>
 <p>In addition, a <code class="docutils literal notranslate"><span class="pre">MotorNetModel</span></code> class will
   wrap all these objects into a model instance, which TensorFlow can use like any
@@ -254,6 +256,7 @@
   <a href="../motornet.nets.models.html">API Documentation</a>
   for more details).
 </p>
+
 <h4>Muscle class</h4>
 <p><code class="docutils literal notranslate"><span class="pre">Muscle</span></code> objects handle muscle dynamics,
   and muscle state generation.</p>
@@ -281,40 +284,42 @@
 <p><code class="docutils literal notranslate"><span class="pre">Loss</span></code> objects compute penalty values for
   training the network free parameters (the weights). They also hold routines for compounding losses when several losses
   are assigned to the same output state.</p>
+
 <h2>Class Hierarchy</h2>
 <p>The classes presented above rely on each other to function correctly. Consequently, they must be declared in a 
   sensible order, so that each instance retains as attribute the instances on which they rely. This leads to a 
   hierarchical class structure, where each instance lives in the computer memory in a nested fashion with other
   instances. The illustration below displays how this hierarchy is organized.</p>
-<div class="centered" style="margin-top: 40px; margin-bottom: 40px">
-<p><img alt="hierarchy" src="../_static/img/hierarchy.png" style="width: 90%"/></p>
-<p><i>Representation of the hierarchical relationship between class instances in MotorNet.</i></p>
+<div style="margin-top: 40px; margin-bottom: 40px" class="centered">
+  <p><img src="../_static/img/hierarchy.png" alt="hierarchy" style="width: 90%"></p>
+  <p><i>Representation of the hierarchical relationship between class instances in MotorNet.</i></p>
 </div>
+
 <h2>Information Flow at Runtime</h2>
 <h3>Computation Steps</h3>
 <p>The figure below summarizes the operations performed at runtime, as well as what how information flows between class
   instances.
 </p>
 <ul style="list-style: none; margin-top: 40px; margin-bottom: 40px">
-<li><img alt="blue1" src="../_static/img/icons/blue-1.png" width="18"/> Recompute inputs [optional]</li>
-<li><img alt="blue2" src="../_static/img/icons/blue-2.png" width="18"/> Send new motor commands</li>
-<li><img alt="red1" src="../_static/img/icons/red-1.png" width="18"/> Pass on motor commands</li>
-<li><img alt="red2" src="../_static/img/icons/red-2.png" width="18"/> Return forces</li>
-<li><img alt="red3" src="../_static/img/icons/red-3.png" width="18"/> Send moment-adjusted (generalized) forces</li>
-<li><img alt="red4" src="../_static/img/icons/red-4.png" width="18"/> Return new joint &amp; cartesian states</li>
-<li><img alt="red5" src="../_static/img/icons/red-5.png" width="18"/> Return feedback states</li>
+  <li><img src="../_static/img/icons/blue-1.png" alt="blue1" width="18"> Recompute inputs [optional]</li>
+  <li><img src="../_static/img/icons/blue-2.png" alt="blue2" width="18"> Send new motor commands</li>
+  <li><img src="../_static/img/icons/red-1.png" alt="red1" width="18"> Pass on motor commands</li>
+  <li><img src="../_static/img/icons/red-2.png" alt="red2" width="18"> Return forces</li>
+  <li><img src="../_static/img/icons/red-3.png" alt="red3" width="18"> Send moment-adjusted (generalized) forces</li>
+  <li><img src="../_static/img/icons/red-4.png" alt="red4" width="18"> Return new joint & cartesian states</li>
+  <li><img src="../_static/img/icons/red-5.png" alt="red5" width="18"> Return feedback states</li>
 </ul>
-<div class="centered" style="margin-top: 40px; margin-bottom: 40px">
-<p><img alt="serial" src="../_static/img/serial.png"/></p>
-<p><i>Representation of information flow at runtime in MotorNet.</i></p>
+<div style="margin-top: 40px; margin-bottom: 40px" class="centered">
+  <p><img src="../_static/img/serial.png" alt="serial"></p>
+  <p><i>Representation of information flow at runtime in MotorNet.</i></p>
 </div>
 <h3>State Flow</h3>
 <p>A dedicated tutorial (available <a href="../tutorials/states.html">here</a>) breaks down how states are generated and
   how they flow during computation. This is summarized in the illustration below, which is reproduced here for
   convenience.</p>
-<div class="centered" style="margin-top: 40px; margin-bottom: 40px">
-<p><img alt="states" src="../_static/img/states.png"/></p>
-<p><i>Representation of the state flow at runtime in MotorNet.</i></p>
+<div style="margin-top: 40px; margin-bottom: 40px" class="centered">
+  <p><img src="../_static/img/states.png" alt="states"></p>
+  <p><i>Representation of the state flow at runtime in MotorNet.</i></p>
 </div>
 </section>
 
@@ -372,6 +377,7 @@
 </div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>

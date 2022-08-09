@@ -1,8 +1,8 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-NSCHXS3MTN"></script>
@@ -14,10 +14,10 @@
     </script>
     <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="How to Install" href="documentation/install.html" /><link rel="prev" title="motornet.utils.plotor" href="motornet.utils.plotor.html" />
 
-    <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.06.21"/>
         <title>motornet.task - MotorNet 0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
     
@@ -220,7 +220,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -235,15 +236,15 @@
         </div>
         <article role="main">
           <section id="module-motornet.tasks">
-<span id="motornet-task"></span><h1>motornet.task<a class="headerlink" href="#module-motornet.tasks" title="Permalink to this headline">#</a></h1>
+<span id="motornet-task"></span><h1>motornet.task<a class="headerlink" href="#module-motornet.tasks" title="Permalink to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.tasks.CentreOutReach">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.tasks.</span></span><span class="sig-name descname"><span class="pre">CentreOutReach</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'CentreOutReach'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angular_step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">catch_trial_perc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reaching_distance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_position</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deriv_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">go_cue_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(0.05,</span> <span class="pre">0.25)</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.CentreOutReach" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#motornet.tasks.Task" title="motornet.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.tasks.Task</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.tasks.</span></span><span class="sig-name descname"><span class="pre">CentreOutReach</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'CentreOutReach'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angular_step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">catch_trial_perc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reaching_distance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_position</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deriv_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">go_cue_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(0.05,</span> <span class="pre">0.25)</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.CentreOutReach" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#motornet.tasks.Task" title="motornet.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a></p>
 <p>During training, the network will perform random reaches. During validation, the network will perform
 centre-out reaching movements.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>network</strong> – <a class="reference internal" href="motornet.nets.layers.html#motornet.nets.layers.Network" title="motornet.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.nets.layers.Network</span></code></a> object class or subclass. This is the network that will perform
 the task.</p></li>
@@ -273,7 +274,7 @@ distribution bounded by these values.</p></li>
 <span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_timesteps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.CentreOutReach.generate" title="Permalink to this definition">#</a></dt>
 <dd><p>Generates inputs, targets, and initial states to be passed to the <cite>model.fit</cite> call.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>batch_size</strong> – <cite>Integer</cite>, the batch size to use to create the inputs, targets, and initial states.</p></li>
 <li><p><strong>n_timesteps</strong> – <cite>Integer</cite>, the number of timesteps to use to create the inputs and targets. Initial states do
@@ -283,7 +284,7 @@ purposes). This is useful when one wants to test a network’s performance in a 
 are not the same as those used for training.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p>A <cite>dictionary</cite> to use as input to the model. Each value in the <cite>dictionary</cite> should be a <cite>tensor</cite> array.
 At the very least, the <cite>dictionary</cite> should contain a “inputs” key mapped to a <cite>tensor</cite> array, which will
@@ -298,14 +299,16 @@ initialization.</p></li>
 </dd>
 </dl>
 </dd></dl>
+
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.tasks.DelayedReach">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.tasks.</span></span><span class="sig-name descname"><span class="pre">DelayedReach</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'DelayedReach'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(0.3,</span> <span class="pre">0.6)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deriv_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.DelayedReach" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#motornet.tasks.Task" title="motornet.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.tasks.Task</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#motornet.tasks.Task" title="motornet.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a></p>
 <p>A random-delay reach to a random target from a random starting position.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>network</strong> – <a class="reference internal" href="motornet.nets.layers.html#motornet.nets.layers.Network" title="motornet.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.nets.layers.Network</span></code></a> object class or subclass. This is the network that will perform
 the task.</p></li>
@@ -324,7 +327,7 @@ bounded by these values.</p></li>
 <span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_timesteps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.DelayedReach.generate" title="Permalink to this definition">#</a></dt>
 <dd><p>Generates inputs, targets, and initial states to be passed to the <cite>model.fit</cite> call.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>batch_size</strong> – <cite>Integer</cite>, the batch size to use to create the inputs, targets, and initial states.</p></li>
 <li><p><strong>n_timesteps</strong> – <cite>Integer</cite>, the number of timesteps to use to create the inputs and targets. Initial states do
@@ -334,7 +337,7 @@ purposes). This is useful when one wants to test a network’s performance in a 
 are not the same as those used for training.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p>A <cite>dictionary</cite> to use as input to the model. Each value in the <cite>dictionary</cite> should be a <cite>tensor</cite> array.
 At the very least, the <cite>dictionary</cite> should contain a “inputs” key mapped to a <cite>tensor</cite> array, which will
@@ -349,14 +352,16 @@ initialization.</p></li>
 </dd>
 </dl>
 </dd></dl>
+
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.tasks.RandomTargetReach">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.tasks.</span></span><span class="sig-name descname"><span class="pre">RandomTargetReach</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'RandomTargetReach'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deriv_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.RandomTargetReach" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#motornet.tasks.Task" title="motornet.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.tasks.Task</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#motornet.tasks.Task" title="motornet.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a></p>
 <p>A reach to a random target from a random starting position.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>network</strong> – <a class="reference internal" href="motornet.nets.layers.html#motornet.nets.layers.Network" title="motornet.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.nets.layers.Network</span></code></a> object class or subclass. This is the network that will perform
 the task.</p></li>
@@ -372,7 +377,7 @@ loss.</p></li>
 <span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_timesteps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.RandomTargetReach.generate" title="Permalink to this definition">#</a></dt>
 <dd><p>Generates inputs, targets, and initial states to be passed to the <cite>model.fit</cite> call.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>batch_size</strong> – <cite>Integer</cite>, the batch size to use to create the inputs, targets, and initial states.</p></li>
 <li><p><strong>n_timesteps</strong> – <cite>Integer</cite>, the number of timesteps to use to create the inputs and targets. Initial states do
@@ -382,7 +387,7 @@ purposes). This is useful when one wants to test a network’s performance in a 
 are not the same as those used for training.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p>A <cite>dictionary</cite> to use as input to the model. Each value in the <cite>dictionary</cite> should be a <cite>tensor</cite> array.
 At the very least, the <cite>dictionary</cite> should contain a “inputs” key mapped to a <cite>tensor</cite> array, which will
@@ -397,14 +402,16 @@ initialization.</p></li>
 </dd>
 </dl>
 </dd></dl>
+
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.tasks.RandomTargetReachWithLoads">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.tasks.</span></span><span class="sig-name descname"><span class="pre">RandomTargetReachWithLoads</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint_load</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'RandomTargetReachWithLoads'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deriv_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.RandomTargetReachWithLoads" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#motornet.tasks.Task" title="motornet.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.tasks.Task</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.tasks.</span></span><span class="sig-name descname"><span class="pre">RandomTargetReachWithLoads</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint_load</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'RandomTargetReachWithLoads'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deriv_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.RandomTargetReachWithLoads" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#motornet.tasks.Task" title="motornet.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a></p>
 <p>A reach to a random target from a random starting position, with loads applied at the skeleton’s endpoint.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>network</strong> – <a class="reference internal" href="motornet.nets.layers.html#motornet.nets.layers.Network" title="motornet.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.nets.layers.Network</span></code></a> object class or subclass. This is the network that will perform
 the task.</p></li>
@@ -425,7 +432,7 @@ loss.</p></li>
 <span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_timesteps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.RandomTargetReachWithLoads.generate" title="Permalink to this definition">#</a></dt>
 <dd><p>Generates inputs, targets, and initial states to be passed to the <cite>model.fit</cite> call.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>batch_size</strong> – <cite>Integer</cite>, the batch size to use to create the inputs, targets, and initial states.</p></li>
 <li><p><strong>n_timesteps</strong> – <cite>Integer</cite>, the number of timesteps to use to create the inputs and targets. Initial states do
@@ -435,7 +442,7 @@ purposes). This is useful when one wants to test a network’s performance in a 
 are not the same as those used for training.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p>A <cite>dictionary</cite> to use as input to the model. Each value in the <cite>dictionary</cite> should be a <cite>tensor</cite> array.
 At the very least, the <cite>dictionary</cite> should contain a “inputs” key mapped to a <cite>tensor</cite> array, which will
@@ -450,14 +457,16 @@ initialization.</p></li>
 </dd>
 </dl>
 </dd></dl>
+
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.tasks.Task">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.tasks.</span></span><span class="sig-name descname"><span class="pre">Task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_joint_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Task'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.Task" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">keras.utils.data_utils.Sequence</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></p>
 <p>Base class for tasks.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>network</strong> – <a class="reference internal" href="motornet.nets.layers.html#motornet.nets.layers.Network" title="motornet.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.nets.layers.Network</span></code></a> object class or subclass. This is the network that will perform
 the task.</p></li>
@@ -476,7 +485,7 @@ argument.</p>
 <span class="sig-name descname"><span class="pre">add_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">assigned_output</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.Task.add_loss" title="Permalink to this definition">#</a></dt>
 <dd><p>Add a loss to optimize during training.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>assigned_output</strong> – <cite>String</cite>, the output state that the loss will be applied to. This should correspond to
 an output name from the <code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code> object instance passed at initialization. The output names
@@ -488,17 +497,18 @@ subclasses specific to <cite>MotorNet</cite> are available in the <a class="refe
 save losses during training.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Raises</dt>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>ValueError</strong> – If the <cite>assigned_output</cite> passed does not match any network output name.</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.tasks.Task.generate">
 <em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_timesteps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.Task.generate" title="Permalink to this definition">#</a></dt>
 <dd><p>Generates inputs, targets, and initial states to be passed to the <cite>model.fit</cite> call.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>batch_size</strong> – <cite>Integer</cite>, the batch size to use to create the inputs, targets, and initial states.</p></li>
 <li><p><strong>n_timesteps</strong> – <cite>Integer</cite>, the number of timesteps to use to create the inputs and targets. Initial states do
@@ -508,7 +518,7 @@ purposes). This is useful when one wants to test a network’s performance in a 
 are not the same as those used for training.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p>A <cite>dictionary</cite> to use as input to the model. Each value in the <cite>dictionary</cite> should be a <cite>tensor</cite> array.
 At the very least, the <cite>dictionary</cite> should contain a “inputs” key mapped to a <cite>tensor</cite> array, which will
@@ -523,12 +533,13 @@ initialization.</p></li>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.tasks.Task.get_attributes">
 <span class="sig-name descname"><span class="pre">get_attributes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.Task.get_attributes" title="Permalink to this definition">#</a></dt>
 <dd><p>Gets all non-callable attributes declared in the object instance, except for loss-related attributes.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><ul class="simple">
 <li><p>A <cite>list</cite> of attribute names as <cite>string</cite> elements.</p></li>
 <li><p>A <cite>list</cite> of attribute values.</p></li>
@@ -537,12 +548,13 @@ initialization.</p></li>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.tasks.Task.get_initial_state">
 <span class="sig-name descname"><span class="pre">get_initial_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.Task.get_initial_state" title="Permalink to this definition">#</a></dt>
 <dd><p>Computes initial state instances that are biomechanically compatible with each other.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>batch_size</strong> – <cite>Integer</cite>, the batch size defining the size of each state’s first dimension.</p></li>
 <li><p><strong>joint_state</strong> – The joint state from which the other state values are inferred. If provided, this is passed
@@ -552,12 +564,13 @@ initialization, that:attr:<cite>initial_joint_state</cite> will be passed instea
 <cite>None</cite> is passed as “input” argument.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A ‘list’ containing the output of the <a class="reference internal" href="motornet.nets.layers.html#motornet.nets.layers.Network.get_initial_state" title="motornet.nets.layers.Network.get_initial_state"><code class="xref py py-meth docutils literal notranslate"><span class="pre">motornet.nets.layers.Network.get_initial_state()</span></code></a> method,
 which is usually a <cite>tensor</cite> array per state.</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.tasks.Task.get_initial_state_layers">
 <span class="sig-name descname"><span class="pre">get_initial_state_layers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.Task.get_initial_state_layers" title="Permalink to this definition">#</a></dt>
@@ -580,13 +593,14 @@ objects do. Below is an example code using the current method to create a model.
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A <cite>list</cite> of <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.keras.layers.Input</span></code> object instances with dimensionality corresponding to
 the (initial) states provided by the <a class="reference internal" href="motornet.nets.layers.html#motornet.nets.layers.Network" title="motornet.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.nets.layers.Network</span></code></a> object instance passed at
 initialization.</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.tasks.Task.get_input_dict_layers">
 <span class="sig-name descname"><span class="pre">get_input_dict_layers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.Task.get_input_dict_layers" title="Permalink to this definition">#</a></dt>
@@ -610,30 +624,32 @@ states.</p>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A <cite>dictionary</cite>, with the same keys as the <code class="docutils literal notranslate"><span class="pre">inputs</span></code> dictionary from the <a class="reference internal" href="#motornet.tasks.Task.generate" title="motornet.tasks.Task.generate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">generate()</span></code></a> method. These keys
 are mapped onto <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.keras.layers.Input</span></code> object instances with dimensionality corresponding to
 the inputs provided in the <code class="docutils literal notranslate"><span class="pre">inputs</span></code> dictionary from the <a class="reference internal" href="#motornet.tasks.Task.generate" title="motornet.tasks.Task.generate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">generate()</span></code></a> method.</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.tasks.Task.get_input_dim">
 <span class="sig-name descname"><span class="pre">get_input_dim</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.Task.get_input_dim" title="Permalink to this definition">#</a></dt>
 <dd><p>Gets the dimensionality of each value in the input <cite>dictionary</cite> produced by the <a class="reference internal" href="#motornet.tasks.Task.generate" title="motornet.tasks.Task.generate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">generate()</span></code></a> method.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A <cite>dictionary</cite> with keys corresponding to those of the input <cite>dictionary</cite> produced by the <a class="reference internal" href="#motornet.tasks.Task.generate" title="motornet.tasks.Task.generate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">generate()</span></code></a>
 method, mapped to <cite>lists</cite> indicating the dimensionality (shape) of each value in the input <cite>dictionary</cite>.</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.tasks.Task.get_losses">
 <span class="sig-name descname"><span class="pre">get_losses</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.Task.get_losses" title="Permalink to this definition">#</a></dt>
 <dd><p>Gets the currently declared losses and their corresponding loss weight.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><ul class="simple">
 <li><p>A <cite>dictionary</cite> containing loss objects.</p></li>
 <li><p>A <cite>dictionary</cite> containing <cite>float</cite> values corresponding to each loss’ weight.</p></li>
@@ -642,23 +658,26 @@ method, mapped to <cite>lists</cite> indicating the dimensionality (shape) of ea
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.tasks.Task.get_save_config">
 <span class="sig-name descname"><span class="pre">get_save_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.Task.get_save_config" title="Permalink to this definition">#</a></dt>
 <dd><p>Gets the task object’s configuration as a <cite>dictionary</cite>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A <cite>dictionary</cite> containing the  parameters of the task’s configuration. All parameters held as non-callbale
 attributes by the object instance will be included in the <cite>dictionary</cite>.</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.tasks.Task.print_attributes">
 <span class="sig-name descname"><span class="pre">print_attributes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.Task.print_attributes" title="Permalink to this definition">#</a></dt>
 <dd><p>Prints all non-callable attributes declared in the object instance, except for loss-related attributes.
 To print loss-related attributes, see <a class="reference internal" href="#motornet.tasks.Task.print_losses" title="motornet.tasks.Task.print_losses"><code class="xref py py-meth docutils literal notranslate"><span class="pre">print_losses()</span></code></a>.</p>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.tasks.Task.print_losses">
 <span class="sig-name descname"><span class="pre">print_losses</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.Task.print_losses" title="Permalink to this definition">#</a></dt>
@@ -666,13 +685,14 @@ To print loss-related attributes, see <a class="reference internal" href="#motor
 initialization. This method prints the assigned output, loss object instance, loss weight and loss name of each
 loss. It also specifies if each loss is part of a compounded loss or not.</p>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.tasks.Task.set_training_params">
 <span class="sig-name descname"><span class="pre">set_training_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_timesteps</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.tasks.Task.set_training_params" title="Permalink to this definition">#</a></dt>
 <dd><p>Sets default training parameters for the <a class="reference internal" href="#motornet.tasks.Task.generate" title="motornet.tasks.Task.generate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">generate()</span></code></a> call. These will be overridden if the
 <a class="reference internal" href="#motornet.tasks.Task.generate" title="motornet.tasks.Task.generate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">generate()</span></code></a> method is called with alternative values for these parameters.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>batch_size</strong> – <cite>Integer</cite>, the batch size to use to create the inputs, targets, and initial states.</p></li>
 <li><p><strong>n_timesteps</strong> – <cite>Integer</cite>, the number of timesteps to use to create the inputs and targets. Initial states do
@@ -681,7 +701,9 @@ not require a time dimension.</p></li>
 </dd>
 </dl>
 </dd></dl>
+
 </dd></dl>
+
 </section>
 
         </article>
@@ -738,6 +760,7 @@ not require a time dimension.</p></li>
 </div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/scripts/furo.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>

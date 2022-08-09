@@ -1,8 +1,8 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-NSCHXS3MTN"></script>
@@ -14,10 +14,10 @@
     </script>
     <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="motornet.utils.plotor" href="motornet.utils.plotor.html" /><link rel="prev" title="motornet.plants.skeletons" href="motornet.plants.skeletons.html" />
 
-    <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.06.21"/>
         <title>motornet.utils - MotorNet 0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
     
@@ -220,7 +220,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -235,43 +236,43 @@
         </div>
         <article role="main">
           <section id="motornet-utils">
-<h1>motornet.utils<a class="headerlink" href="#motornet-utils" title="Permalink to this headline">#</a></h1>
+<h1>motornet.utils<a class="headerlink" href="#motornet-utils" title="Permalink to this heading">#</a></h1>
 <section id="module-motornet.utils">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-motornet.utils" title="Permalink to this headline">#</a></h2>
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-motornet.utils" title="Permalink to this heading">#</a></h2>
 <p>This package contains various functions and scripts that can be useful to the general user for building, training,
 and analysing models from <cite>MotorNet</cite>.</p>
 </section>
 <section id="module-motornet.utils.parallelizer">
-<span id="motornet-utils-parallelizer"></span><h2>motornet.utils.parallelizer<a class="headerlink" href="#module-motornet.utils.parallelizer" title="Permalink to this headline">#</a></h2>
+<span id="motornet-utils-parallelizer"></span><h2>motornet.utils.parallelizer<a class="headerlink" href="#module-motornet.utils.parallelizer" title="Permalink to this heading">#</a></h2>
 <p>This python script allows training <cite>MotorNet</cite> models in parallel on the CPU. This is particularly useful for CPUs
 with a large amount of cores, and should significantly improve training speed over many model iterations.</p>
 <p>This script should be called from a terminal console, and takes up to four parameter inputs.</p>
 <dl class="field-list simple">
-<dt class="field-odd">param 1</dt>
+<dt class="field-odd">param 1<span class="colon">:</span></dt>
 <dd class="field-odd"><p><cite>String</cite>, directory to use. The declared directory should contain the model configurations saved as a JSON file.
 See <a class="reference internal" href="motornet.nets.models.html#motornet.nets.models.DistalTeacher.save_model" title="motornet.nets.models.DistalTeacher.save_model"><code class="xref py py-meth docutils literal notranslate"><span class="pre">motornet.nets.models.DistalTeacher.save_model()</span></code></a> for more information on how to produce a model
 configuration file.</p>
 </dd>
-<dt class="field-even">param 2</dt>
+<dt class="field-even">param 2<span class="colon">:</span></dt>
 <dd class="field-even"><p><cite>String</cite>, whether run this script in <cite>train</cite> or <cite>test</cite> mode.</p>
 </dd>
-<dt class="field-odd">param 3</dt>
+<dt class="field-odd">param 3<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Run mode to be passed to task object. The type and content of this input will likely depend on the task
 object being used.</p>
 </dd>
-<dt class="field-even">param 4</dt>
+<dt class="field-even">param 4<span class="colon">:</span></dt>
 <dd class="field-even"><p><cite>Integer</cite>, total number of training iterations.</p>
 </dd>
-<dt class="field-odd">raises ValueError</dt>
+<dt class="field-odd">raises ValueError<span class="colon">:</span></dt>
 <dd class="field-odd"><p>If the first input’s directory does not contain a model’s JSON configuration file.</p>
 </dd>
-<dt class="field-even">raises ValueError</dt>
+<dt class="field-even">raises ValueError<span class="colon">:</span></dt>
 <dd class="field-even"><p>If the second input is not a <cite>train</cite> or <cite>test</cite> string.</p>
 </dd>
 </dl>
 </section>
 <section id="motornet-utils-plotor">
-<h2>motornet.utils.plotor<a class="headerlink" href="#motornet-utils-plotor" title="Permalink to this headline">#</a></h2>
+<h2>motornet.utils.plotor<a class="headerlink" href="#motornet-utils-plotor" title="Permalink to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="motornet.utils.plotor.html">motornet.utils.plotor</a></li>
@@ -355,6 +356,7 @@ object being used.</p>
 </div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/scripts/furo.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>

@@ -1,8 +1,8 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-NSCHXS3MTN"></script>
@@ -14,10 +14,10 @@
     </script>
     <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="motornet.task" href="motornet.task.html" /><link rel="prev" title="motornet.utils" href="motornet.utils.html" />
 
-    <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.06.21"/>
         <title>motornet.utils.plotor - MotorNet 0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
     
@@ -220,7 +220,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -235,18 +236,19 @@
         </div>
         <article role="main">
           <section id="module-motornet.utils.plotor">
-<span id="motornet-utils-plotor"></span><h1>motornet.utils.plotor<a class="headerlink" href="#module-motornet.utils.plotor" title="Permalink to this headline">#</a></h1>
+<span id="motornet-utils-plotor"></span><h1>motornet.utils.plotor<a class="headerlink" href="#module-motornet.utils.plotor" title="Permalink to this heading">#</a></h1>
 <p>This module contains various functions for plotting data from <cite>MotorNet</cite> training and simulation sessions.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="motornet.utils.plotor.animate_trajectory">
 <span class="sig-prename descclassname"><span class="pre">motornet.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">animate_trajectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_position</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_animation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./Arm_animation.mp4'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.plotor.animate_trajectory" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="motornet.utils.plotor.compute_limits">
 <span class="sig-prename descclassname"><span class="pre">motornet.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">compute_limits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.plotor.compute_limits" title="Permalink to this definition">#</a></dt>
 <dd><p>Computes the limits to use for plotting data, given the range of the dataset and a margin size around that range.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> – A <cite>numpy.ndarray</cite> containing the data to plot.</p></li>
 <li><p><strong>margin</strong> – <cite>Float</cite>, the proportion of the data’s range to add as margin for plotting. For instance, if the data
@@ -254,18 +256,19 @@ value range from <cite>0</cite> to <cite>10</cite>, and the margin is set to <ci
 the range is <cite>10</cite>.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A <cite>list</cite> of two <cite>float</cite> values, representing the lower and upper limits to use on the plot, in that order.</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="motornet.utils.plotor.plot_2dof_arm_over_time">
 <span class="sig-prename descclassname"><span class="pre">motornet.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">plot_2dof_arm_over_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'viridis'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linewidth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.plotor.plot_2dof_arm_over_time" title="Permalink to this definition">#</a></dt>
 <dd><p>Plots an arm26 over time, with earlier and later arm configuration in the movement being represented as darker
 and brighter colors, respectively.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>axis</strong> – A <cite>matplotlib</cite> axis handle.</p></li>
 <li><p><strong>arm</strong> – <a class="reference internal" href="motornet.plants.skeletons.html#motornet.plants.skeletons.TwoDofArm" title="motornet.plants.skeletons.TwoDofArm"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.skeletons.TwoDofArm</span></code></a> object to plot.</p></li>
@@ -279,13 +282,14 @@ the array is <cite>4</cite> (shoulder position, elbow position, shoulder velocit
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="motornet.utils.plotor.plot_pos_over_time">
 <span class="sig-prename descclassname"><span class="pre">motornet.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">plot_pos_over_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cart_results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.utils.plotor.plot_pos_over_time" title="Permalink to this definition">#</a></dt>
 <dd><p>Plots trajectory position over time, giving a darker color to the early part of a trajectory, and a lighter color
 to the later part of the trajectory.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>axis</strong> – A <cite>matplotlib</cite> axis handle to plot the trajectories.</p></li>
 <li><p><strong>cart_results</strong> – A <cite>numpy.ndarray</cite> containing the trajectories. Its dimensionality should be
@@ -296,6 +300,7 @@ the array is <cite>4</cite> (<cite>x</cite> position, <cite>y</cite> position, <
 </dd>
 </dl>
 </dd></dl>
+
 </section>
 
         </article>
@@ -352,6 +357,7 @@ the array is <cite>4</cite> (<cite>x</cite> position, <cite>y</cite> position, <
 </div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/scripts/furo.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>

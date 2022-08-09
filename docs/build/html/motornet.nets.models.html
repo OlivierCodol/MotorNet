@@ -1,8 +1,8 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-NSCHXS3MTN"></script>
@@ -14,10 +14,10 @@
     </script>
     <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="motornet.plants" href="motornet.plants.html" /><link rel="prev" title="motornet.nets.losses" href="motornet.nets.losses.html" />
 
-    <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.06.21"/>
         <title>motornet.nets.models - MotorNet 0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
     
@@ -220,7 +220,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -235,11 +236,11 @@
         </div>
         <article role="main">
           <section id="module-motornet.nets.models">
-<span id="motornet-nets-models"></span><h1>motornet.nets.models<a class="headerlink" href="#module-motornet.nets.models" title="Permalink to this headline">#</a></h1>
+<span id="motornet-nets-models"></span><h1>motornet.nets.models<a class="headerlink" href="#module-motornet.nets.models" title="Permalink to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.models.DistalTeacher">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.models.</span></span><span class="sig-name descname"><span class="pre">DistalTeacher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.models.DistalTeacher" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">keras.engine.training.Model</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
 <p>This is a custom <code class="docutils literal notranslate"><span class="pre">tensorflow.keras.Model</span></code> object, whose purpose is to enable saving
 <code class="docutils literal notranslate"><span class="pre">motornet.plants</span></code> object configuration when saving the model as well.</p>
 <p>In <cite>Tensorflow</cite>, <code class="docutils literal notranslate"><span class="pre">tensorflow.keras.Model</span></code> objects group layers into an object with training and inference
@@ -252,7 +253,7 @@ as defined in <cite>[1]</cite>.</p>
 <p>[1] <cite>Jordan MI, Rumelhart DE. Forward Models: Supervised Learning with a Distal Teacher.
 Cognitive Science, 1992 Jul;16(3):307-354. doi: 10.1207/s15516709cog1603_1.</cite></p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>inputs</strong> – A <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.keras.layers.Input`</span></code> object or <cite>list</cite> of <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.keras.layers.Input</span></code>
 objects that will serve as <cite>tensor</cite> placeholder input(s) to the model.</p></li>
@@ -273,37 +274,39 @@ capable of instantiating the same layer from the config
 dictionary. It does not handle layer connectivity
 (handled by Network), nor weights (handled by <cite>set_weights</cite>).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>config</strong> – A Python dictionary, typically the
 output of get_config.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A layer instance.</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.models.DistalTeacher.get_config">
 <span class="sig-name descname"><span class="pre">get_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.models.DistalTeacher.get_config" title="Permalink to this definition">#</a></dt>
 <dd><p>Gets the model’s configuration.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A <cite>dictionary</cite> containing the model’s configuration. This includes the task object passed at initialization.</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.models.DistalTeacher.save_model">
 <span class="sig-name descname"><span class="pre">save_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.models.DistalTeacher.save_model" title="Permalink to this definition">#</a></dt>
 <dd><p>Gets the model’s configuration as a dictionary and then save it into a JSON file.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – <p><cite>String</cite>, the absolute path to the JSON file that will be produced. The name of the JSON file itself
 should be included, without the extension. For instance, if we want to create a JSON file called
 <cite>my_model_config.json</cite> in <cite>~/path/to/desired/directory</cite>, we would call this method in the python console
 like so:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span><span class="s2">"~/path/to/desired/directory/my_model_config"</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span><span class="s2">&quot;~/path/to/desired/directory/my_model_config&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </p></li>
@@ -312,6 +315,7 @@ like so:</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.nets.models.DistalTeacher.train_step">
 <span class="sig-name descname"><span class="pre">train_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.models.DistalTeacher.train_step" title="Permalink to this definition">#</a></dt>
@@ -328,23 +332,26 @@ meaning there is usually no bias in sample representation.</p></li>
 </ul>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>data</strong> – A nested structure of <cite>tensor</cite> arrays.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A <cite>dictionary</cite> containing values that will be passed to
 <code class="xref py py-meth docutils literal notranslate"><span class="pre">tf.keras.callbacks.CallbackList.on_train_batch_end()</span></code>. Typically, the values of the <cite>Model</cite>’s metrics
 are returned. Example: <cite>{‘loss’: 0.2, ‘accuracy’: 0.7}</cite>.</p>
 </dd>
 </dl>
 </dd></dl>
+
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.models.MotorNetModel">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.models.</span></span><span class="sig-name descname"><span class="pre">MotorNetModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.models.MotorNetModel" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#motornet.nets.models.DistalTeacher" title="motornet.nets.models.DistalTeacher"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.nets.models.DistalTeacher</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#motornet.nets.models.DistalTeacher" title="motornet.nets.models.DistalTeacher"><code class="xref py py-class docutils literal notranslate"><span class="pre">DistalTeacher</span></code></a></p>
 <p>This is an alias name for the <a class="reference internal" href="#motornet.nets.models.DistalTeacher" title="motornet.nets.models.DistalTeacher"><code class="xref py py-class docutils literal notranslate"><span class="pre">DistalTeacher</span></code></a> class for backward compatibility.</p>
 </dd></dl>
+
 </section>
 
         </article>
@@ -401,6 +408,7 @@ are returned. Example: <cite>{‘loss’: 0.2, ‘accuracy’: 0.7}</cite>.</p>
 </div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/scripts/furo.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>

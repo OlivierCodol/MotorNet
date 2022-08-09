@@ -1,8 +1,8 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-NSCHXS3MTN"></script>
@@ -14,10 +14,10 @@
     </script>
     <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Create a Custom Task" href="tasks.html" /><link rel="prev" title="Build a Network" href="build-net.html" />
 
-    <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.06.21"/>
         <title>Structure of State Tensors - MotorNet 0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
     <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
     
@@ -220,7 +220,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -235,37 +236,40 @@
         </div>
         <article role="main">
           <section id="structure-of-state-tensors">
-<h1>Structure of State Tensors<a class="headerlink" href="#structure-of-state-tensors" title="Permalink to this headline">#</a></h1>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css" rel="stylesheet"/>
+<h1>Structure of State Tensors<a class="headerlink" href="#structure-of-state-tensors" title="Permalink to this heading">#</a></h1>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css" rel="stylesheet">
+
 <div style="margin-bottom: 30px; margin-left: 12px;">
-<p>
-<a href="https://github.com/OlivierCodol/MotorNet/blob/master/examples/3-states.ipynb">
-<i class="fab fa-github"></i> On GitHub
+  <p>
+    <a href="https://github.com/OlivierCodol/MotorNet/blob/master/examples/3-states.ipynb">
+      <i class="fab fa-github"></i> On GitHub
     </a>
-</p>
-<p>
-<a href="https://githubtocolab.com/OlivierCodol/MotorNet/blob/master/examples/3-states.ipynb">
-<img alt="colab-icon" src="../_static/img/icons/colab.svg" width="16px"/> On COLAB
+  </p>
+  <p>
+    <a href="https://githubtocolab.com/OlivierCodol/MotorNet/blob/master/examples/3-states.ipynb">
+      <img alt="colab-icon" src="../_static/img/icons/colab.svg" width="16px"/> On COLAB
     </a>
-</p>
+  </p>
 </div>
 <div style="margin-bottom: 30px; margin-left: 12px;">
-<p>This tutorial goes over the different types of states used in MotorNet, how they flow during simulation, how
+  <p>This tutorial goes over the different types of states used in MotorNet, how they flow during simulation, how
     they are structured and what information they carry.</p>
-<h3 style="margin-bottom: 20px; margin-top: 40px">Overview of state flow at runtime</h3>
-<p>This illustration summarizes the State flow at runtime and is reproduced here for convenience.</p>
-<div class="centered" style="margin-top: 40px; margin-bottom: 40px">
-<p><img alt="states" src="../_static/img/states.png"/></p>
-<p><i>Representation of the state flow at runtime in MotorNet.</i></p>
-</div>
-<h3 style="margin-bottom: 20px; margin-top: 40px">Structure of the tutorial</h3>
-<h5>I. Types of States</h5>
-<h5>II. State flow at runtime</h5>
-<h5>III. Dimensionality of State tensors</h5>
-<p>1. Plant States</p>
-<p>2. Network States</p>
-<h5>IV. Initial States from Task objects</h5>
-<h5>V. States as returned from Model forward pass</h5>
+  <h3 style="margin-bottom: 20px; margin-top: 40px">Overview of state flow at runtime</h3>
+  <p>This illustration summarizes the State flow at runtime and is reproduced here for convenience.</p>
+  <div style="margin-top: 40px; margin-bottom: 40px" class="centered">
+    <p><img src="../_static/img/states.png" alt="states"></p>
+    <p><i>Representation of the state flow at runtime in MotorNet.</i></p>
+  </div>
+
+
+  <h3 style="margin-bottom: 20px; margin-top: 40px">Structure of the tutorial</h3>
+  <h5>I. Types of States</h5>
+  <h5>II. State flow at runtime</h5>
+  <h5>III. Dimensionality of State tensors</h5>
+    <p>1. Plant States</p>
+    <p>2. Network States</p>
+  <h5>IV. Initial States from Task objects</h5>
+  <h5>V. States as returned from Model forward pass</h5>
 </div></section>
 
         </article>
@@ -322,6 +326,7 @@
 </div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>

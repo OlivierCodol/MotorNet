@@ -1,8 +1,8 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-NSCHXS3MTN"></script>
@@ -14,10 +14,10 @@
     </script>
     <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="motornet.nets.models" href="motornet.nets.models.html" /><link rel="prev" title="motornet.nets.layers" href="motornet.nets.layers.html" />
 
-    <meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.06.21"/>
         <title>motornet.nets.losses - MotorNet 0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css" />
     
@@ -220,7 +220,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -235,7 +236,7 @@
         </div>
         <article role="main">
           <section id="module-motornet.nets.losses">
-<span id="motornet-nets-losses"></span><h1>motornet.nets.losses<a class="headerlink" href="#module-motornet.nets.losses" title="Permalink to this headline">#</a></h1>
+<span id="motornet-nets-losses"></span><h1>motornet.nets.losses<a class="headerlink" href="#module-motornet.nets.losses" title="Permalink to this heading">#</a></h1>
 <p>This module implements custom <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.losses.Loss</span></code> objects that are useful for motor control.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -250,11 +251,11 @@ loss scaled by a used-defined <cite>deriv_weight</cite> scalar compared to the v
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.losses.CompoundedLoss">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.losses.</span></span><span class="sig-name descname"><span class="pre">CompoundedLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">losses</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_weights</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'compounded_loss'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.losses.CompoundedLoss" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.losses.LossFunctionWrapper</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">LossFunctionWrapper</span></code></p>
 <p>Wraps several losses into a single loss object, creating a composite loss that sums the loss value of
 each subloss. Each subloss’s contribution can be weighted by a constant scalar value.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>losses</strong> – <cite>List</cite> or <cite>tuple</cite> of loss objects.</p></li>
 <li><p><strong>loss_weights</strong> – <cite>List</cite> or <cite>tuple</cite> of <cite>float</cite> scalars indicating the weight of the
@@ -268,10 +269,11 @@ See the <cite>Tensorflow</cite> documentation for more details.</p></li>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.losses.L2ActivationL1MuscleVelIndLoss">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.losses.</span></span><span class="sig-name descname"><span class="pre">L2ActivationL1MuscleVelIndLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_iso_force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deriv_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'l2_activation_muscle_vel'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.losses.L2ActivationL1MuscleVelIndLoss" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.losses.LossFunctionWrapper</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">LossFunctionWrapper</span></code></p>
 <p>Applies a L2 penalty to muscle activation and an L1 penalty to muscle velocity.
 Must be applied to the <cite>muscle state</cite> output state.
 The L2 penalty on muscle activation is normalized by the maximum isometric force of each muscle.
@@ -280,7 +282,7 @@ If <code class="docutils literal notranslate"><span class="pre">a</span></code> 
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>max_iso_force</strong> – <cite>Float</cite> or <cite>list</cite>, the maximum isometric force of each muscle in the order they are declared in
 the <a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant" title="motornet.plants.plants.Plant"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant</span></code></a> object class or subclass.</p></li>
@@ -295,14 +297,15 @@ See the <cite>Tensoflow</cite> documentation for more details.</p></li>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.losses.L2ActivationLoss">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.losses.</span></span><span class="sig-name descname"><span class="pre">L2ActivationLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_iso_force</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'l2_activation'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.losses.L2ActivationLoss" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.losses.LossFunctionWrapper</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">LossFunctionWrapper</span></code></p>
 <p>Applies a L2 penalty to muscle activation. Must be applied to the <cite>muscle state</cite> output state.
 The L2 penalty is normalized by the maximum isometric force of each muscle.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>max_iso_force</strong> – <cite>Float</cite> or <cite>list</cite>, the maximum isometric force of each muscle in the order they are declared in
 the <a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant" title="motornet.plants.plants.Plant"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant</span></code></a> object class or subclass.</p></li>
@@ -315,10 +318,11 @@ See the <cite>Tensorflow</cite> documentation for more details.</p></li>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.losses.L2ActivationMuscleVelLoss">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.losses.</span></span><span class="sig-name descname"><span class="pre">L2ActivationMuscleVelLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_iso_force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deriv_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'l2_activation_muscle_vel'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.losses.L2ActivationMuscleVelLoss" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.losses.LossFunctionWrapper</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">LossFunctionWrapper</span></code></p>
 <p>Applies a L2 penalty to muscle activation and muscle velocity.
 Must be applied to the <cite>muscle state</cite> output state.
 The L2 penalty on muscle activation is normalized by the maximum isometric force of each muscle.
@@ -327,7 +331,7 @@ If <code class="docutils literal notranslate"><span class="pre">a</span></code> 
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>max_iso_force</strong> – <cite>Float</cite> or <cite>list</cite>, the maximum isometric force of each muscle in the order they are declared in
 the <a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant" title="motornet.plants.plants.Plant"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant</span></code></a> object class or subclass.</p></li>
@@ -341,17 +345,18 @@ See the <cite>Tensoflow</cite> documentation for more details.</p></li>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.losses.L2Regularizer">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.losses.</span></span><span class="sig-name descname"><span class="pre">L2Regularizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'l2_regularizer'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.losses.L2Regularizer" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.losses.LossFunctionWrapper</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">LossFunctionWrapper</span></code></p>
 <p>Applies a L2 penalty to the model’s output values.
 For instance, if we label an output value <code class="docutils literal notranslate"><span class="pre">x</span></code>, then the penalty would evaluate at:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">loss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">x</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> – <cite>String</cite>, the name (label) to give to the compounded loss object. This is used to print, plot, and save
 losses during training.</p></li>
@@ -362,10 +367,11 @@ See the <cite>Tensoflow</cite> documentation for more details.</p></li>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.losses.L2xDxActivationLoss">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.losses.</span></span><span class="sig-name descname"><span class="pre">L2xDxActivationLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_iso_force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deriv_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'l2_xdx_activation'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.losses.L2xDxActivationLoss" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.losses.LossFunctionWrapper</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">LossFunctionWrapper</span></code></p>
 <p>Applies a L2 penalty to muscle activation and its derivative. Must be applied to the <code class="docutils literal notranslate"><span class="pre">muscle</span> <span class="pre">state</span></code> output
 state. The L2 penalty is normalized by the maximum isometric force of each muscle.
 If we label normalized muscle activation <code class="docutils literal notranslate"><span class="pre">a</span></code>, and its derivative <code class="docutils literal notranslate"><span class="pre">da</span></code>, then the penalty would evaluate at:</p>
@@ -373,7 +379,7 @@ If we label normalized muscle activation <code class="docutils literal notransla
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>max_iso_force</strong> – <cite>Float</cite> or <cite>list</cite>, the maximum isometric force of each muscle in the order they are declared in
 the <a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant" title="motornet.plants.plants.Plant"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant</span></code></a> object class or subclass.</p></li>
@@ -388,17 +394,18 @@ See the <cite>Tensoflow</cite> documentation for more details.</p></li>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.losses.L2xDxRegularizer">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.losses.</span></span><span class="sig-name descname"><span class="pre">L2xDxRegularizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">deriv_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'gru_regularizer'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.losses.L2xDxRegularizer" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.losses.LossFunctionWrapper</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">LossFunctionWrapper</span></code></p>
 <p>Applies a L2 penalty to the model’s output values and value derivatives.
 For instance, if we label an output value <code class="docutils literal notranslate"><span class="pre">x</span></code>, and its derivative <code class="docutils literal notranslate"><span class="pre">dx</span></code>, then the penalty would evaluate at:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">loss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">x</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">deriv_weight</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">dx</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>deriv_weight</strong> – <cite>Float</cite>, the weight of the derivative’s penalty compared to the value itself.</p></li>
 <li><p><strong>dt</strong> – <cite>Float</cite>, the size of a single timestep. This is used to calculate derivatives using Euler’s method.</p></li>
@@ -411,10 +418,11 @@ See the <cite>Tensoflow</cite> documentation for more details.</p></li>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.losses.PositionLoss">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.losses.</span></span><span class="sig-name descname"><span class="pre">PositionLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'position'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.losses.PositionLoss" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.losses.LossFunctionWrapper</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">LossFunctionWrapper</span></code></p>
 <p>Applies a L1 penalty to positional error between the model’s output positional state <code class="docutils literal notranslate"><span class="pre">x</span></code> and a user-fed
 label position <code class="docutils literal notranslate"><span class="pre">y</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">xp</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># remove velocity from the positional state</span>
@@ -428,7 +436,7 @@ label position <code class="docutils literal notranslate"><span class="pre">y</s
 state array.</p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> – <cite>String</cite>, the name (label) to give to the compounded loss object. This is used to print, plot, and save
 losses during training.</p></li>
@@ -439,10 +447,11 @@ See the <cite>Tensoflow</cite> documentation for more details.</p></li>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet.nets.losses.RecurrentActivityRegularizer">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.nets.losses.</span></span><span class="sig-name descname"><span class="pre">RecurrentActivityRegularizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recurrent_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activity_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'recurrent_activity'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.nets.losses.RecurrentActivityRegularizer" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.losses.LossFunctionWrapper</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">LossFunctionWrapper</span></code></p>
 <p>Applies a L2 penalty to the model’s recurrent activity and hidden activity values.
 For instance, if we label the recurrent activity <code class="docutils literal notranslate"><span class="pre">f</span></code>, and the hidden activity <code class="docutils literal notranslate"><span class="pre">h</span></code>, then the
 penalty would evaluate at:</p>
@@ -455,7 +464,7 @@ GRU units.</p>
 <p>[1] <cite>Sussillo, D., Churchland, M., Kaufman, M. et al. A neural network that finds a naturalistic solution for
 the production of muscle activity. Nat Neurosci 18, 1025–1033 (2015). https://doi.org/10.1038/nn.4042</cite></p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>network</strong> – <a class="reference internal" href="motornet.nets.layers.html#motornet.nets.layers.Network" title="motornet.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.nets.layers.Network</span></code></a> object class or subclass. The Network object must be the one
 being trained. This is used to fetch the weight values of the layer indexed <cite>1</cite>.</p></li>
@@ -470,6 +479,7 @@ See the <cite>Tensorflow</cite> documentation for more details.</p></li>
 </dd>
 </dl>
 </dd></dl>
+
 </section>
 
         </article>
@@ -526,6 +536,7 @@ See the <cite>Tensorflow</cite> documentation for more details.</p></li>
 </div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/scripts/furo.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
