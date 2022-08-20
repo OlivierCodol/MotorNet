@@ -162,8 +162,10 @@ class Task(tf.keras.utils.Sequence):
         def sort_shape(i):
             if tf.is_tensor(i):
                 s = i.get_shape().as_list()
-            else:
+            elif isinstance(i, np.ndarray):
                 s = i.shape
+            else:
+                raise TypeError("Can only take a tensor or numpy.ndarray as input.")
             return s[-1]
 
         if type(inputs) is dict:
