@@ -28,7 +28,7 @@ def compute_limits(data, margin=0.1):
     return minval, maxval
 
 
-def _plot_line_collection(axis, segments, cmap: str = 'viridis', linewidth: int = 1, **kwargs):
+def _plot_line_collection(axis, segments, cmap='viridis', linewidth: int = 1, **kwargs):
     n_gradient = kwargs.get('n_gradient', segments.shape[0])
 
     norm = plt.Normalize(0, n_gradient)  # Create a continuous norm to map from data points to colors
@@ -43,7 +43,7 @@ def _plot_line_collection(axis, segments, cmap: str = 'viridis', linewidth: int 
     clb.set_label('timestep')
 
 
-def plot_pos_over_time(cart_results, axis):
+def plot_pos_over_time(cart_results, axis, cmap='viridis'):
     """Plots trajectory position over time, giving a darker color to the early part of a trajectory, and a lighter color
     to the later part of the trajectory.
 
@@ -56,11 +56,11 @@ def plot_pos_over_time(cart_results, axis):
     """
     n_timesteps = cart_results.shape[1]
     segments, points = _results_to_line_collection(cart_results)
-    _plot_line_collection(axis, segments, n_gradient=n_timesteps - 1)
+    _plot_line_collection(axis, segments, n_gradient=n_timesteps - 1, cmap=cmap)
     axis.set_xlabel('cartesian x')
     axis.set_ylabel('cartesian y')
     axis.set_aspect('equal', adjustable='box')
-    # plt.scatter(0., 0., label='shoulder fixation', zorder=np.inf, marker='+')
+    axis.margins(0.05)
 
 
 def _results_to_line_collection(results):
