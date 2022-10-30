@@ -53,6 +53,7 @@ def plot_pos_over_time(cart_results, axis, cmap='viridis'):
             `n_batches * n_timesteps * (2 . n_dim)`, with `n_dim` being the trajectory's dimensionality. For instance,
             for a planar reach, since the movement is in 2D space, we have`n_dim = 2`, meaning the third dimension of
             the array is `4` (`x` position, `y` position, `x` velocity, `y` velocity).
+        cmap: `String` or `matplotlib` colormap object, the colormap to use to visualize positions over time.
     """
     n_timesteps = cart_results.shape[1]
     segments, points = _results_to_line_collection(cart_results)
