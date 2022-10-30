@@ -2,6 +2,15 @@
 
 ## Development releases
 
+### <font size="4">Version 0.1.3</font>
+*2022, October 30th*
+- Fixed a bug which would prevent some new custom models from compiling due to mismatched sequence duration.
+
+- Added a `ClippedPositionLoss`, which penalizes positional error unless the radial distance to the desired position is
+less than a user-defined radius (target size) around said desired position (see documentation in the `mn.nets.losses`
+module for more details.)
+
+
 ### <font size="4">Version 0.1.2</font>
 *2022, August 6th*
 - Removed a numpy.ndarray from `CenterOutReach` attributes to allow for JSON serialization when saving models.

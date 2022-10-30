@@ -240,6 +240,45 @@ class L2xDxActivationLoss(LossFunctionWrapper):
                          deriv_weight=deriv_weight, dt=dt)
 
 
+class ClippedPositionLoss(LossFunctionWrapper):
+    """Applies a L1 penalty to positional error between the model's output positional state ``x`` and a user-fed
+        label position ``y``:
+
+        .. code-block:: python
+
+            xp, _ = np.split(x, 2, axis=-1)  # remove velocity from the positional state
+            yp, _ = np.split(y, 2, axis=-1)
+            loss = np.reduce_mean(np.abs(xp - yp))
+
+        If the radial distance to the desired position is less than a user-defined radius (target size), the loss is
+        clipped to be 0.
+
+        .. note::
+            The positional error does not include velocity, hence the use of ``np.split`` to extract position from the
+            state array.
+
+        Args:
+            target_size: `Float`, the radius around the desired position within which the position loss is clipped to 0.
+            name: `String`, the name (label) to give to the compounded loss object. This is used to print, plot, and
+                save losses during training.
+            reduction: The reduction method used. The default value is
+               ``tensorflow.python.keras.utils.losses_utils.ReductionV2.AUTO``.
+               See the `Tensoflow` documentation for more details.
+        """
+
+    def __init__(self, target_size: float, name: str = 'position', reduction=auto_reduction):
+        super().__init__(_clipped_position_loss, name=name, reduction=reduction, target_size=target_size)
+
+
+def _clipped_position_loss(y_true, y_pred, target_size):
+    true_pos, _ = tf.split(y_true, 2, axis=-1)
+    pred_pos, _ = tf.split(y_pred, 2, axis=-1)
+    err = true_pos - pred_pos
+    l1 = tf.abs(err)
+    l2 = tf.reduce_sum(tf.sqrt(err ** 2), axis=-1, keepdims=True)  # radial distance to desired position
+    return tf.reduce_mean(tf.where(l2 < target_size, 0., l1))
+
+
 def _compounded_losses(y_true, y_pred, losses, loss_weights):
     compounded_loss = loss_weights[0] * losses[0](y_true, y_pred)
     for weight, loss in zip(loss_weights[1:], losses[1:]):
@@ -280,8 +319,10 @@ def _l2_activation_l1_muscle_vel_ind_loss(y_true, y_pred, max_iso_force, activat
 def _l2_xdx_activation_loss(y_true, y_pred, max_iso_force, deriv_weight, dt):
     activation = tf.slice(y_pred, [0, 0, 0, 0], [-1, -1, 1, -1])
     activation_scaled = _scale_activation(activation, max_iso_force)
-    d_activation = tf.reduce_mean(tf.square((activation_scaled[:, :, 1:, :, :] -
-                                          activation_scaled[:, :, :-1, :, :]) / dt))
+    d_activation = tf.reduce_mean(
+        tf.square((activation_scaled[:, :, 1:, :, :] -
+                   activation_scaled[:, :, :-1, :, :]) / dt)
+    )
     return tf.reduce_mean(tf.square(activation_scaled)) + deriv_weight * d_activation
 
 
