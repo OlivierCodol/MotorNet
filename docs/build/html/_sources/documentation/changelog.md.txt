@@ -10,6 +10,9 @@
 less than a user-defined radius (target size) around said desired position (see documentation in the `mn.nets.losses`
 module for more details.)
 
+- The `plot_pos_over_time` function in the `mn.utils.plotor` module can now take colormaps as a keyword argument (see
+documentation for details.)
+
 
 ### <font size="4">Version 0.1.2</font>
 *2022, August 6th*
