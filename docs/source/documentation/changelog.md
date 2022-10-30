@@ -13,9 +13,6 @@ module for more details.)
 - The `plot_pos_over_time` function in the `mn.utils.plotor` module can now take colormaps as a keyword argument (see
 documentation for details.)
 
-
-### <font size="4">Version 0.1.2</font>
-*2022, August 6th*
 - Removed a numpy.ndarray from `CenterOutReach` attributes to allow for JSON serialization when saving models.
 
 - Added a warning in `Task` base class to inform users when their task contains a numpy.ndarray as attribute. This is 
