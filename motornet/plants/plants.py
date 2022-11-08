@@ -104,7 +104,9 @@ class Plant:
         self.input_dim = 0
         self.muscle_name = []
         self.muscle_state_dim = self.muscle.state_dim
-        self.geometry_state_dim = 2 + self.skeleton.dof  # musculotendon length & velocity + as many moments as dofs
+        self.geometry_state_dim = 2 + self.dof  # musculotendon length & velocity + as many moments as dofs
+        self.geometry_state_name =\
+            ['musculotendon_length', 'musculotendon_velocity'] + ['moment_' + str(d) for d in range(self.dof)]
         self.tobuild__muscle = self.muscle.to_build_dict
         self.tobuild__default = self.muscle.to_build_dict_default
 
@@ -487,6 +489,12 @@ class Plant:
 
     def get_geometry(self, joint_state):
         """Computes the geometry state from the joint state.
+        Computes the geometry state from the joint state.
+        Geometry state dimensionality is `[n_batch, n_timesteps, n_states, n_muscles]`. By default, there are as many
+        states as there are moments (that is, one per degree of freedom in the plant) plus two for musculotendon length
+        and musculotendon velocity. However, note that how many states and what they represent may vary depending on
+        the :class:`Plant` subclass. This should be available via the
+        :attr:`geometry_state_names` attribute.
 
         Args:
             joint_state: `Tensor`, the joint state from which the geometry state is computed.
