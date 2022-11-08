@@ -3,6 +3,7 @@ import tensorflow as tf
 from tensorflow.keras.layers import Layer, GRUCell, Dense, Lambda
 from abc import abstractmethod
 from typing import Union
+from ..utils import Alias
 
 
 class Network(Layer):
@@ -103,6 +104,9 @@ class Network(Layer):
         self.built = False
 
         super().__init__(**kwargs)
+
+    state_name = Alias("output_names", alias_name="state_name")
+    """An alias name for the `output_names` attribute."""
 
     @abstractmethod
     def forward_pass(self, inputs, states):
