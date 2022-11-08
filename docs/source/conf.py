@@ -70,3 +70,13 @@ html_theme = 'furo'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 html_css_files = ['custom.css']
+
+
+def autodoc_skip_member(app, what, name, obj, skip, options):
+    # from https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#skipping-members
+    exclude = callable(obj) is False and what != "module"
+    return True if exclude else None
+
+
+def setup(app):
+    app.connect('autodoc-skip-member', autodoc_skip_member)
