@@ -280,16 +280,20 @@ of the <a class="reference internal" href="#motornet.plants.muscles.Muscle" titl
 <li><p><strong>min_activation</strong> – <cite>Float</cite>, the minimum activation value that this muscle can have. Any activation value lower than
 this value will be clipped.</p></li>
 <li><p><strong>tau_activation</strong> – <cite>Float</cite>, the time constant for activation of the muscle. This is used for the Ordinary
-Differential Equation of the muscle activation function.</p></li>
+Differential Equation of the muscle activation method <a class="reference internal" href="#motornet.plants.muscles.Muscle.activation_ode" title="motornet.plants.muscles.Muscle.activation_ode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">activation_ode()</span></code></a>.</p></li>
 <li><p><strong>tau_deactivation</strong> – <cite>Float</cite>, the time constant for deactivation of the muscle. This is used for the Ordinary
-Differential Equation of the muscle activation function.</p></li>
+Differential Equation of the muscle activation method <a class="reference internal" href="#motornet.plants.muscles.Muscle.activation_ode" title="motornet.plants.muscles.Muscle.activation_ode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">activation_ode()</span></code></a>.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.plants.muscles.Muscle.activation_ode">
 <span class="sig-name descname"><span class="pre">activation_ode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">excitation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">muscle_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.Muscle.activation_ode" title="Permalink to this definition">#</a></dt>
-<dd><p>Computes the new activation value of the (set of) muscle(s).</p>
+<dd><p>Computes the new activation value of the (set of) muscle(s) according to the Ordinary Differential Equation
+shown in equations 1-2 in <cite>[1]</cite>.</p>
+<p class="rubric">References</p>
+<p>[1] <cite>Thelen DG. Adjustment of muscle mechanics model parameters to simulate dynamic contractions in older
+adults. J Biomech Eng. 2003 Feb;125(1):70-7. doi: 10.1115/1.1531112. PMID: 12661198.</cite></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -419,12 +423,16 @@ Differential Equations.</p></li>
 <dt class="sig sig-object py" id="motornet.plants.muscles.ReluMuscle">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">ReluMuscle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.ReluMuscle" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Muscle</span></code></a></p>
-<p>A “rectified linear” muscle that outputs the input directly, but can only have a positive activation value.
-In essence, this muscle object behaves as a simple linear actuator that can only pull, and not push. It does not
-have an upper bound and its output (assuming it is positive) is scaled by the declared maximum isometric force.
-Therefore, an input of <cite>1</cite> will yield an output force equal to the maximum isometric force.</p>
-<p>Note that the maximum isometric force is not declared at initialization but via the <code class="xref py py-meth docutils literal notranslate"><span class="pre">build()</span></code> call, which is
-inherited from the parent <a class="reference internal" href="#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Muscle</span></code></a> class.</p>
+<p>A “rectified linear” muscle whose force output <span class="math notranslate nohighlight">\(F\)</span> is a linear function of its activation value, which
+itself is bounded between <cite>0</cite> and <cite>1</cite>. Specifically:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[F = m * activation\]</div>
+</div>
+<p>with <span class="math notranslate nohighlight">\(m\)</span> the maximum isometric force of the muscle. Note that the maximum isometric force is not declared at
+initialization but via the <a class="reference internal" href="#motornet.plants.muscles.Muscle.build" title="motornet.plants.muscles.Muscle.build"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Muscle.build()</span></code></a> call, which is inherited from the parent <a class="reference internal" href="#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Muscle</span></code></a> class.
+The <span class="math notranslate nohighlight">\(activation\)</span> value is the result of an Ordinary Differential Equation computed by the
+<a class="reference internal" href="#motornet.plants.muscles.Muscle.activation_ode" title="motornet.plants.muscles.Muscle.activation_ode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Muscle.activation_ode()</span></code></a> method. It is not directly the <cite>excitation</cite> input drive.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>**kwargs</strong> – All contents are passed to the parent <a class="reference internal" href="#motornet.plants.muscles.Muscle" title="motornet.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Muscle</span></code></a> class.</p>
@@ -455,7 +463,7 @@ this value will be clipped.</p></li>
 <dt class="sig sig-object py" id="motornet.plants.muscles.RigidTendonHillMuscle.build">
 <span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_isometric_force</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.plants.muscles.RigidTendonHillMuscle.build" title="Permalink to this definition">#</a></dt>
 <dd><p>Build the muscle using arguments from the <a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant" title="motornet.plants.plants.Plant"><code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant</span></code></a> wrapper object. This should
-be called by the <a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.add_muscle" title="motornet.plants.plants.Plant.add_muscle"><code class="xref py py-meth docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant.add_muscle()</span></code></a> method to build the muscle scructure according
+be called by the <a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.add_muscle" title="motornet.plants.plants.Plant.add_muscle"><code class="xref py py-meth docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant.add_muscle()</span></code></a> method to build the muscle structure according
 to the parameters of that plant.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -591,5 +599,7 @@ object.</p></li>
     <script src="_static/doctools.js"></script>
     <script src="_static/scripts/furo.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>

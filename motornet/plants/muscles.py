@@ -182,18 +182,16 @@ class Muscle:
 
 
 class ReluMuscle(Muscle):
-    """A "rectified linear" muscle whose force output is a linear function of its activation value, which itself is
-    bounded between `0` and `1`. Specifically:
+    """A "rectified linear" muscle whose force output :math:`F` is a linear function of its activation value, which
+    itself is bounded between `0` and `1`. Specifically:
 
-    .. code-block:: python
+    .. math::
+        F = m * activation
 
-        force = self.max_iso_force * activation
-
-    The `activation` value is the result of an Ordinary Differential Equation computed by the :meth:`activation_ode`
-    method. It is not directly the `excitation` input drive.
-
-    Note that the maximum isometric force is not declared at initialization but via the :meth:`build` call, which is
-    inherited from the parent :class:`Muscle` class.
+    with :math:`m` the maximum isometric force of the muscle. Note that the maximum isometric force is not declared at
+    initialization but via the :meth:`Muscle.build` call, which is inherited from the parent :class:`Muscle` class.
+    The :math:`activation` value is the result of an Ordinary Differential Equation computed by the
+    :meth:`Muscle.activation_ode` method. It is not directly the `excitation` input drive.
 
     Args:
         **kwargs: All contents are passed to the parent :class:`Muscle` class.
