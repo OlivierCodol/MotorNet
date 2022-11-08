@@ -2,6 +2,22 @@
 
 ## Development releases
 
+
+<!--
+### <font size="4">Version 0.1.3</font>
+*YYYY, Month DDth*
+-->
+
+
+<!--
+### <font size="4">Version 0.1.3</font>
+*YYYY, Month DDth*
+- Added an attribute alias object at `mn.utils.Alias that allows users declare transparent aliases to object attributes.
+
+- Declared an alias `state_names` for `output_names` in the mn.nets.Network base class.
+-->
+
+
 ### <font size="4">Version 0.1.3</font>
 *2022, October 30th*
 - Fixed a bug which would prevent some new custom models from compiling due to mismatched sequence duration.
