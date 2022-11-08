@@ -15,6 +15,9 @@
 - Added an attribute alias object at `mn.utils.Alias that allows users declare transparent aliases to object attributes.
 
 - Declared an alias `state_names` for `output_names` in the mn.nets.Network base class.
+
+- Fixed the first `state_name` of `ReluMuscle` class from `excitation/activation` to `activation`, as excitation
+and activation are actually distinct variables. See that class' documentation for details. 
 -->
 
 
