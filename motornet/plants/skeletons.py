@@ -482,7 +482,7 @@ class PointMass(Skeleton):
             taken by the `space_dim` input.
     """
 
-    def __init__(self, space_dim: int, mass: float = 1., name: str = "point_mass", **kwargs):
+    def __init__(self, space_dim: int = 2, mass: float = 1., name: str = "point_mass", **kwargs):
         super().__init__(dof=space_dim, space_dim=space_dim, name=name, **kwargs)
         self.mass = tf.constant(mass, name='mass', dtype=tf.float32)
         self._mass_cfg = mass  # to avoid eager tensors for json serialization when saving models
