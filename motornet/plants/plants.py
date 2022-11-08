@@ -106,7 +106,7 @@ class Plant:
         self.muscle_state_dim = self.muscle.state_dim
         self.geometry_state_dim = 2 + self.dof  # musculotendon length & velocity + as many moments as dofs
         self.geometry_state_name =\
-            ['musculotendon_length', 'musculotendon_velocity'] + ['moment_' + str(d) for d in range(self.dof)]
+            ['musculotendon length', 'musculotendon velocity'] + ['moment for joint ' + str(d) for d in range(self.dof)]
         self.tobuild__muscle = self.muscle.to_build_dict
         self.tobuild__default = self.muscle.to_build_dict_default
 
