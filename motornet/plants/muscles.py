@@ -22,9 +22,9 @@ class Muscle:
         min_activation: `Float`, the minimum activation value that this muscle can have. Any activation value lower than
             this value will be clipped.
         tau_activation: `Float`, the time constant for activation of the muscle. This is used for the Ordinary
-            Differential Equation of the muscle activation function.
+            Differential Equation of the muscle activation method :meth:`activation_ode`.
         tau_deactivation: `Float`, the time constant for deactivation of the muscle. This is used for the Ordinary
-            Differential Equation of the muscle activation function.
+            Differential Equation of the muscle activation method :meth:`activation_ode`.
     """
 
     def __init__(self, input_dim: int = 1, output_dim: int = 1, min_activation: float = 0.,
@@ -75,7 +75,12 @@ class Muscle:
         self.built = True
 
     def activation_ode(self, excitation, muscle_state):
-        """Computes the new activation value of the (set of) muscle(s).
+        """Computes the new activation value of the (set of) muscle(s) according to the Ordinary Differential Equation
+        shown in equations 1-2 in `[1]`.
+
+        References:
+            [1] `Thelen DG. Adjustment of muscle mechanics model parameters to simulate dynamic contractions in older
+            adults. J Biomech Eng. 2003 Feb;125(1):70-7. doi: 10.1115/1.1531112. PMID: 12661198.`
 
         Args:
             excitation: `Float` or `list` of `float`, the descending excitation drive to the muscle(s). If several
@@ -170,12 +175,22 @@ class Muscle:
         cfg = {'name': str(self.__name__), 'state names': self.state_name}
         return cfg
 
+# A "rectified linear" muscle that outputs the input directly, but can only have a positive activation value.
+# In essence, this muscle object behaves as a simple linear actuator that can only pull, and not push. It does not
+# have an upper bound and its output (assuming it is positive) is scaled by the declared maximum isometric force.
+# Therefore, an input of `1` will yield an output force equal to the maximum isometric force.
+
 
 class ReluMuscle(Muscle):
-    """A "rectified linear" muscle that outputs the input directly, but can only have a positive activation value.
-    In essence, this muscle object behaves as a simple linear actuator that can only pull, and not push. It does not
-    have an upper bound and its output (assuming it is positive) is scaled by the declared maximum isometric force.
-    Therefore, an input of `1` will yield an output force equal to the maximum isometric force.
+    """A "rectified linear" muscle whose force output is a linear function of its activation value, which itself is
+    bounded between `0` and `1`. Specifically:
+
+    .. code-block:: python
+
+        force = self.max_iso_force * activation
+
+    The `activation` value is the result of an Ordinary Differential Equation computed by the :meth:`activation_ode`
+    method. It is not directly the `excitation` input drive.
 
     Note that the maximum isometric force is not declared at initialization but via the :meth:`build` call, which is
     inherited from the parent :class:`Muscle` class.
@@ -188,7 +203,7 @@ class ReluMuscle(Muscle):
         super().__init__(**kwargs)
         self.__name__ = 'ReluMuscle'
 
-        self.state_name = ['excitation/activation',
+        self.state_name = ['activation',
                            'muscle length',
                            'muscle velocity',
                            'force']
@@ -267,7 +282,7 @@ class RigidTendonHillMuscle(Muscle):
 
     def build(self, timestep, max_isometric_force, **kwargs):
         """Build the muscle using arguments from the :class:`motornet.plants.plants.Plant` wrapper object. This should
-        be called by the :meth:`motornet.plants.plants.Plant.add_muscle` method to build the muscle scructure according
+        be called by the :meth:`motornet.plants.plants.Plant.add_muscle` method to build the muscle structure according
         to the parameters of that plant.
 
         Args:
