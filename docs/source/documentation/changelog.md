@@ -6,6 +6,10 @@
 <!--
 ### <font size="4">Version 0.1.5</font>
 *YYYY, Month DDth*
+
+- Fixed a typo for a parameter value in the `mn.plants.muscles.RigidTendonHillMuscleThelen` class, from 0.66 to 0.6.
+This parameter was epsilon_0^M in equation 3 of the main reference (Thelen, 2003).
+
 -->
 
 

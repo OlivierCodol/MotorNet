@@ -394,7 +394,7 @@ class RigidTendonHillMuscleThelen(Muscle):
 
         # parameters for the passive element (PE) and contractile element (CE)
         self.pe_k = tf.constant(5., name='pe_k')
-        self.pe_1 = tf.constant(self.pe_k / 0.66, name='pe_1')
+        self.pe_1 = tf.constant(self.pe_k / 0.6, name='pe_1')  # divided by epsilon_0^M in Thelen (2003) eq. 3
         self.pe_den = tf.constant(tf.exp(self.pe_k) - 1, name='pe_den')
         self.ce_gamma = tf.constant(0.45, name='ce_gamma')
         self.ce_Af = tf.constant(0.25, name='ce_Af')
