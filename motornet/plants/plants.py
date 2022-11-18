@@ -596,7 +596,7 @@ class RigidTendonArm26(Plant):
     polynomial functions. The default integration method is Euler.
 
     If no `skeleton` input is provided, this object will use a :class:`motornet.plants.skeletons.TwoDofArm` skeleton,
-    with the following parameters:
+    with the following parameters (from `[1]`):
 
     - `m1 = 1.82`
     - `m2 = 1.43`
@@ -608,14 +608,14 @@ class RigidTendonArm26(Plant):
     - `l2 = 0.333`
 
     The default shoulder and elbow lower limits are defined as `0`, and their default upper limits as `135` and `155`
-    degrees, respectively. These parameters come from `[1]`.
+    degrees, respectively.
 
     The `kwargs` inputs are passed as-is to the parent :class:`Plant` class.
 
     References:
-        [1] `Kistemaker DA, Wong JD, Gribble PL. The central nervous system does not minimize energy cost in arm
-        movements. J Neurophysiol. 2010 Dec;104(6):2985-94. doi: 10.1152/jn.00483.2010. Epub 2010 Sep 8. PMID:
-        20884757.`
+        [1] `Nijhof, E.-J., & Kouwenhoven, E. Simulation of Multijoint Arm Movements (2000). In J. M. Winters & P. E.
+        Crago, Biomechanics and Neural Control of Posture and Movement (pp. 363–372). Springer New York.
+        doi: 10.1007/978-1-4612-2104-3_29`
 
     Args:
         muscle_type: A :class:`motornet.plants.muscles.Muscle` object class or subclass. This defines the type of muscle
