@@ -445,10 +445,10 @@ class GRUNetwork(Network):
         x = inputs
 
         for k in range(self.n_hidden_layers):
-            x, new_hidden_state = self.layers[k](x, states[- self.n_hidden_layers + k])
-            new_hidden_state_noisy = self.add_noise((new_hidden_state, self.hidden_noise_sd))
-            new_hidden_states_dict[self.layer_state_names[k]] = new_hidden_state_noisy
-            new_hidden_states.append(new_hidden_state_noisy)
+            hidden_state_noisy = self.add_noise((states[- self.n_hidden_layers + k], self.hidden_noise_sd))
+            x, new_hidden_state = self.layers[k](x, hidden_state_noisy)
+            new_hidden_states_dict[self.layer_state_names[k]] = new_hidden_state
+            new_hidden_states.append(new_hidden_state)
         u = self.layers[-1](x)
         return u, new_hidden_states, new_hidden_states_dict
 
