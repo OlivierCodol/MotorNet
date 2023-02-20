@@ -14,7 +14,7 @@
     </script>
     <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="motornet.nets.layers" href="motornet.nets.layers.html" /><link rel="prev" title="motornet.nets" href="motornet.nets.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.06.21"/>
+    <meta name="generator" content="sphinx-6.1.3, furo 2022.06.21"/>
         <title>motornet.nets.callbacks - MotorNet 0.1.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
@@ -144,7 +144,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -229,7 +229,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -446,17 +446,53 @@ if the user interrupts an ongoing training session.</p>
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            Contents
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">motornet.nets.callbacks</a><ul>
+<li><a class="reference internal" href="#motornet.nets.callbacks.BatchLogger"><code class="docutils literal notranslate"><span class="pre">BatchLogger</span></code></a><ul>
+<li><a class="reference internal" href="#motornet.nets.callbacks.BatchLogger.on_batch_end"><code class="docutils literal notranslate"><span class="pre">BatchLogger.on_batch_end()</span></code></a></li>
+<li><a class="reference internal" href="#motornet.nets.callbacks.BatchLogger.on_train_begin"><code class="docutils literal notranslate"><span class="pre">BatchLogger.on_train_begin()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#motornet.nets.callbacks.BatchwiseLearningRateScheduler"><code class="docutils literal notranslate"><span class="pre">BatchwiseLearningRateScheduler</span></code></a><ul>
+<li><a class="reference internal" href="#motornet.nets.callbacks.BatchwiseLearningRateScheduler.on_batch_end"><code class="docutils literal notranslate"><span class="pre">BatchwiseLearningRateScheduler.on_batch_end()</span></code></a></li>
+<li><a class="reference internal" href="#motornet.nets.callbacks.BatchwiseLearningRateScheduler.on_epoch_begin"><code class="docutils literal notranslate"><span class="pre">BatchwiseLearningRateScheduler.on_epoch_begin()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#motornet.nets.callbacks.TensorflowFix"><code class="docutils literal notranslate"><span class="pre">TensorflowFix</span></code></a><ul>
+<li><a class="reference internal" href="#motornet.nets.callbacks.TensorflowFix.on_train_batch_end"><code class="docutils literal notranslate"><span class="pre">TensorflowFix.on_train_batch_end()</span></code></a></li>
+<li><a class="reference internal" href="#motornet.nets.callbacks.TensorflowFix.on_train_begin"><code class="docutils literal notranslate"><span class="pre">TensorflowFix.on_train_begin()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#motornet.nets.callbacks.TrainingPlotter"><code class="docutils literal notranslate"><span class="pre">TrainingPlotter</span></code></a><ul>
+<li><a class="reference internal" href="#motornet.nets.callbacks.TrainingPlotter.on_batch_end"><code class="docutils literal notranslate"><span class="pre">TrainingPlotter.on_batch_end()</span></code></a></li>
+<li><a class="reference internal" href="#motornet.nets.callbacks.TrainingPlotter.on_train_begin"><code class="docutils literal notranslate"><span class="pre">TrainingPlotter.on_train_begin()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
   </div>
 </div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/scripts/furo.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     </body>

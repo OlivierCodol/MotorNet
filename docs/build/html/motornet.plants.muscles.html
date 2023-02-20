@@ -14,7 +14,7 @@
     </script>
     <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="motornet.plants.skeletons" href="motornet.plants.skeletons.html" /><link rel="prev" title="motornet.plants" href="motornet.plants.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.06.21"/>
+    <meta name="generator" content="sphinx-6.1.3, furo 2022.06.21"/>
         <title>motornet.plants.muscles - MotorNet 0.1.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
@@ -144,7 +144,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -229,7 +229,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -586,17 +586,53 @@ object.</p></li>
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            Contents
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">motornet.plants.muscles</a><ul>
+<li><a class="reference internal" href="#motornet.plants.muscles.CompliantTendonHillMuscle"><code class="docutils literal notranslate"><span class="pre">CompliantTendonHillMuscle</span></code></a></li>
+<li><a class="reference internal" href="#motornet.plants.muscles.Muscle"><code class="docutils literal notranslate"><span class="pre">Muscle</span></code></a><ul>
+<li><a class="reference internal" href="#motornet.plants.muscles.Muscle.activation_ode"><code class="docutils literal notranslate"><span class="pre">Muscle.activation_ode()</span></code></a></li>
+<li><a class="reference internal" href="#motornet.plants.muscles.Muscle.build"><code class="docutils literal notranslate"><span class="pre">Muscle.build()</span></code></a></li>
+<li><a class="reference internal" href="#motornet.plants.muscles.Muscle.get_initial_muscle_state"><code class="docutils literal notranslate"><span class="pre">Muscle.get_initial_muscle_state()</span></code></a></li>
+<li><a class="reference internal" href="#motornet.plants.muscles.Muscle.get_save_config"><code class="docutils literal notranslate"><span class="pre">Muscle.get_save_config()</span></code></a></li>
+<li><a class="reference internal" href="#motornet.plants.muscles.Muscle.integrate"><code class="docutils literal notranslate"><span class="pre">Muscle.integrate()</span></code></a></li>
+<li><a class="reference internal" href="#motornet.plants.muscles.Muscle.setattr"><code class="docutils literal notranslate"><span class="pre">Muscle.setattr()</span></code></a></li>
+<li><a class="reference internal" href="#motornet.plants.muscles.Muscle.update_ode"><code class="docutils literal notranslate"><span class="pre">Muscle.update_ode()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#motornet.plants.muscles.ReluMuscle"><code class="docutils literal notranslate"><span class="pre">ReluMuscle</span></code></a></li>
+<li><a class="reference internal" href="#motornet.plants.muscles.RigidTendonHillMuscle"><code class="docutils literal notranslate"><span class="pre">RigidTendonHillMuscle</span></code></a><ul>
+<li><a class="reference internal" href="#motornet.plants.muscles.RigidTendonHillMuscle.build"><code class="docutils literal notranslate"><span class="pre">RigidTendonHillMuscle.build()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#motornet.plants.muscles.RigidTendonHillMuscleThelen"><code class="docutils literal notranslate"><span class="pre">RigidTendonHillMuscleThelen</span></code></a><ul>
+<li><a class="reference internal" href="#motornet.plants.muscles.RigidTendonHillMuscleThelen.build"><code class="docutils literal notranslate"><span class="pre">RigidTendonHillMuscleThelen.build()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
   </div>
 </div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/scripts/furo.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>

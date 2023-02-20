@@ -2,15 +2,22 @@
 
 ## Development releases
 
-
 <!--
-### <font size="4">Version 0.1.5</font>
+### <font size="4">Version 0.1.6</font>
 *YYYY, Month DDth*
+
+- 
+-->
+
+
+### <font size="4">Version 0.1.5</font>
+*2023, February 19th*
 
 - Fixed a typo for a parameter value in the `mn.plants.muscles.RigidTendonHillMuscleThelen` class, from 0.66 to 0.6.
 This parameter was epsilon_0^M in equation 3 of the main reference (Thelen, 2003).
 
--->
+- Random noise is now correctly applied to gated recurrent units in the `mn.nets.layers.GRUNetwork.forward_pass()`
+method. Specifically, it is now applied before the non-linearity is applied rather than after.
 
 
 ### <font size="4">Version 0.1.4</font>

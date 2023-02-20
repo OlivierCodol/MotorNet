@@ -14,7 +14,7 @@
     </script>
     <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="motornet.nets" href="motornet.nets.html" /><link rel="prev" title="&lt;no title&gt;" href="modules.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.06.21"/>
+    <meta name="generator" content="sphinx-6.1.3, furo 2022.06.21"/>
         <title>MotorNet - MotorNet 0.1.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
@@ -248,19 +248,46 @@
 <li class="toctree-l1"><a class="reference internal" href="motornet.nets.html">motornet.nets</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="motornet.nets.html#module-motornet.nets">Module contents</a></li>
 <li class="toctree-l2"><a class="reference internal" href="motornet.nets.html#motornet-nets-callbacks">motornet.nets.callbacks</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="motornet.nets.callbacks.html">motornet.nets.callbacks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.nets.callbacks.html">motornet.nets.callbacks</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="motornet.nets.callbacks.html#motornet.nets.callbacks.BatchLogger"><code class="docutils literal notranslate"><span class="pre">BatchLogger</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.nets.callbacks.html#motornet.nets.callbacks.BatchwiseLearningRateScheduler"><code class="docutils literal notranslate"><span class="pre">BatchwiseLearningRateScheduler</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.nets.callbacks.html#motornet.nets.callbacks.TensorflowFix"><code class="docutils literal notranslate"><span class="pre">TensorflowFix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.nets.callbacks.html#motornet.nets.callbacks.TrainingPlotter"><code class="docutils literal notranslate"><span class="pre">TrainingPlotter</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="motornet.nets.html#motornet-nets-layers">motornet.nets.layers</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="motornet.nets.layers.html">motornet.nets.layers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.nets.layers.html">motornet.nets.layers</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="motornet.nets.layers.html#motornet.nets.layers.GRUNetwork"><code class="docutils literal notranslate"><span class="pre">GRUNetwork</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.nets.layers.html#motornet.nets.layers.Network"><code class="docutils literal notranslate"><span class="pre">Network</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.nets.layers.html#motornet.nets.layers.recttanh"><code class="docutils literal notranslate"><span class="pre">recttanh()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="motornet.nets.html#motornet-nets-losses">motornet.nets.losses</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="motornet.nets.losses.html">motornet.nets.losses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.nets.losses.html">motornet.nets.losses</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="motornet.nets.losses.html#motornet.nets.losses.ClippedPositionLoss"><code class="docutils literal notranslate"><span class="pre">ClippedPositionLoss</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.nets.losses.html#motornet.nets.losses.CompoundedLoss"><code class="docutils literal notranslate"><span class="pre">CompoundedLoss</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.nets.losses.html#motornet.nets.losses.L2ActivationL1MuscleVelIndLoss"><code class="docutils literal notranslate"><span class="pre">L2ActivationL1MuscleVelIndLoss</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.nets.losses.html#motornet.nets.losses.L2ActivationLoss"><code class="docutils literal notranslate"><span class="pre">L2ActivationLoss</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.nets.losses.html#motornet.nets.losses.L2ActivationMuscleVelLoss"><code class="docutils literal notranslate"><span class="pre">L2ActivationMuscleVelLoss</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.nets.losses.html#motornet.nets.losses.L2Regularizer"><code class="docutils literal notranslate"><span class="pre">L2Regularizer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.nets.losses.html#motornet.nets.losses.L2xDxActivationLoss"><code class="docutils literal notranslate"><span class="pre">L2xDxActivationLoss</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.nets.losses.html#motornet.nets.losses.L2xDxRegularizer"><code class="docutils literal notranslate"><span class="pre">L2xDxRegularizer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.nets.losses.html#motornet.nets.losses.PositionLoss"><code class="docutils literal notranslate"><span class="pre">PositionLoss</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.nets.losses.html#motornet.nets.losses.RecurrentActivityRegularizer"><code class="docutils literal notranslate"><span class="pre">RecurrentActivityRegularizer</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="motornet.nets.html#motornet-nets-models">motornet.nets.models</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="motornet.nets.models.html">motornet.nets.models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.nets.models.html">motornet.nets.models</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="motornet.nets.models.html#motornet.nets.models.DistalTeacher"><code class="docutils literal notranslate"><span class="pre">DistalTeacher</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.nets.models.html#motornet.nets.models.MotorNetModel"><code class="docutils literal notranslate"><span class="pre">MotorNetModel</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -268,21 +295,64 @@
 <li class="toctree-l1"><a class="reference internal" href="motornet.plants.html">motornet.plants</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="motornet.plants.html#module-motornet.plants">Module contents</a></li>
 <li class="toctree-l2"><a class="reference internal" href="motornet.plants.html#motornet-plants-muscles">motornet.plants.muscles</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="motornet.plants.muscles.html">motornet.plants.muscles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.plants.muscles.html">motornet.plants.muscles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.muscles.html#motornet.plants.muscles.CompliantTendonHillMuscle"><code class="docutils literal notranslate"><span class="pre">CompliantTendonHillMuscle</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.muscles.html#motornet.plants.muscles.Muscle"><code class="docutils literal notranslate"><span class="pre">Muscle</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.muscles.html#motornet.plants.muscles.ReluMuscle"><code class="docutils literal notranslate"><span class="pre">ReluMuscle</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.muscles.html#motornet.plants.muscles.RigidTendonHillMuscle"><code class="docutils literal notranslate"><span class="pre">RigidTendonHillMuscle</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.muscles.html#motornet.plants.muscles.RigidTendonHillMuscleThelen"><code class="docutils literal notranslate"><span class="pre">RigidTendonHillMuscleThelen</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="motornet.plants.html#motornet-plants-skeletons">motornet.plants.skeletons</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="motornet.plants.skeletons.html">motornet.plants.skeletons</a></li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.plants.skeletons.html">motornet.plants.skeletons</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.skeletons.html#motornet.plants.skeletons.PointMass"><code class="docutils literal notranslate"><span class="pre">PointMass</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.skeletons.html#motornet.plants.skeletons.Skeleton"><code class="docutils literal notranslate"><span class="pre">Skeleton</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.skeletons.html#motornet.plants.skeletons.TwoDofArm"><code class="docutils literal notranslate"><span class="pre">TwoDofArm</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="motornet.plants.html#id1">motornet.plants</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="motornet.plants.html#id1">motornet.plants</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="motornet.plants.html#motornet.plants.plants.CompliantTendonArm26"><code class="docutils literal notranslate"><span class="pre">CompliantTendonArm26</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant"><code class="docutils literal notranslate"><span class="pre">Plant</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.add_muscle"><code class="docutils literal notranslate"><span class="pre">Plant.add_muscle()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.draw_fixed_states"><code class="docutils literal notranslate"><span class="pre">Plant.draw_fixed_states()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.draw_random_uniform_states"><code class="docutils literal notranslate"><span class="pre">Plant.draw_random_uniform_states()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.get_geometry"><code class="docutils literal notranslate"><span class="pre">Plant.get_geometry()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.get_initial_state"><code class="docutils literal notranslate"><span class="pre">Plant.get_initial_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.get_muscle_cfg"><code class="docutils literal notranslate"><span class="pre">Plant.get_muscle_cfg()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.get_save_config"><code class="docutils literal notranslate"><span class="pre">Plant.get_save_config()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.integrate"><code class="docutils literal notranslate"><span class="pre">Plant.integrate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.integration_step"><code class="docutils literal notranslate"><span class="pre">Plant.integration_step()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.joint2cartesian"><code class="docutils literal notranslate"><span class="pre">Plant.joint2cartesian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.print_muscle_wrappings"><code class="docutils literal notranslate"><span class="pre">Plant.print_muscle_wrappings()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.setattr"><code class="docutils literal notranslate"><span class="pre">Plant.setattr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.state2target"><code class="docutils literal notranslate"><span class="pre">Plant.state2target()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.plants.html#motornet.plants.plants.Plant.update_ode"><code class="docutils literal notranslate"><span class="pre">Plant.update_ode()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.plants.html#motornet.plants.plants.ReluPointMass24"><code class="docutils literal notranslate"><span class="pre">ReluPointMass24</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.plants.html#motornet.plants.plants.RigidTendonArm26"><code class="docutils literal notranslate"><span class="pre">RigidTendonArm26</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="motornet.utils.html">motornet.utils</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="motornet.utils.html#module-motornet.utils">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="motornet.utils.html#module-motornet.utils">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="motornet.utils.html#motornet.utils.Alias"><code class="docutils literal notranslate"><span class="pre">Alias</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="motornet.utils.html#module-motornet.utils.parallelizer">motornet.utils.parallelizer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="motornet.utils.html#motornet-utils-plotor">motornet.utils.plotor</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="motornet.utils.plotor.html">motornet.utils.plotor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="motornet.utils.plotor.html">motornet.utils.plotor</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="motornet.utils.plotor.html#motornet.utils.plotor.animate_trajectory"><code class="docutils literal notranslate"><span class="pre">animate_trajectory()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.utils.plotor.html#motornet.utils.plotor.compute_limits"><code class="docutils literal notranslate"><span class="pre">compute_limits()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.utils.plotor.html#motornet.utils.plotor.plot_2dof_arm_over_time"><code class="docutils literal notranslate"><span class="pre">plot_2dof_arm_over_time()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="motornet.utils.plotor.html#motornet.utils.plotor.plot_pos_over_time"><code class="docutils literal notranslate"><span class="pre">plot_pos_over_time()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -373,10 +443,8 @@
     </aside>
   </div>
 </div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/scripts/furo.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     </body>
