@@ -42,8 +42,6 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'sphinx.ext.githubpages',
-    'nbsphinx',
-    'sphinxcontrib.googleanalytics',
 ]
 
 googleanalytics_id = "G-NSCHXS3MTN"
