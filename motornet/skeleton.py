@@ -215,7 +215,7 @@ class Skeleton(th.nn.Module):
     Returns:
       A `dictionary` containing the skeleton's degrees of freedom, timestep size, and space dimensionality.
     """
-    cfg = {'dof': self.dof, 'dt': str(self.dt.numpy()), 'space_dim': self.space_dim}
+    cfg = {'dof': self.dof, 'dt': str(self.dt), 'space_dim': self.space_dim}
     return cfg
 
   def get_save_config(self):
