@@ -174,7 +174,8 @@ class Environment(gym.Env, th.nn.Module):
   def step(
       self,
       action: th.Tensor | np.ndarray,
-      deterministic: bool = False
+      deterministic: bool = False,
+      **kwargs,
     ) -> tuple[th.Tensor | np.ndarray, bool, bool, dict[str, Any]]:
     """
     Perform one simulation step. This method is likely to be overwritten by any subclass to implement user-defined 
@@ -184,6 +185,8 @@ class Environment(gym.Env, th.nn.Module):
     Args:
       action: `Tensor` or `numpy.ndarray`, the input drive to the actuators.
       deterministic: `Boolean`, whether observation, action, proprioception, and vision noise are applied.
+      **kwargs: This is passed as-is to the :meth:`motornet.effector.Effector.step()` call. This is maily useful to pass
+      `endpoint_load` or `joint_load` kwargs.
   
     Returns:
       - The observation vector as `tensor` or `numpy.ndarray`, if the :class:`Environment` is set as differentiable or 
@@ -206,7 +209,7 @@ class Environment(gym.Env, th.nn.Module):
     if deterministic is False:
       noisy_action = self.apply_noise(noisy_action, noise=self.action_noise)
     
-    self.effector.step(noisy_action)
+    self.effector.step(noisy_action, **kwargs)
 
     obs = self.get_obs(action=noisy_action)
     reward = None if self.differentiable else np.zeros((self.detach(action.shape[0]), 1))
