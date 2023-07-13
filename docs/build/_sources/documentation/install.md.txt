@@ -45,7 +45,8 @@ If you are running the current development release (version 0.2.0), the requirem
 graph.
 - [NumPy](https://numpy.org/): For array and matrix computations when not using tensors.
 - [Gymnasium](https://numpy.org/): `motornet` environments inherit from `gymnasium` environments.
-
+- [Matplotlib](https://matplotlib.org/): For plotting utilities, mainly in the 
+`plotor.py` module.
 
 If you are running the current PyPI release (version0.1.5), which relies on TensorFlow, the requirements are as follow.
 
@@ -56,7 +57,7 @@ an adapted version called [tensorflow-macos](https://pypi.org/project/tensorflow
 `tensorflow` or `tensorflow-macos` dependency. 
 - [NumPy](https://numpy.org/): For array and matrix computations when not using tensors.
 - [Matplotlib](https://matplotlib.org/): For plotting utilities, mainly in the 
-[plotor](https://github.com/OlivierCodol/MotorNet/blob/master/motornet/utils/plotor.py) module.
+`plotor.py` module.
 - [IPython](https://ipython.org/): Mainly for
 [callbacks](https://github.com/OlivierCodol/MotorNet/blob/master/motornet/nets/callbacks.py) that output training 
 metrics during model training.
