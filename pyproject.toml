@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "motornet"
-version = "0.2.5"
+dynamic = ["version"]
 authors = [
   { name="Olivier Codol", email="codol.olivier@gmail.com" },
 ]
@@ -21,7 +21,11 @@ dependencies = [
     "numpy",
     "torch",
     "gymnasium",
+    "matplotlib",
 ]
+
+[tool.setuptools.dynamic]
+version = {attr = "motornet.__version__"}
 
 [tool.setuptools]
 packages = ["motornet"]
