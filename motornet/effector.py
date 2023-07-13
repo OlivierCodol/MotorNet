@@ -73,12 +73,6 @@ class Effector(th.nn.Module):
     self._np_random = None
     self.seed = None
 
-    # default is no delay
-    proprioceptive_delay = self.dt if proprioceptive_delay is None else proprioceptive_delay
-    visual_delay = self.dt if visual_delay is None else visual_delay
-    self.proprioceptive_delay = int(proprioceptive_delay / self.dt)
-    self.visual_delay = int(visual_delay / self.dt)
-
     # handle position & velocity ranges
     pos_lower_bound = self.skeleton.pos_lower_bound if pos_lower_bound is None else pos_lower_bound
     pos_upper_bound = self.skeleton.pos_upper_bound if pos_upper_bound is None else pos_upper_bound
