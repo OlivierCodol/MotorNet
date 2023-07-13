@@ -413,6 +413,8 @@ class Environment(gym.Env, th.nn.Module):
       value = self.detach(value)  # tensors are not JSON serializable
       if isinstance(value, np.ndarray):
         value = value.tolist()
+      if attribute in ("T_destination", "device"):
+        value = str(value)
       cfg[attribute] = value
 
     cfg["effector"] = self.effector.get_save_config()
