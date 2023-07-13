@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "motornet"
+version = "0.2.5"
+authors = [
+  { name="Olivier Codol", email="codol.olivier@gmail.com" },
+]
+description = "A PyTorch-powered python toolbox to train deep neural networks to perform motor tasks."
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["motornet", "pytorch"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "numpy",
+    "torch",
+    "gymnasium",
+]
+
+[tool.setuptools]
+packages = ["motornet"]
+
+[project.urls]
+"Homepage" = "https://oliviercodol.github.io/MotorNet/build/html/index.html"
+"Github" = "https://github.com/OlivierCodol/MotorNet"
