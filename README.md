@@ -32,7 +32,7 @@ version 0.2.0, which relies on PyTorch instead of TensorFlow. Please see the
 difference between the current development release and the PyPI release.
 
 ```
-pip install git+https://github.com/OlivierCodol/MotorNet.git
+pip install git+https://github.com/OlivierCodol/MotorNet.git@pytorch
 ```
 
 
@@ -71,7 +71,7 @@ graph.
 [plotor](https://github.com/OlivierCodol/MotorNet/blob/master/motornet/plotor.py) module.
 
 
-If you are running the current PyPI release (version0.1.5), which relies on TensorFlow, the requirements are as follow.
+If you are running the current PyPI release (version 0.1.5), which relies on TensorFlow, the requirements are as follow.
 
 - [TensorFlow](https://www.tensorflow.org/): MotorNet is first and foremost built on TensorFlow. However, the standard
 TensorFlow toolbox is not compatible with recent Apple machines equipped with M1 silicon chips, and users must rely on 
