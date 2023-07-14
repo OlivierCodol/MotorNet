@@ -3,7 +3,7 @@ A PyTorch-powered python toolbox to train deep neural networks to perform motor 
 """
 
 __name__ = "motornet"
-__version__ = "0.2.5"
+__version__ = "0.2.0"
 
 from . import muscle
 from . import skeleton
