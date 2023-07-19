@@ -54,8 +54,10 @@ class Muscle(th.nn.Module):
     self.l0_se = None
     self.l0_ce = None
     self.l0_pe = None
-    self.clip_activation = lambda a: th.clip(a, self.min_activation, 1.)
     self.built = False
+
+  def clip_activation(self, a):
+    return th.clamp(a, self.min_activation, 1.)
   
   @property
   def device(self):

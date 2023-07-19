@@ -62,11 +62,20 @@ class Skeleton(th.nn.Module):
     self.clip_position = None
     self.init = False
     self.built = False
-    self.detach = lambda x: x.cpu().detach().numpy() if th.is_tensor(x) else x
+    #self.detach = lambda x: x.cpu().detach().numpy() if th.is_tensor(x) else x
 
-    def clip(x, lb, ub): return th.min(th.max(x, lb), ub)
-    self.clip = clip
+    self.clip = self._clip
 
+  @staticmethod
+  def _clip(x, lb, ub):
+    return th.min(th.max(x, lb), ub)
+
+  def clip_method(self, x):
+    return self.clip(x, self.pos_lower_bound, self.pos_upper_bound)
+
+  def detach(self, x):
+    return x.cpu().detach().numpy() if th.is_tensor(x) else x
+  
   def build(
       self,
       timestep: float,
@@ -99,7 +108,7 @@ class Skeleton(th.nn.Module):
     self.vel_upper_bound = Parameter(th.tensor(vel_upper_bound, dtype=th.float32).reshape(1, -1), requires_grad=False)
     self.vel_lower_bound = Parameter(th.tensor(vel_lower_bound, dtype=th.float32).reshape(1, -1), requires_grad=False)
     self.dt = timestep
-    self.clip_position = lambda x: self.clip(x, self.pos_lower_bound, self.pos_upper_bound)
+    self.clip_position = self.clip_method
     self.built = True
 
   def path2cartesian(self, path_coordinates, path_fixation_body, joint_state):

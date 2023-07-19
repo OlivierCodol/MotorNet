@@ -77,8 +77,6 @@ class Environment(gym.Env, th.nn.Module):
     self.q_init = q_init
     self.goal = None
 
-    self.detach = lambda x: x.cpu().detach().numpy() if th.is_tensor(x) else x
-
     self._action_noise = action_noise
     self._obs_noise = obs_noise
     self.action_noise = 0.
@@ -107,7 +105,10 @@ class Environment(gym.Env, th.nn.Module):
 
     self.seed = None
     self._build_spaces()
-      
+
+  def detach(self, x):
+    return x.cpu().detach().numpy() if th.is_tensor(x) else x
+  
   def _build_spaces(self):
     self.action_space = gym.spaces.Box(low=0., high=1., shape=(self.effector.n_muscles,), dtype=np.float32)
 
