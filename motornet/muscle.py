@@ -708,8 +708,8 @@ class RigidTendonHillMuscleThelen(Muscle):
     self.vmax = Parameter(10 * self.l0_ce, requires_grad=False)
 
     # pre-computed for speed
-    self.ce_1 = Parameter(3 * self.vmax, requires_grad=False)
-    self.ce_0 = Parameter(self.ce_Af * self.vmax, requires_grad=False)
+    self.ce_0 = Parameter(3 * self.vmax, requires_grad=False)
+    self.ce_1 = Parameter(self.ce_Af * self.vmax, requires_grad=False)
     self.ce_2 = Parameter(3 * self.ce_Af * self.vmax * self.ce_fmlen - 3. * self.ce_Af * self.vmax, requires_grad=False)
     self.ce_3 = Parameter(8 * self.ce_Af * self.ce_fmlen + 8. * self.ce_fmlen, requires_grad=False)
     self.ce_4 = Parameter(self.ce_Af * self.ce_fmlen * self.vmax - self.ce_1, requires_grad=False)
