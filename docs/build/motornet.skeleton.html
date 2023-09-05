@@ -343,6 +343,11 @@ degrees-of-freedom arm, we would have <cite>n=2</cite>.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="motornet.skeleton.Skeleton.clip_method">
+<span class="sig-name descname"><span class="pre">clip_method</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.skeleton.Skeleton.clip_method" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="motornet.skeleton.Skeleton.clip_velocity">
 <span class="sig-name descname"><span class="pre">clip_velocity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.skeleton.Skeleton.clip_velocity" title="Permalink to this definition">#</a></dt>
 <dd><p>Clips the joint velocities input based on the velocity boundaries as well as the joint positions.
@@ -361,6 +366,11 @@ past that boundary, then the velocity is set to <cite>0</cite>.</p>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="motornet.skeleton.Skeleton.detach">
+<span class="sig-name descname"><span class="pre">detach</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet.skeleton.Skeleton.detach" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet.skeleton.Skeleton.get_base_config">
@@ -599,7 +609,9 @@ to the configuration: each bone length, mass, center of gravity, coriolis forces
 </li>
 <li><a class="reference internal" href="#motornet.skeleton.Skeleton"><code class="docutils literal notranslate"><span class="pre">Skeleton</span></code></a><ul>
 <li><a class="reference internal" href="#motornet.skeleton.Skeleton.build"><code class="docutils literal notranslate"><span class="pre">Skeleton.build()</span></code></a></li>
+<li><a class="reference internal" href="#motornet.skeleton.Skeleton.clip_method"><code class="docutils literal notranslate"><span class="pre">Skeleton.clip_method()</span></code></a></li>
 <li><a class="reference internal" href="#motornet.skeleton.Skeleton.clip_velocity"><code class="docutils literal notranslate"><span class="pre">Skeleton.clip_velocity()</span></code></a></li>
+<li><a class="reference internal" href="#motornet.skeleton.Skeleton.detach"><code class="docutils literal notranslate"><span class="pre">Skeleton.detach()</span></code></a></li>
 <li><a class="reference internal" href="#motornet.skeleton.Skeleton.get_base_config"><code class="docutils literal notranslate"><span class="pre">Skeleton.get_base_config()</span></code></a></li>
 <li><a class="reference internal" href="#motornet.skeleton.Skeleton.get_save_config"><code class="docutils literal notranslate"><span class="pre">Skeleton.get_save_config()</span></code></a></li>
 <li><a class="reference internal" href="#motornet.skeleton.Skeleton.integrate"><code class="docutils literal notranslate"><span class="pre">Skeleton.integrate()</span></code></a></li>
