@@ -334,20 +334,24 @@ class MujocoHillMuscle(Muscle):
       fvmax: `Float`, active force generated at saturating lengthening velocity, relative to its maximum isometric
         force.
     """
+    self.n_muscles = np.array(tendon_length).size
+    
+    def to_tensor(x):
+      tensor = th.tensor(x, dtype=th.float32).reshape((1, 1, -1))
+      assert tensor.numel() == 1 or tensor.numel() == self.n_muscles
+      return tensor
 
-    self.l0_pe = normalized_slack_muscle_length
-    self.l0_ce = Parameter(th.tensor(optimal_muscle_length, dtype=th.float32), requires_grad=False)
-    self.l0_se = Parameter(th.tensor(tendon_length, dtype=th.float32), requires_grad=False)
-    self.lmin = lmin
-    self.lmax = lmax
-    self.vmax = vmax
-    self.fvmax = fvmax
+    self.max_iso_force = Parameter(to_tensor(max_isometric_force), requires_grad=False)
+    self.l0_pe = Parameter(to_tensor(normalized_slack_muscle_length), requires_grad=False)
+    self.l0_ce = Parameter(to_tensor(optimal_muscle_length), requires_grad=False)
+    self.l0_se = Parameter(to_tensor(tendon_length), requires_grad=False)
+    self.lmin = Parameter(to_tensor(lmin), requires_grad=False)
+    self.lmax = Parameter(to_tensor(lmax), requires_grad=False)
+    self.vmax = Parameter(to_tensor(vmax), requires_grad=False)
+    self.fvmax = Parameter(to_tensor(fvmax), requires_grad=False)
 
-    self.n_muscles = np.array(self.l0_se).size
     self.dt = timestep
 
-    max_isometric_force = np.array(max_isometric_force, dtype=np.float32).reshape((1, 1, self.n_muscles))
-    self.max_iso_force = Parameter(th.tensor(max_isometric_force), requires_grad=False)
 
     # derived quantities
     # a = 0.5*(lmin+1)
