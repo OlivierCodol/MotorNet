@@ -587,6 +587,27 @@ class Effector(th.nn.Module):
     """
     self.__setattr__(name, value)
 
+  def _merge_muscle_kwargs(self, muscle_kwargs: dict):
+    """
+    Merges the muscle_kwargs argument with the default muscle_kwargs argument, and stores the result in the
+    tobuild__muscle attribute.
+
+    Args:
+      muscle_kwargs: `Dictionary`, contains the muscle_kwargs argument passed to the
+        :meth:`motornet.muscle.Muscle.build()` method.
+    """
+    # kwargs loop
+    for key, val in muscle_kwargs.items():
+      if key in self.tobuild__muscle.keys():
+        self.tobuild__muscle[key].append(val)
+      else:
+        raise KeyError('Unexpected key "' + key + '" in muscle_kwargs argument.')
+      
+    for key, val in self.tobuild__muscle.items():
+      # if not added in the kwargs loop
+      if len(val) == 0 and key in self.tobuild__default.keys():
+        self.tobuild__muscle[key].append(self.tobuild__default[key])
+
 
 class ReluPointMass24(Effector):
   """This object implements a 2D point-mass skeleton attached to 4 ``motornet.muscle.ReluMuscle`` muscles
@@ -653,11 +674,13 @@ class RigidTendonArm26(Effector):
       skeleton that the muscles will wrap around. See above for details on what this argument defaults to if no
       argument is passed.
     timestep: `Float`, size of a single timestep (in sec).
+    muscle_kwargs: `Dictionary`, contains the muscle parameters to be passed to the 
+      :meth:`motornet.muscle.Muscle.build() method.`
     **kwargs: All contents are passed to the parent :class:`Effector` class. Also allows for some backward
       compatibility.
   """
 
-  def __init__(self, muscle, skeleton=None, timestep=0.01, **kwargs):
+  def __init__(self, muscle, skeleton=None, timestep=0.01, muscle_kwargs: dict = {}, **kwargs):
     sho_limit = np.deg2rad([0, 135])  # mechanical constraints - used to be -90 180
     elb_limit = np.deg2rad([0, 155])
     pos_lower_bound = kwargs.pop('pos_lower_bound', [sho_limit[0], elb_limit[0]])
@@ -679,14 +702,16 @@ class RigidTendonArm26(Effector):
     self.geometry_state_dim = 2 + self.skeleton.dof  # musculotendon length & velocity + as many moments as dofs
     self.n_muscles = 6
     self.input_dim = self.n_muscles
+
     self.muscle_name = ['pectoralis', 'deltoid', 'brachioradialis', 'tricepslat', 'biceps', 'tricepslong']
-    self.muscle.build(
-      timestep=self.dt,
-      max_isometric_force=[838, 1207, 1422, 1549, 414, 603],
-      tendon_length=[0.039, 0.066, 0.172, 0.187, 0.204, 0.217],
-      optimal_muscle_length=[0.134, 0.140, 0.092, 0.093, 0.137, 0.127],
-      **self.tobuild__default,
-      )
+    
+    self._merge_muscle_kwargs(muscle_kwargs)
+
+    self.tobuild__muscle['max_isometric_force'] = [838, 1207, 1422, 1549, 414, 603]
+    self.tobuild__muscle['tendon_length'] = [0.039, 0.066, 0.172, 0.187, 0.204, 0.217]
+    self.tobuild__muscle['optimal_muscle_length'] = [0.134, 0.140, 0.092, 0.093, 0.137, 0.127]
+
+    self.muscle.build(timestep=self.dt, **self.tobuild__muscle)
 
     a0 = [0.151, 0.2322, 0.2859, 0.2355, 0.3329, 0.2989]
     a1 = [-.03, .03, 0, 0, -.03, .03, 0, 0, -.014, .025, -.016, .03]
@@ -706,7 +731,6 @@ class RigidTendonArm26(Effector):
     return th.cat([musculotendon_len, musculotendon_vel, moment_arm], dim=1)
 
 
-
 class CompliantTendonArm26(RigidTendonArm26):
   """This is the compliant-tendon version of the :class:`RigidTendonArm26` class. Note that the default integration
   method is Runge-Kutta 4, instead of Euler.
@@ -716,11 +740,12 @@ class CompliantTendonArm26(RigidTendonArm26):
     skeleton: A :class:`motornet.skeleton.Skeleton` object class or subclass. This defines the type of
       skeleton that the muscles will wrap around. If no skeleton is passed, this will default to the skeleton
       used in the parent :class:`RigidTendonArm26` class.
+    
     **kwargs: All contents are passed to the parent :class:`RigidTendonArm26` class. This also
       allows for some backward compatibility.
   """
 
-  def __init__(self, timestep=0.0002, skeleton=None, **kwargs):
+  def __init__(self, timestep=0.0002, skeleton=None, muscle_kwargs: dict = {}, **kwargs):
     integration_method = kwargs.pop('integration_method', 'rk4')
     if skeleton is None:
       skeleton = TwoDofArm(m1=1.82, m2=1.43, l1g=.135, l2g=.165, i1=.051, i2=.057, l1=.309, l2=.333)
@@ -734,13 +759,13 @@ class CompliantTendonArm26(RigidTendonArm26):
       **kwargs)
 
     # build muscle system
-    self.muscle.build(
-      timestep=timestep,
-      max_isometric_force=[838, 1207, 1422, 1549, 414, 603],
-      tendon_length=[0.070, 0.070, 0.172, 0.187, 0.204, 0.217],
-      optimal_muscle_length=[0.134, 0.140, 0.092, 0.093, 0.137, 0.127],
-      **self.tobuild__default,
-      )
+    self._merge_muscle_kwargs(muscle_kwargs)
+
+    self.tobuild__muscle['max_isometric_force'] = [838, 1207, 1422, 1549, 414, 603]
+    self.tobuild__muscle['tendon_length'] = [0.070, 0.070, 0.172, 0.187, 0.204, 0.217]
+    self.tobuild__muscle['optimal_muscle_length'] = [0.134, 0.140, 0.092, 0.093, 0.137, 0.127]
+
+    self.muscle.build(timestep=timestep, **self.tobuild__muscle)
 
     # Adjust some parameters to relax overly stiff tendon values.
     # This should greatly help with stability during numerical integration.
