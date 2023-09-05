@@ -112,7 +112,7 @@ class Environment(gym.Env, th.nn.Module):
   def _build_spaces(self):
     self.action_space = gym.spaces.Box(low=0., high=1., shape=(self.effector.n_muscles,), dtype=np.float32)
 
-    obs, _ = self.reset(deterministic=True)
+    obs, _ = self.reset(options={"deterministic": True})
     self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(obs.shape[-1],), dtype=np.float32)
 
     def handle_noise_arg(noise, space):
@@ -226,13 +226,7 @@ class Environment(gym.Env, th.nn.Module):
 
     return obs, reward, terminated, truncated, info
 
-  def reset(
-    self,
-    batch_size: int = 1,
-    joint_state: th.Tensor | np.ndarray | None = None,
-    deterministic: bool = False,
-    seed: int | None = None,
-    ):
+  def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None):
     """
     Initialize the task goal and :attr:`effector` states for a (batch of) simulation episode(s). The :attr:`effector`
     states (joint, cartesian, muscle, geometry) are initialized to be biomechanically compatible with each other.
@@ -240,17 +234,22 @@ class Environment(gym.Env, th.nn.Module):
     a custom initial goal or initial states.
 
     Args:
-      batch_size: `Integer`, the desired batch size.
-      joint_state: The joint state from which the other state values are inferred. If `None`, the `q_init` value 
-        declared during the class instantiation will be used. If `q_init` is also `None`, random initial joint
-        states are drawn, from which the other state values are inferred.
-      deterministic: `Boolean`, whether observation, proprioception, and vision noise are applied.
       seed: `Integer`, the seed that is used to initialize the environment's PRNG (`np_random`).
         If the environment does not already have a PRNG and ``seed=None`` (the default option) is passed,
         a seed will be chosen from some source of entropy (e.g. timestamp or /dev/urandom).
         However, if the environment already has a PRNG and ``seed=None`` is passed, the PRNG will *not* be reset.
         If you pass an integer, the PRNG will be reset even if it already exists.
         Usually, you want to pass an integer *right after the environment has been initialized and then never again*.
+      options: `Dictionary`, optional kwargs specific to motornet environments. This is mainly useful to pass
+        `batch_size`, `joint_state`, and `deterministic` kwargs if desired, as described below.
+
+    Options:
+      - **batch_size**: `Integer`, the desired batch size. Default: `1`.
+      - **joint_state**: The joint state from which the other state values are inferred. If `None`, the `q_init` value 
+        declared during the class instantiation will be used. If `q_init` is also `None`, random initial joint
+        states are drawn, from which the other state values are inferred. Default: `None`.
+      - **deterministic**: `Boolean`, whether observation, proprioception, and vision noise are applied.
+        Default: `False`.
 
     Returns:
       - The observation vector as `tensor` or `numpy.ndarray`, if the :class:`Environment` is set as differentiable or 
@@ -258,6 +257,11 @@ class Environment(gym.Env, th.nn.Module):
       - A `dictionary` containing the initial step's information.
     """
     self._set_generator(seed=seed)
+
+    options = {} if options is None else options
+    batch_size: int = options.get("batch_size", 1)
+    joint_state: th.Tensor | np.ndarray | None = options.get("joint_state", None)
+    deterministic: bool = options.get("deterministic", False)
 
     if joint_state is not None:
       joint_state_shape = np.shape(self.detach(joint_state))
@@ -271,7 +275,7 @@ class Environment(gym.Env, th.nn.Module):
     self.goal = th.zeros((batch_size, self.skeleton.space_dim)).to(self.device)
     self.elapsed = 0.
 
-    self.effector.reset(batch_size, joint_state)
+    self.effector.reset(options={"batch_size": batch_size, "joint_state": joint_state})
     
     # initialize buffer
     action = th.zeros((batch_size, self.action_space.shape[0])).to(self.device)
@@ -451,19 +455,18 @@ class RandomTargetReach(Environment):
     super().__init__(*args, **kwargs)
     self.obs_noise[:self.skeleton.space_dim] = [0.] * self.skeleton.space_dim  # target info is noiseless
 
-  def reset(
-      self,
-      batch_size: int = 1,
-      joint_state: Any | None = None,
-      deterministic: bool = False,
-      seed: int | None = None,
-    ) -> tuple[Any, dict[str, Any]]:
+  def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None) -> tuple[Any, dict[str, Any]]:
     """
     Uses the :meth:`Environment.reset()` method of the parent class :class:`Environment` that can be overwritten to 
     change the returned data. Here the goals (`i.e.`, the targets) are drawn from a random uniform distribution across
     the full joint space.
     """
     self._set_generator(seed=seed)
+
+    options = {} if options is None else options
+    batch_size: int = options.get('batch_size', 1)
+    joint_state: th.Tensor | np.ndarray | None = options.get('joint_state', None)
+    deterministic: bool = options.get('deterministic', False)
     
     if joint_state is not None:
       joint_state_shape = np.shape(self.detach(joint_state))
@@ -472,7 +475,7 @@ class RandomTargetReach(Environment):
     else:
       joint_state = self.q_init
 
-    self.effector.reset(batch_size, joint_state)
+    self.effector.reset(options={"batch_size": batch_size, "joint_state": joint_state})
 
     self.goal = self.joint2cartesian(self.effector.draw_random_uniform_states(batch_size)).chunk(2, dim=-1)[0]
     self.elapsed = 0.

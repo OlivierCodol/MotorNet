@@ -1,6 +1,6 @@
 import torch as th
 import numpy as np
-from typing import Union
+from typing import Union, Any
 from gymnasium.utils import seeding
 from torch.nn.parameter import Parameter
 from motornet.skeleton import TwoDofArm, PointMass
@@ -153,23 +153,31 @@ class Effector(th.nn.Module):
     for _ in range(self.n_ministeps):
       self.integrate(a, endpoint_load, joint_load)
 
-  def reset(self, batch_size: int = 1, joint_state=None, seed: int | None = None):
+  def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None):
     """Sets initial states (joint, cartesian, muscle, geometry) that are biomechanically compatible with each other.
 
     Args:
-      batch_size: `Integer`, the desired batch size.
-      joint_state: `Tensor`, the joint state from which the other state values are inferred. If `None`, random initial 
-        joint states are drawn, from which the other state values are inferred.
       seed: `Integer`, the seed that is used to initialize the environment's PRNG (`np_random`).
         If the environment does not already have a PRNG and ``seed=None`` (the default option) is passed,
         a seed will be chosen from some source of entropy (e.g. timestamp or /dev/urandom).
         However, if the environment already has a PRNG and ``seed=None`` is passed, the PRNG will *not* be reset.
         If you pass an integer, the PRNG will be reset even if it already exists.
         Usually, you want to pass an integer *right after the environment has been initialized and then never again*.
+      options: `Dictionary`, optional kwargs. This is mainly useful to pass `batch_size` and `joint_state` kwargs if 
+        desired, as described below.
+
+    Options:
+      - **batch_size**: `Integer`, the desired batch size. Default: `1`.
+      - **joint_state**: The joint state from which the other state values are inferred. If `None`, random initial 
+        joint states are drawn, from which the other state values are inferred. Default: `None`.
     """
     # Initialize the RNG if the seed is manually passed
     if seed is not None:
       self._np_random, self.seed = seeding.np_random(seed)
+
+    options = {} if options is None else options
+    batch_size: int = options.get('batch_size', 1)
+    joint_state: th.Tensor | np.ndarray | None = options.get('joint_state', None)
 
     if joint_state is not None:
       joint_state_shape = np.shape(joint_state.cpu().detach().numpy())
