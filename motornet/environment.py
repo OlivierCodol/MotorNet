@@ -342,8 +342,8 @@ class Environment(gym.Env, th.nn.Module):
     if seed is not None:
       # Initialize the RNG if the seed is manually passed
       self._np_random, self.seed = seeding.np_random(seed)
-      # this will be used to set the effector generator
-      seed = int(self.np_random.integers(np.iinfo(np.int64).max))
+      # # this will be used to set the effector generator
+      # seed = int(self.np_random.integers(np.iinfo(np.int64).max))
       self.effector.reset(seed=seed)
 
   @property
