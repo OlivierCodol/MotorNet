@@ -203,8 +203,8 @@ class Effector(th.nn.Module):
     return self._np_random
 
   @np_random.setter
-  def np_random(self, value: np.random.Generator):
-    self._np_random = value
+  def np_random(self, rng: np.random.Generator):
+    self._np_random = rng
 
   @property
   def device(self):

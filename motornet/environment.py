@@ -340,10 +340,6 @@ class Environment(gym.Env, th.nn.Module):
   
   def _set_generator(self, seed: int | None):
     if seed is not None:
-      # Initialize the RNG if the seed is manually passed
-      self._np_random, self.seed = seeding.np_random(seed)
-      # # this will be used to set the effector generator
-      # seed = int(self.np_random.integers(np.iinfo(np.int64).max))
       self.effector.reset(seed=seed)
 
   @property
@@ -353,9 +349,11 @@ class Environment(gym.Env, th.nn.Module):
     Returns:
       Instances of `np.random.Generator`
     """
-    if self._np_random is None:
-      self._np_random, self.seed = seeding.np_random()
-    return self._np_random
+    return self.effector.np_random
+
+  @np_random.setter
+  def np_random(self, rng: np.random.Generator) -> None:
+      self.effector.np_random = rng
 
   def apply_noise(self, loc, noise: float | list) -> th.Tensor:
     """Applies element-wise Gaussian noise to the input `loc`.
