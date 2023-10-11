@@ -548,9 +548,9 @@ class RigidTendonHillMuscle(Muscle):
     self.l0_ce = Parameter(th.tensor(optimal_muscle_length, dtype=th.float32).reshape(shape), requires_grad=False)
     self.l0_se = Parameter(th.tensor(tendon_length, dtype=th.float32).reshape(shape), requires_grad=False)
     self.l0_pe = Parameter(th.tensor(normalized_slack_muscle_length, dtype=th.float32)*self.l0_ce, requires_grad=False)
-    self.k_pe = 1 / ((1.66 - self.l0_pe / self.l0_ce) ** 2)
-    self.musculotendon_slack_len = self.l0_pe + self.l0_se
-    self.vmax = 10 * self.l0_ce
+    self.k_pe = Parameter(1 / ((1.66 - self.l0_pe / self.l0_ce) ** 2), requires_grad=False)
+    self.musculotendon_slack_len = Parameter(self.l0_pe + self.l0_se, requires_grad=False)
+    self.vmax = Parameter(10 * self.l0_ce, requires_grad=False)
     self.built = True
 
   def _get_initial_muscle_state(self, batch_size, geometry_state):
