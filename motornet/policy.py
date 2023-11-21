@@ -96,18 +96,11 @@ class ModularPolicyGRU(nn.Module):
         # Reset gate
         self.Wr = nn.Parameter(th.cat((nn.init.xavier_uniform_(th.Tensor(hidden_size, input_size), gain=1),
                                        nn.init.orthogonal_(th.Tensor(hidden_size, hidden_size))), dim=1))
-        self.br = nn.Parameter(th.zeros(hidden_size))
+        self.br = nn.Parameter(th.ones(hidden_size))
         # Candidate hidden state
         self.Wh = nn.Parameter(th.cat((nn.init.xavier_uniform_(th.Tensor(hidden_size, input_size), gain=1),
                                        nn.init.orthogonal_(th.Tensor(hidden_size, hidden_size))), dim=1))
         self.bh = nn.Parameter(th.zeros(hidden_size))
-
-        # Optional rescaling of Wh eigenvalues
-        if self.spectral_scaling:
-            Wh_i, Wh = th.split(self.Wh.detach(), [input_size, hidden_size], dim=1)
-            eig = th.abs(th.linalg.eigvals(Wh))
-            Wh = self.spectral_scaling * (Wh / eig[0])
-            self.Wh = nn.Parameter(th.cat((Wh_i, Wh), dim=1))
 
         # Initialize all output parameters
         self.Y = nn.Parameter(nn.init.xavier_uniform_(th.Tensor(output_size, hidden_size), gain=1))
@@ -176,14 +169,25 @@ class ModularPolicyGRU(nn.Module):
         self.mask_bY = nn.Parameter(th.ones_like(self.bY), requires_grad=False)
 
         # Zero out weights and biases that we don't want to exist
-        self.Wz = nn.Parameter(th.mul(self.Wz, self.mask_Wz.data))
-        self.Wr = nn.Parameter(th.mul(self.Wr, self.mask_Wr.data))
-        self.Wh = nn.Parameter(th.mul(self.Wh, self.mask_Wh.data))
-        self.Y = nn.Parameter(th.mul(self.Y, self.mask_Y.data))
-        self.bz = nn.Parameter(th.mul(self.bz, self.mask_bz.data))
-        self.br = nn.Parameter(th.mul(self.br, self.mask_br.data))
-        self.bh = nn.Parameter(th.mul(self.bh, self.mask_bh.data))
-        self.bY = nn.Parameter(th.mul(self.bY, self.mask_bY.data))
+        self.Wz = nn.Parameter(th.mul(self.Wz, self.mask_Wz))
+        self.Wr = nn.Parameter(th.mul(self.Wr, self.mask_Wr))
+        self.Wh = nn.Parameter(th.mul(self.Wh, self.mask_Wh))
+        self.Y = nn.Parameter(th.mul(self.Y, self.mask_Y))
+        self.bz = nn.Parameter(th.mul(self.bz, self.mask_bz))
+        self.br = nn.Parameter(th.mul(self.br, self.mask_br))
+        self.bh = nn.Parameter(th.mul(self.bh, self.mask_bh))
+        self.bY = nn.Parameter(th.mul(self.bY, self.mask_bY))
+
+        Wh_i, Wh = th.split(self.Wh.detach(), [input_size, hidden_size], dim=1)
+        _, mask_Wh = th.split(self.mask_Wh.detach(), [input_size, hidden_size], dim=1)
+        Wh = self.orthogonalize_with_sparsity(Wh.numpy(), mask_Wh.numpy())
+        self.Wh = nn.Parameter(th.mul(th.cat((Wh_i, th.tensor(Wh)), dim=1), self.mask_Wh))
+        # Optional rescaling of Wh eigenvalues
+        if self.spectral_scaling:
+            Wh_i, Wh = th.split(self.Wh.detach(), [input_size, hidden_size], dim=1)
+            eig_norm = th.max(th.real(th.linalg.eigvals(Wh)))
+            Wh = self.spectral_scaling * (Wh / eig_norm)
+            self.Wh = nn.Parameter(th.cat((Wh_i, Wh), dim=1))
 
         # Registering a backward hook to apply mask on gradients during backward pass
         self.Wz.register_hook(lambda grad: grad * self.mask_Wz.data)
@@ -242,3 +246,34 @@ class ModularPolicyGRU(nn.Module):
         if self.max_delay > 0:
             self.h_buffer = th.tile(h0.unsqueeze(dim=2), (1, 1, self.max_delay+1))
         return h0
+
+    def orthogonalize_with_sparsity(self, matrix, sparsity_matrix):
+        # Ensure sparsity_matrix is binary (0 or 1)
+        assert np.all(np.isin(sparsity_matrix, [0, 1]))
+
+        # Copy matrix so as not to modify the original
+        Q = matrix.copy()
+
+        # Loop over columns
+        for i in range(Q.shape[1]):
+            # Subtract projections onto previous columns
+            for j in range(i):
+                # Check if the column is a zero vector
+                if np.dot(Q[:, j], Q[:, j]) < 1e-10:
+                    continue
+
+                proj = np.dot(Q[:, j], Q[:, i]) / np.dot(Q[:, j], Q[:, j])
+                Q[:, i] -= proj * Q[:, j]
+
+                # Reset the undesired entries to zero using sparsity matrix
+                Q[:, i] *= sparsity_matrix[:, i]
+
+            # Normalize current column, avoiding division by zero
+            norm = np.linalg.norm(Q[:, i])
+            if norm > 1e-10:
+                Q[:, i] /= norm
+
+                # Reset the undesired entries to zero again to ensure structure
+                Q[:, i] *= sparsity_matrix[:, i]
+
+        return Q
