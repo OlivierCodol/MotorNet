@@ -202,6 +202,7 @@ class ModularPolicyGRU(nn.Module):
 
         self.to(device)
 
+    @th.compile(mode='max-autotune')
     def forward(self, x, h_prev):
         # If there are delays between modules we need to go module-by-module (this is slow)
         if self.max_delay > 0:

@@ -217,6 +217,7 @@ class ReluMuscle(Muscle):
       ]
     self.state_dim = len(self.state_name)
 
+  @th.compile(mode='max-autotune')
   def _integrate(self, dt, state_derivative, muscle_state, geometry_state):
     activation = muscle_state[:, :1, :] + state_derivative * dt
     activation = self.clip_activation(activation)
@@ -370,6 +371,7 @@ class MujocoHillMuscle(Muscle):
     state_derivatives = th.zeros(shape, dtype=th.float32, device=self.device)
     return self.integrate(self.dt, state_derivatives, muscle_state, geometry_state)
 
+  @th.compile(mode='max-autotune')
   def _integrate(self, dt, state_derivative, muscle_state, geometry_state):
     activation = muscle_state[:, :1, :] + state_derivative * dt
     activation = self.clip_activation(activation)
@@ -559,6 +561,7 @@ class RigidTendonHillMuscle(Muscle):
     state_derivatives = th.zeros(shape, device=self.device)
     return self.integrate(self.dt, state_derivatives, muscle_state, geometry_state)
 
+  @th.compile(mode='max-autotune')
   def _integrate(self, dt, state_derivative, muscle_state, geometry_state):
     activation = self.clip_activation(muscle_state[:, :1, :] + state_derivative * dt)
 
@@ -727,6 +730,7 @@ class RigidTendonHillMuscleThelen(Muscle):
     state_derivatives = th.zeros(shape, device=self.device)
     return self.integrate(self.dt, state_derivatives, muscle_state, geometry_state)
 
+  @th.compile(mode='max-autotune')
   def _integrate(self, dt, state_derivative, muscle_state, geometry_state):
     activation = muscle_state[:, :1, :] + state_derivative * dt
     activation = self.clip_activation(activation)
@@ -787,6 +791,7 @@ class CompliantTendonHillMuscle(RigidTendonHillMuscle):
     self.state_dim = len(self.state_name)
     self.built = False
 
+  @th.compile(mode='max-autotune')
   def _integrate(self, dt, state_derivative, muscle_state, geometry_state):
     # Compute musculotendon geometry
     muscle_len = muscle_state[:, 1:2, :]
