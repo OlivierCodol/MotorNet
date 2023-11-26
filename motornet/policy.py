@@ -3,6 +3,8 @@ import torch as th
 import torch.nn as nn
 import torch.nn.functional as F
 
+compile_mode = 'max-autotune'
+compile_backend = 'inductor'
 
 class PolicyGRU(nn.Module):
     def __init__(self, input_dim: int, hidden_dim: int, output_dim: int, device):
@@ -34,6 +36,7 @@ class PolicyGRU(nn.Module):
 
         self.to(device)
 
+    @th.compile(mode=compile_mode, backend=compile_backend)
     def forward(self, x, h0):
         y, h = self.gru(x[:, None, :], h0)
         u = self.sigmoid(self.fc(y)).squeeze(dim=1)
@@ -142,7 +145,10 @@ class ModularPolicyGRU(nn.Module):
                 elif module_type == 'proprio':
                     h_probability_mask[i, j] = proprio_mask[i_module]
                 elif module_type == 'task':
-                    h_probability_mask[i, j] = task_mask[i_module]
+                    if j == task_dim[-1]:
+                        h_probability_mask[i, j] = proprio_mask[i_module]
+                    else:
+                        h_probability_mask[i, j] = task_mask[i_module]
 
         # Create sparsity mask for output
         y_probability_mask = np.zeros((output_size, hidden_size), dtype=np.float32)
@@ -202,7 +208,7 @@ class ModularPolicyGRU(nn.Module):
 
         self.to(device)
 
-    @th.compile(mode='max-autotune')
+    @th.compile(mode=compile_mode, backend=compile_backend)
     def forward(self, x, h_prev):
         # If there are delays between modules we need to go module-by-module (this is slow)
         if self.max_delay > 0:

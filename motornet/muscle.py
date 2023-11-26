@@ -5,7 +5,8 @@ from torch.nn.parameter import Parameter
 
 DEVICE = th.device("cpu")
 
-
+compile_mode = 'max-autotune'
+compile_backend = 'inductor'
 class Muscle(th.nn.Module):
   """Base class for `Muscle` objects. If a effector contains several muscles, this object will contain all of
   those in a vectorized format, meaning for any given effector there will always be only `one` muscle object, 
@@ -217,7 +218,7 @@ class ReluMuscle(Muscle):
       ]
     self.state_dim = len(self.state_name)
 
-  @th.compile(mode='max-autotune')
+  @th.compile(mode=compile_mode, backend=compile_backend)
   def _integrate(self, dt, state_derivative, muscle_state, geometry_state):
     activation = muscle_state[:, :1, :] + state_derivative * dt
     activation = self.clip_activation(activation)
@@ -225,6 +226,7 @@ class ReluMuscle(Muscle):
     len_vel = geometry_state[:, :2, :]
     return th.cat([activation, len_vel, forces], dim=1)
 
+  @th.compile(mode=compile_mode, backend=compile_backend)
   def _get_initial_muscle_state(self, batch_size, geometry_state):
     activation0 = th.ones((batch_size, 1, self.n_muscles), device=self.device) * self.min_activation
     force0 = th.zeros((batch_size, 1, self.n_muscles), device=self.device)
@@ -365,13 +367,14 @@ class MujocoHillMuscle(Muscle):
 
     self.built = True
 
+  @th.compile(mode=compile_mode, backend=compile_backend)
   def _get_initial_muscle_state(self, batch_size, geometry_state):
     shape = geometry_state[:, :1, :].shape
     muscle_state = th.ones(shape, dtype=th.float32, device=self.device) * self.min_activation
     state_derivatives = th.zeros(shape, dtype=th.float32, device=self.device)
     return self.integrate(self.dt, state_derivatives, muscle_state, geometry_state)
 
-  @th.compile(mode='max-autotune')
+  @th.compile(mode=compile_mode, backend=compile_backend)
   def _integrate(self, dt, state_derivative, muscle_state, geometry_state):
     activation = muscle_state[:, :1, :] + state_derivative * dt
     activation = self.clip_activation(activation)
@@ -421,7 +424,7 @@ class MujocoHillMuscle(Muscle):
     force = (activation * flce * fvce + self.passive_forces * flpe) * self.max_iso_force
     return th.cat([activation, muscle_len * self.l0_ce, muscle_vel * self.vmax, flpe, flce, fvce, force], dim=1)
 
-    
+  @th.compile(mode=compile_mode, backend=compile_backend)
   def _bump(self, L, mid, lmax):
     """Skewed bump function: quadratic spline."""
 
@@ -555,13 +558,14 @@ class RigidTendonHillMuscle(Muscle):
     self.vmax = Parameter(10 * self.l0_ce, requires_grad=False)
     self.built = True
 
+  @th.compile(mode=compile_mode, backend=compile_backend)
   def _get_initial_muscle_state(self, batch_size, geometry_state):
     shape = geometry_state[:, :1, :].shape
     muscle_state = th.ones(shape, device=self.device) * self.min_activation
     state_derivatives = th.zeros(shape, device=self.device)
     return self.integrate(self.dt, state_derivatives, muscle_state, geometry_state)
 
-  @th.compile(mode='max-autotune')
+  @th.compile(mode=compile_mode, backend=compile_backend)
   def _integrate(self, dt, state_derivative, muscle_state, geometry_state):
     activation = self.clip_activation(muscle_state[:, :1, :] + state_derivative * dt)
 
@@ -724,13 +728,14 @@ class RigidTendonHillMuscleThelen(Muscle):
 
     self.built = True
 
+  @th.compile(mode=compile_mode, backend=compile_backend)
   def _get_initial_muscle_state(self, batch_size, geometry_state):
     shape = geometry_state[:, :1, :].shape
     muscle_state = th.ones(shape, device=self.device) * self.min_activation
     state_derivatives = th.zeros(shape, device=self.device)
     return self.integrate(self.dt, state_derivatives, muscle_state, geometry_state)
 
-  @th.compile(mode='max-autotune')
+  @th.compile(mode=compile_mode, backend=compile_backend)
   def _integrate(self, dt, state_derivative, muscle_state, geometry_state):
     activation = muscle_state[:, :1, :] + state_derivative * dt
     activation = self.clip_activation(activation)
@@ -791,7 +796,7 @@ class CompliantTendonHillMuscle(RigidTendonHillMuscle):
     self.state_dim = len(self.state_name)
     self.built = False
 
-  @th.compile(mode='max-autotune')
+  @th.compile(mode=compile_mode, backend=compile_backend)
   def _integrate(self, dt, state_derivative, muscle_state, geometry_state):
     # Compute musculotendon geometry
     muscle_len = muscle_state[:, 1:2, :]
@@ -818,6 +823,7 @@ class CompliantTendonHillMuscle(RigidTendonHillMuscle):
     force = flse * self.max_iso_force
     return th.concat([activation, new_muscle_len, muscle_vel, flpe, flse, active_force, force], dim=1)
 
+  @th.compile(mode=compile_mode, backend=compile_backend)
   def _ode(self, excitation, muscle_state):
     activation = muscle_state[:, 0:1, :]
     d_activation = self.activation_ode(excitation, activation)
@@ -826,6 +832,7 @@ class CompliantTendonHillMuscle(RigidTendonHillMuscle):
     new_muscle_vel_n = self._normalized_muscle_vel(muscle_len_n, activation, active_force)
     return th.concat([d_activation, new_muscle_vel_n], dim=1)
 
+  @th.compile(mode=compile_mode, backend=compile_backend)
   def _get_initial_muscle_state(self, batch_size, geometry_state):
     musculotendon_len = geometry_state[:, 0:1, :]
     activation = th.ones_like(musculotendon_len, device=self.device) * self.min_activation
@@ -869,6 +876,7 @@ class CompliantTendonHillMuscle(RigidTendonHillMuscle):
 
     return self.integrate(self.dt, state_derivative, muscle_state, geometry_state)
 
+  @th.compile(mode=compile_mode, backend=compile_backend)
   def _normalized_muscle_vel(self, muscle_len_n, activation, active_force):
     flce = th.clip(1. + (- muscle_len_n ** 2 + 2 * muscle_len_n - 1) / self.f_iso_n_den, min=self.min_flce)
     a_rel_st = th.where(th.less(muscle_len_n, 1.), input=.41 * flce, other=.41)
