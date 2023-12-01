@@ -3,9 +3,6 @@ import torch as th
 import torch.nn as nn
 import torch.nn.functional as F
 
-compile_mode = 'max-autotune'
-compile_backend = 'inductor'
-
 class PolicyGRU(nn.Module):
     def __init__(self, input_dim: int, hidden_dim: int, output_dim: int, device):
         super().__init__()
@@ -36,7 +33,6 @@ class PolicyGRU(nn.Module):
 
         self.to(device)
 
-    @th.compile(mode=compile_mode, backend=compile_backend)
     def forward(self, x, h0):
         y, h = self.gru(x[:, None, :], h0)
         u = self.sigmoid(self.fc(y)).squeeze(dim=1)
@@ -250,7 +246,6 @@ class ModularPolicyGRU(nn.Module):
 
         self.to(device)
 
-    #@th.compile(mode=compile_mode, backend=compile_backend)
     def forward(self, x, h_prev):
         # If there are delays between modules we need to go module-by-module (this is slow)
         if self.max_delay > 0:
