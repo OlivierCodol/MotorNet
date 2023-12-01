@@ -299,45 +299,44 @@ class ModularPolicyGRU(nn.Module):
 
     def enforce_dale(self, zero_out=False):
         with th.no_grad():
-            unittype = self.unittype_W.numpy()
+            unittype = self.unittype_W
             Wr_i, Wr = th.split(self.Wr.detach(), [self.input_size, self.hidden_size], dim=1)
             Wr_i_cached, Wr_cached = th.split(self.Wr_cached, [self.input_size, self.hidden_size], dim=1)
-            print(np.sum((Wr.numpy() < 0) & (unittype == 1)))
-            print(np.sum((Wr.numpy() > 0) & (unittype == -1)))
+            print(th.sum((Wr < 0) & (unittype == 1)))
+            print(th.sum((Wr > 0) & (unittype == -1)))
             if zero_out:
-                Wr[(Wr.numpy() < 0) & (unittype == 1)] = 0
-                Wr[(Wr.numpy() > 0) & (unittype == -1)] = 0
+                Wr[(Wr < 0) & (unittype == 1)] = 0
+                Wr[(Wr > 0) & (unittype == -1)] = 0
                 Wr_i[Wr_i < 0] = 0
             else:
-                Wr[(Wr.numpy() < 0) & (unittype == 1)] = th.abs(Wr_cached[(Wr.numpy() < 0) & (unittype == 1)])
-                Wr[(Wr.numpy() > 0) & (unittype == -1)] = -th.abs(Wr_cached[(Wr.numpy() > 0) & (unittype == -1)])
+                Wr[(Wr < 0) & (unittype == 1)] = th.abs(Wr_cached[(Wr < 0) & (unittype == 1)])
+                Wr[(Wr > 0) & (unittype == -1)] = -th.abs(Wr_cached[(Wr > 0) & (unittype == -1)])
                 Wr_i[Wr_i < 0] = th.abs(Wr_i[Wr_i < 0])
 
             Wz_i, Wz = th.split(self.Wz.detach(), [self.input_size, self.hidden_size], dim=1)
             Wz_i_cached, Wz_cached = th.split(self.Wz_cached, [self.input_size, self.hidden_size], dim=1)
-            print(np.sum((Wz.numpy() < 0) & (unittype == 1)))
-            print(np.sum((Wz.numpy() > 0) & (unittype == -1)))
+            print(th.sum((Wz < 0) & (unittype == 1)))
+            print(th.sum((Wz > 0) & (unittype == -1)))
             if zero_out:
-                Wz[(Wz.numpy() < 0) & (unittype == 1)] = 0
-                Wz[(Wz.numpy() > 0) & (unittype == -1)] = 0
+                Wz[(Wz < 0) & (unittype == 1)] = 0
+                Wz[(Wz > 0) & (unittype == -1)] = 0
                 Wz_i[Wz_i < 0] = 0
             else:
-                Wz[(Wz.numpy() < 0) & (unittype == 1)] = th.abs(Wz_cached[(Wz.numpy() < 0) & (unittype == 1)])
-                Wz[(Wz.numpy() > 0) & (unittype == -1)] = -th.abs(Wz_cached[(Wz.numpy() > 0) & (unittype == -1)])
+                Wz[(Wz < 0) & (unittype == 1)] = th.abs(Wz_cached[(Wz < 0) & (unittype == 1)])
+                Wz[(Wz > 0) & (unittype == -1)] = -th.abs(Wz_cached[(Wz > 0) & (unittype == -1)])
                 Wz_i[Wz_i < 0] = th.abs(Wz_i[Wz_i < 0])
-
 
             Wh_i, Wh = th.split(self.Wh.detach(), [self.input_size, self.hidden_size], dim=1)
             Wh_i_cached, Wh_cached = th.split(self.Wh_cached, [self.input_size, self.hidden_size], dim=1)
-            print(np.sum((Wh.numpy() < 0) & (unittype == 1)))
-            print(np.sum((Wh.numpy() > 0) & (unittype == -1)))
+            print(th.sum((Wh < 0) & (unittype == 1)))
+            print(th.sum((Wh > 0) & (unittype == -1)))
             if zero_out:
-                Wh[(Wh.numpy() < 0) & (unittype == 1)] = 0
-                Wh[(Wh.numpy() > 0) & (unittype == -1)] = 0
+                Wh[(Wh < 0) & (unittype == 1)] = 0
+                Wh[(Wh > 0) & (unittype == -1)] = 0
                 Wh_i[Wh_i < 0] = 0
             else:
-                Wh[(Wh.numpy() < 0) & (unittype == 1)] = th.abs(Wh_cached[(Wh.numpy() < 0) & (unittype == 1)])
-                Wh[(Wh.numpy() > 0) & (unittype == -1)] = -th.abs(Wh_cached[(Wh.numpy() > 0) & (unittype == -1)])
+                Wh[(Wh < 0) & (unittype == 1)] = th.abs(Wh_cached[(Wh < 0) & (unittype == 1)])
+                Wh[(Wh > 0) & (unittype == -1)] = -th.abs(Wh_cached[(Wh > 0) & (unittype == -1)])
                 Wh_i[Wh_i < 0] = th.abs(Wh_i[Wh_i < 0])
 
             Y = self.Y.detach()
