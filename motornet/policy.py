@@ -3,6 +3,8 @@ import torch as th
 import torch.nn as nn
 import torch.nn.functional as F
 
+compile_mode = 'max-autotune'
+compile_backend = 'inductor'
 
 class PolicyGRU(nn.Module):
     def __init__(self, input_dim: int, hidden_dim: int, output_dim: int, device):
@@ -34,6 +36,7 @@ class PolicyGRU(nn.Module):
 
         self.to(device)
 
+    @th.compile(mode=compile_mode, backend=compile_backend)
     def forward(self, x, h0):
         y, h = self.gru(x[:, None, :], h0)
         u = self.sigmoid(self.fc(y)).squeeze(dim=1)
@@ -51,6 +54,7 @@ class ModularPolicyGRU(nn.Module):
                  connectivity_mask: np.ndarray, output_mask: list,
                  vision_dim: list, proprio_dim: list, task_dim: list,
                  connectivity_delay: np.ndarray, spectral_scaling=None,
+                 proportion_excitatory=None, input_gain=1.,
                  device=th.device("cpu"), random_seed=None, activation='tanh'):
         super(ModularPolicyGRU, self).__init__()
 
@@ -85,20 +89,22 @@ class ModularPolicyGRU(nn.Module):
         assert connectivity_mask.shape[0] == connectivity_mask.shape[1] == self.num_modules
         assert len(output_mask) == self.num_modules
         assert len(vision_dim) + len(proprio_dim) + len(task_dim) == self.input_size
+        if proportion_excitatory:
+            assert len(proportion_excitatory) == self.num_modules
 
         # Initialize all GRU parameters
         # Initial hidden state
         self.h0 = nn.Parameter(th.zeros(1, hidden_size))
         # Update gate
-        self.Wz = nn.Parameter(th.cat((nn.init.xavier_uniform_(th.Tensor(hidden_size, input_size), gain=1),
+        self.Wz = nn.Parameter(th.cat((nn.init.xavier_uniform_(th.Tensor(hidden_size, input_size), gain=input_gain),
                                        nn.init.orthogonal_(th.Tensor(hidden_size, hidden_size))), dim=1))
         self.bz = nn.Parameter(th.zeros(hidden_size))
         # Reset gate
-        self.Wr = nn.Parameter(th.cat((nn.init.xavier_uniform_(th.Tensor(hidden_size, input_size), gain=1),
+        self.Wr = nn.Parameter(th.cat((nn.init.xavier_uniform_(th.Tensor(hidden_size, input_size), gain=input_gain),
                                        nn.init.orthogonal_(th.Tensor(hidden_size, hidden_size))), dim=1))
-        self.br = nn.Parameter(th.ones(hidden_size))
+        self.br = nn.Parameter(th.zeros(hidden_size))
         # Candidate hidden state
-        self.Wh = nn.Parameter(th.cat((nn.init.xavier_uniform_(th.Tensor(hidden_size, input_size), gain=1),
+        self.Wh = nn.Parameter(th.cat((nn.init.xavier_uniform_(th.Tensor(hidden_size, input_size), gain=input_gain),
                                        nn.init.orthogonal_(th.Tensor(hidden_size, hidden_size))), dim=1))
         self.bh = nn.Parameter(th.zeros(hidden_size))
 
@@ -142,7 +148,10 @@ class ModularPolicyGRU(nn.Module):
                 elif module_type == 'proprio':
                     h_probability_mask[i, j] = proprio_mask[i_module]
                 elif module_type == 'task':
-                    h_probability_mask[i, j] = task_mask[i_module]
+                    if j == task_dim[-1]:
+                        h_probability_mask[i, j] = proprio_mask[i_module]
+                    else:
+                        h_probability_mask[i, j] = task_mask[i_module]
 
         # Create sparsity mask for output
         y_probability_mask = np.zeros((output_size, hidden_size), dtype=np.float32)
@@ -168,6 +177,37 @@ class ModularPolicyGRU(nn.Module):
         self.mask_bh = nn.Parameter(th.ones_like(self.bh), requires_grad=False)
         self.mask_bY = nn.Parameter(th.ones_like(self.bY), requires_grad=False)
 
+        # initialize cache
+        self.Wr_cached = self.Wr.detach()
+        self.Wz_cached = self.Wz.detach()
+        self.Wh_cached = self.Wh.detach()
+        self.Y_cached = self.Y.detach()
+
+        # Create unit type masks if required
+        if proportion_excitatory:
+            type_list = np.array([-1, 1])
+            self.unittype_W = nn.Parameter(th.zeros((hidden_size, hidden_size)), requires_grad=False)
+            for m in range(self.num_modules):
+                self.unittype_W[:, module_dims[m]] = (
+                    th.tensor(type_list[self.rng.binomial(1, np.ones(module_size[m])*proportion_excitatory[m])],
+                              dtype=th.float32))
+            self.mask_Y[:, self.unittype_W[0, :] != 1] = 0  # only allow excitatory units to produce output
+            # Eliminate inhibitory connections across modules
+            for i in range(hidden_size):
+                for m in range(self.num_modules):
+                    if i in module_dims[m]:
+                        i_module = m
+                for j in range(hidden_size):
+                    for m in range(self.num_modules):
+                        if j in module_dims[m]:
+                            j_module = m
+                    if j_module != i_module and self.unittype_W[i, j] == -1:
+                        self.mask_Wz[i, j + input_size] = 0
+                        self.mask_Wr[i, j + input_size] = 0
+                        self.mask_Wh[i, j + input_size] = 0
+            self.enforce_dale()
+
+
         # Zero out weights and biases that we don't want to exist
         self.Wz = nn.Parameter(th.mul(self.Wz, self.mask_Wz))
         self.Wr = nn.Parameter(th.mul(self.Wr, self.mask_Wr))
@@ -182,6 +222,14 @@ class ModularPolicyGRU(nn.Module):
         _, mask_Wh = th.split(self.mask_Wh.detach(), [input_size, hidden_size], dim=1)
         Wh = self.orthogonalize_with_sparsity(Wh.numpy(), mask_Wh.numpy())
         self.Wh = nn.Parameter(th.mul(th.cat((Wh_i, th.tensor(Wh)), dim=1), self.mask_Wh))
+        if proportion_excitatory:
+            self.enforce_dale()
+            # Restoring E/I balance
+            Wh_i, Wh = th.split(self.Wh.detach(), [input_size, hidden_size], dim=1)
+            Wh[self.unittype_W == -1] = Wh[self.unittype_W == -1] / th.abs(th.sum(Wh[self.unittype_W == -1]))
+            Wh[self.unittype_W == 1] = Wh[self.unittype_W == 1] / th.sum(Wh[self.unittype_W == 1])
+            self.Wh = nn.Parameter(th.cat((Wh_i, Wh), dim=1))
+
         # Optional rescaling of Wh eigenvalues
         if self.spectral_scaling:
             Wh_i, Wh = th.split(self.Wh.detach(), [input_size, hidden_size], dim=1)
@@ -202,6 +250,7 @@ class ModularPolicyGRU(nn.Module):
 
         self.to(device)
 
+    #@th.compile(mode=compile_mode, backend=compile_backend)
     def forward(self, x, h_prev):
         # If there are delays between modules we need to go module-by-module (this is slow)
         if self.max_delay > 0:
@@ -246,6 +295,67 @@ class ModularPolicyGRU(nn.Module):
         if self.max_delay > 0:
             self.h_buffer = th.tile(h0.unsqueeze(dim=2), (1, 1, self.max_delay+1))
         return h0
+
+    def cache_policy(self):
+        self.Wr_cached = self.Wr.detach()
+        self.Wz_cached = self.Wz.detach()
+        self.Wh_cached = self.Wh.detach()
+        self.Y_cached = self.Y.detach()
+
+    def enforce_dale(self, zero_out=False):
+        with th.no_grad():
+            unittype = self.unittype_W.numpy()
+            Wr_i, Wr = th.split(self.Wr.detach(), [self.input_size, self.hidden_size], dim=1)
+            Wr_i_cached, Wr_cached = th.split(self.Wr_cached, [self.input_size, self.hidden_size], dim=1)
+            print(np.sum((Wr.numpy() < 0) & (unittype == 1)))
+            print(np.sum((Wr.numpy() > 0) & (unittype == -1)))
+            if zero_out:
+                Wr[(Wr.numpy() < 0) & (unittype == 1)] = 0
+                Wr[(Wr.numpy() > 0) & (unittype == -1)] = 0
+                Wr_i[Wr_i < 0] = 0
+            else:
+                Wr[(Wr.numpy() < 0) & (unittype == 1)] = th.abs(Wr_cached[(Wr.numpy() < 0) & (unittype == 1)])
+                Wr[(Wr.numpy() > 0) & (unittype == -1)] = -th.abs(Wr_cached[(Wr.numpy() > 0) & (unittype == -1)])
+                Wr_i[Wr_i < 0] = th.abs(Wr_i[Wr_i < 0])
+
+            Wz_i, Wz = th.split(self.Wz.detach(), [self.input_size, self.hidden_size], dim=1)
+            Wz_i_cached, Wz_cached = th.split(self.Wz_cached, [self.input_size, self.hidden_size], dim=1)
+            print(np.sum((Wz.numpy() < 0) & (unittype == 1)))
+            print(np.sum((Wz.numpy() > 0) & (unittype == -1)))
+            if zero_out:
+                Wz[(Wz.numpy() < 0) & (unittype == 1)] = 0
+                Wz[(Wz.numpy() > 0) & (unittype == -1)] = 0
+                Wz_i[Wz_i < 0] = 0
+            else:
+                Wz[(Wz.numpy() < 0) & (unittype == 1)] = th.abs(Wz_cached[(Wz.numpy() < 0) & (unittype == 1)])
+                Wz[(Wz.numpy() > 0) & (unittype == -1)] = -th.abs(Wz_cached[(Wz.numpy() > 0) & (unittype == -1)])
+                Wz_i[Wz_i < 0] = th.abs(Wz_i[Wz_i < 0])
+
+
+            Wh_i, Wh = th.split(self.Wh.detach(), [self.input_size, self.hidden_size], dim=1)
+            Wh_i_cached, Wh_cached = th.split(self.Wh_cached, [self.input_size, self.hidden_size], dim=1)
+            print(np.sum((Wh.numpy() < 0) & (unittype == 1)))
+            print(np.sum((Wh.numpy() > 0) & (unittype == -1)))
+            if zero_out:
+                Wh[(Wh.numpy() < 0) & (unittype == 1)] = 0
+                Wh[(Wh.numpy() > 0) & (unittype == -1)] = 0
+                Wh_i[Wh_i < 0] = 0
+            else:
+                Wh[(Wh.numpy() < 0) & (unittype == 1)] = th.abs(Wh_cached[(Wh.numpy() < 0) & (unittype == 1)])
+                Wh[(Wh.numpy() > 0) & (unittype == -1)] = -th.abs(Wh_cached[(Wh.numpy() > 0) & (unittype == -1)])
+                Wh_i[Wh_i < 0] = th.abs(Wh_i[Wh_i < 0])
+
+            Y = self.Y.detach()
+            if zero_out:
+                Y[Y < 0] = 0
+            else:
+                Y[Y < 0] = th.abs(Y[Y < 0])
+
+        self.Wr.data = th.cat((Wr_i, Wr), dim=1)
+        self.Wz.data = th.cat((Wz_i, Wz), dim=1)
+        self.Wh.data = th.cat((Wh_i, Wh), dim=1)
+        self.Y.data = Y
+        self.cache_policy()
 
     def orthogonalize_with_sparsity(self, matrix, sparsity_matrix):
         # Ensure sparsity_matrix is binary (0 or 1)
