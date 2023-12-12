@@ -59,8 +59,10 @@ class ModularPolicyGRU(nn.Module):
         assert activation == 'tanh' or activation == 'rect_tanh'
         if activation == 'tanh':
             self.activation = lambda hidden: th.tanh(hidden)
+            self.d_hidden = lambda hidden: 1 - th.square(hidden)
         elif activation == 'rect_tanh':
             self.activation = lambda hidden: th.max(th.zeros_like(hidden), th.tanh(hidden))
+            self.d_hidden = lambda hidden: th.where(th.tanh(hidden) > 0, 1 - th.tanh(hidden) ** 2, th.zeros_like(hidden))
         self.spectral_scaling = spectral_scaling
         self.device = device
         self.num_modules = len(module_size)
@@ -93,15 +95,15 @@ class ModularPolicyGRU(nn.Module):
         self.h0 = nn.Parameter(th.zeros(1, hidden_size))
         # Update gate
         self.Wz = nn.Parameter(th.cat((nn.init.xavier_uniform_(th.Tensor(hidden_size, input_size), gain=input_gain),
-                                       nn.init.orthogonal_(th.Tensor(hidden_size, hidden_size))), dim=1))
+                                       nn.init.normal_(th.Tensor(hidden_size, hidden_size), 0, 1/np.sqrt(hidden_size))), dim=1))
         self.bz = nn.Parameter(th.zeros(hidden_size))
         # Reset gate
         self.Wr = nn.Parameter(th.cat((nn.init.xavier_uniform_(th.Tensor(hidden_size, input_size), gain=input_gain),
-                                       nn.init.orthogonal_(th.Tensor(hidden_size, hidden_size))), dim=1))
+                                       nn.init.normal_(th.Tensor(hidden_size, hidden_size), 0, 1/np.sqrt(hidden_size))), dim=1))
         self.br = nn.Parameter(th.zeros(hidden_size))
         # Candidate hidden state
         self.Wh = nn.Parameter(th.cat((nn.init.xavier_uniform_(th.Tensor(hidden_size, input_size), gain=input_gain),
-                                       nn.init.orthogonal_(th.Tensor(hidden_size, hidden_size))), dim=1))
+                                       nn.init.normal_(th.Tensor(hidden_size, hidden_size), 0, 1/np.sqrt(hidden_size))), dim=1))
         self.bh = nn.Parameter(th.zeros(hidden_size))
 
         # Initialize all output parameters
@@ -187,7 +189,7 @@ class ModularPolicyGRU(nn.Module):
                 self.unittype_W[:, module_dims[m]] = (
                     th.tensor(type_list[self.rng.binomial(1, np.ones(module_size[m])*proportion_excitatory[m])],
                               dtype=th.float32))
-            self.mask_Y[:, self.unittype_W[0, :] != 1] = 0  # only allow excitatory units to produce output
+            #self.mask_Y[:, self.unittype_W[0, :] != 1] = 0  # only allow excitatory units to produce output
             # Eliminate inhibitory connections across modules
             for i in range(hidden_size):
                 for m in range(self.num_modules):
@@ -197,7 +199,7 @@ class ModularPolicyGRU(nn.Module):
                     for m in range(self.num_modules):
                         if j in module_dims[m]:
                             j_module = m
-                    if j_module != i_module and self.unittype_W[i, j] == -1:
+                    if j_module != i_module and self.unittype_W[i, j] == -1 and False:
                         self.mask_Wz[i, j + input_size] = 0
                         self.mask_Wr[i, j + input_size] = 0
                         self.mask_Wh[i, j + input_size] = 0
@@ -216,8 +218,8 @@ class ModularPolicyGRU(nn.Module):
 
         Wh_i, Wh = th.split(self.Wh.detach(), [input_size, hidden_size], dim=1)
         _, mask_Wh = th.split(self.mask_Wh.detach(), [input_size, hidden_size], dim=1)
-        Wh = self.orthogonalize_with_sparsity(Wh.numpy(), mask_Wh.numpy())
-        self.Wh = nn.Parameter(th.mul(th.cat((Wh_i, th.tensor(Wh)), dim=1), self.mask_Wh))
+        #Wh = self.orthogonalize_with_sparsity(Wh.numpy(), mask_Wh.numpy())
+        #self.Wh = nn.Parameter(th.mul(th.cat((Wh_i, th.tensor(Wh)), dim=1), self.mask_Wh))
         if proportion_excitatory:
             self.enforce_dale()
             # Restoring E/I balance
@@ -265,7 +267,8 @@ class ModularPolicyGRU(nn.Module):
                 r = th.sigmoid(F.linear(concat, self.Wr, self.br))
                 concat_hidden = th.cat((x, r * h_prev_delayed), dim=1)
                 h_tilda = self.activation(F.linear(concat_hidden, self.Wh[self.module_dims[i], :],
-                                                   self.bh[self.module_dims[i]]))
+                                                   self.bh[self.module_dims[i]]) +
+                                          (th.randn(len(self.module_dims[i])) * 1e-3))
                 h = (1 - z) * h_prev_delayed[:, self.module_dims[i]] + z * h_tilda
                 # Store new hidden states to correct module
                 h_new[:, self.module_dims[i]] = h
@@ -276,7 +279,7 @@ class ModularPolicyGRU(nn.Module):
             z = th.sigmoid(F.linear(concat, self.Wz, self.bz))
             r = th.sigmoid(F.linear(concat, self.Wr, self.br))
             concat_hidden = th.cat((x, r * h_prev), dim=1)
-            h_tilda = self.activation(F.linear(concat_hidden, self.Wh, self.bh))
+            h_tilda = self.activation(F.linear(concat_hidden, self.Wh, self.bh)  + (th.randn(self.Wh.shape[0]) * 1e-3))
             h_new = (1 - z) * h_prev + z * h_tilda
 
         # Output layer
@@ -307,11 +310,11 @@ class ModularPolicyGRU(nn.Module):
             if zero_out:
                 Wr[(Wr < 0) & (unittype == 1)] = 0
                 Wr[(Wr > 0) & (unittype == -1)] = 0
-                Wr_i[Wr_i < 0] = 0
+                #Wr_i[Wr_i < 0] = 0
             else:
                 Wr[(Wr < 0) & (unittype == 1)] = th.abs(Wr_cached[(Wr < 0) & (unittype == 1)])
                 Wr[(Wr > 0) & (unittype == -1)] = -th.abs(Wr_cached[(Wr > 0) & (unittype == -1)])
-                Wr_i[Wr_i < 0] = th.abs(Wr_i[Wr_i < 0])
+                #Wr_i[Wr_i < 0] = th.abs(Wr_i[Wr_i < 0])
 
             Wz_i, Wz = th.split(self.Wz.detach(), [self.input_size, self.hidden_size], dim=1)
             Wz_i_cached, Wz_cached = th.split(self.Wz_cached, [self.input_size, self.hidden_size], dim=1)
@@ -320,11 +323,11 @@ class ModularPolicyGRU(nn.Module):
             if zero_out:
                 Wz[(Wz < 0) & (unittype == 1)] = 0
                 Wz[(Wz > 0) & (unittype == -1)] = 0
-                Wz_i[Wz_i < 0] = 0
+                #Wz_i[Wz_i < 0] = 0
             else:
                 Wz[(Wz < 0) & (unittype == 1)] = th.abs(Wz_cached[(Wz < 0) & (unittype == 1)])
                 Wz[(Wz > 0) & (unittype == -1)] = -th.abs(Wz_cached[(Wz > 0) & (unittype == -1)])
-                Wz_i[Wz_i < 0] = th.abs(Wz_i[Wz_i < 0])
+                #Wz_i[Wz_i < 0] = th.abs(Wz_i[Wz_i < 0])
 
             Wh_i, Wh = th.split(self.Wh.detach(), [self.input_size, self.hidden_size], dim=1)
             Wh_i_cached, Wh_cached = th.split(self.Wh_cached, [self.input_size, self.hidden_size], dim=1)
@@ -333,17 +336,17 @@ class ModularPolicyGRU(nn.Module):
             if zero_out:
                 Wh[(Wh < 0) & (unittype == 1)] = 0
                 Wh[(Wh > 0) & (unittype == -1)] = 0
-                Wh_i[Wh_i < 0] = 0
+                #Wh_i[Wh_i < 0] = 0
             else:
                 Wh[(Wh < 0) & (unittype == 1)] = th.abs(Wh_cached[(Wh < 0) & (unittype == 1)])
                 Wh[(Wh > 0) & (unittype == -1)] = -th.abs(Wh_cached[(Wh > 0) & (unittype == -1)])
-                Wh_i[Wh_i < 0] = th.abs(Wh_i[Wh_i < 0])
+                #Wh_i[Wh_i < 0] = th.abs(Wh_i[Wh_i < 0])
 
             Y = self.Y.detach()
-            if zero_out:
-                Y[Y < 0] = 0
-            else:
-                Y[Y < 0] = th.abs(Y[Y < 0])
+            #if zero_out:
+                #Y[Y < 0] = 0
+            #else:
+                #Y[Y < 0] = th.abs(Y[Y < 0])
 
         self.Wr.data = th.cat((Wr_i, Wr), dim=1)
         self.Wz.data = th.cat((Wz_i, Wz), dim=1)
