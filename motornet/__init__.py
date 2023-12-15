@@ -10,3 +10,4 @@ from . import skeleton
 from . import environment
 from . import effector
 from . import plotor
+from . import policy
