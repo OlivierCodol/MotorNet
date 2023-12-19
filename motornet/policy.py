@@ -146,10 +146,7 @@ class ModularPolicyGRU(nn.Module):
                 elif module_type == 'proprio':
                     h_probability_mask[i, j] = proprio_mask[i_module]
                 elif module_type == 'task':
-                    if j == task_dim[-1]:
-                        h_probability_mask[i, j] = proprio_mask[i_module]
-                    else:
-                        h_probability_mask[i, j] = task_mask[i_module]
+                    h_probability_mask[i, j] = task_mask[i_module]
 
         # Create sparsity mask for output
         y_probability_mask = np.zeros((output_size, hidden_size), dtype=np.float32)
