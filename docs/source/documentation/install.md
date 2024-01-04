@@ -2,13 +2,9 @@
 
 ## Install from source
 
-To install the latest development release, you can install directly from GitHub's repository. This will install 
-version 0.2.0, which relies on PyTorch instead of TensorFlow. Please see the 
-[changelog](https://oliviercodol.github.io/MotorNet/build/html/documentation/changelog.html) for more details on the
-difference between the current development release and the PyPI release.
-
+To install the latest development release, you can install directly from GitHub's repository.
 ```
-pip install git+https://github.com/OlivierCodol/MotorNet.git@pytorch
+pip install git+https://github.com/OlivierCodol/MotorNet.git
 ```
 
 
@@ -25,21 +21,13 @@ Then you can install `motornet` using a simple `pip install` command.
 python3 -m pip install motornet
 ```
 
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The current PyPI version of <code>motornet</code> is 0.1.5, which relies on TensorFlow. <b>To install the version of <code>motornet</code> that relies on PyTorch, please install from source</b> (see above for instructions).</p>
-</div>
-
 ## Install with Anaconda
 
 Installation via Anaconda is not currently supported.
 
 <h1>Requirements</h1>
 
-There is no third-party software required to run MotorNet. However, some freely available python dependencies are 
-required.
-
-If you are running the current development release (version 0.2.0), the requirements are as follow.
+There is no third-party software required to run MotorNet. However, some freely available python dependencies are required.
 
 - [PyTorch](https://pytorch.org/docs/stable/torch.html): MotorNet relies on PyTorch to create tensors and build the 
 graph.
@@ -48,7 +36,7 @@ graph.
 - [Matplotlib](https://matplotlib.org/): For plotting utilities, mainly in the 
 `plotor.py` module.
 
-If you are running the current PyPI release (version 0.1.5), which relies on TensorFlow, the requirements are as follow.
+If you are running a version earlier than 0.2.0, which relies on TensorFlow, the requirements are as follow.
 
 - [TensorFlow](https://www.tensorflow.org/): MotorNet is first and foremost built on TensorFlow. However, the standard
 TensorFlow toolbox is not compatible with recent Apple machines equipped with M1 silicon chips, and users must rely on 
