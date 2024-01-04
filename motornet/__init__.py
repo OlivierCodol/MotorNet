@@ -1,12 +1,13 @@
 """
-A TensorFlow-powered python toolbox to train deep neural networks to perform motor tasks.
+A PyTorch-powered python toolbox to train deep neural networks to perform motor tasks.
 """
 
 __name__ = "motornet"
-__version__ = "0.1.5"
-__author__ = 'Olivier Codol'
+__version__ = "0.2.0"
 
-from . import nets
-from . import plants
-from . import utils
-from . import tasks
+from . import muscle
+from . import skeleton
+from . import environment
+from . import effector
+from . import plotor
+from . import policy
