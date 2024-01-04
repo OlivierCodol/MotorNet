@@ -12,7 +12,7 @@
 
 
 ### <font size="4">Version 0.2.0</font>
-*2023, Month DDth*
+*2024, January 4th*
 
 First and foremost, this update moves `motornet` from `tensorflow` to `pytorch`. There has been systematic requests for 
 a `pytorch` implementation of this package, and over time it is becoming clear that this will enable better integration
