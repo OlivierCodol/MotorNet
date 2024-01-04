@@ -62,7 +62,7 @@ Installation via Anaconda is currently not supported.
 There is no third-party software required to run MotorNet. However, some freely available python dependencies are 
 required.
 
-If you are running the current development release (version 0.2.0), the requirements are as follow.
+If you are running the current development release (version 0.2.0), the requirements are as follows.
 
 - [PyTorch](https://pytorch.org/docs/stable/torch.html): MotorNet relies on PyTorch to create tensors and build the 
 graph.
@@ -72,7 +72,7 @@ graph.
 [plotor](https://github.com/OlivierCodol/MotorNet/blob/master/motornet/plotor.py) module.
 
 
-If you are running the current PyPI release (version 0.1.5), which relies on TensorFlow, the requirements are as follow.
+If you are running the current PyPI release (version 0.1.5), which relies on TensorFlow, the requirements are as follows.
 
 - [TensorFlow](https://www.tensorflow.org/): MotorNet is first and foremost built on TensorFlow. However, the standard
 TensorFlow toolbox is not compatible with recent Apple machines equipped with M1 silicon chips, and users must rely on 
