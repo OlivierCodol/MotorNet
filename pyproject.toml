@@ -31,5 +31,5 @@ version = {attr = "motornet.__version__"}
 packages = ["motornet"]
 
 [project.urls]
-"Homepage" = "http://motornet.org"
+"Homepage" = "https://motornet.org"
 "Github" = "https://github.com/OlivierCodol/MotorNet"

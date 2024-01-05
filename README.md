@@ -19,7 +19,7 @@ We are currently in beta phase, meaning the toolbox is publicly available but we
 bugs and fixes to apply. Please feel free to log an issue if you think you found a bug, we appreciate any contribution. 
 Stay tuned for more!
 
-An [online documentation](http://motornet.org) is available. Feel free to 
+An [online documentation](https://motornet.org) is available. Feel free to 
 check it out.
 
 ## How to Install
@@ -87,7 +87,7 @@ metrics during model training.
 There are several tutorials available to get you started, available in the
 [repository](https://github.com/OlivierCodol/MotorNet)'s
 [<em>examples</em>](https://github.com/OlivierCodol/MotorNet/tree/master/examples) folder, as well as on the 
-[documentation website](http://motornet.org). Hopefully they will give a sense
+[documentation website](https://motornet.org). Hopefully they will give a sense
 of how the  API is supposed to work.
 
 Tutorials and API documentation for version 0.1.5 are still available on the website and GitHib repository for those
@@ -95,4 +95,4 @@ who wish to consult them. They will remain available for the foreseeable future.
 
 ## Changelog
 
-See [here](https://oliviercodol.github.io/MotorNet/build/documentation/changelog.html) for a curated log of update contents.
+See [here](https://motornet.org/documentation/changelog) for a curated log of update contents.
