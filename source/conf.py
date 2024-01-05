@@ -12,7 +12,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join('..', '..', '..', 'motornet')))
+sys.path.insert(0, os.path.abspath('..'))
 from motornet import __version__ as version
 
 # Workaround for issue https://github.com/sphinx-contrib/googleanalytics/issues/2
