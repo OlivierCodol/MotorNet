@@ -1,16 +1,17 @@
 <!doctype html>
-<html class="no-js" lang="en">
+<html class="no-js" lang="en" data-content_root="./">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="motornet.nets.layers" href="motornet_tf.nets.layers.html" /><link rel="prev" title="motornet.nets" href="motornet_tf.nets.html" />
+        <link rel="canonical" href="https://www.motornet.org/motornet_tf.nets.callbacks.html" />
 
-    <!-- Generated with Sphinx 7.0.1 and Furo 2023.05.20 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
         <title>motornet.nets.callbacks - MotorNet 0.2.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=362ab14a" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=36a5483c" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=9a48b4d8" />
     
     
 
@@ -244,27 +245,27 @@
         </div>
         <article role="main">
           <section id="module-motornet_tf.nets.callbacks">
-<span id="motornet-nets-callbacks"></span><h1>motornet.nets.callbacks<a class="headerlink" href="#module-motornet_tf.nets.callbacks" title="Permalink to this heading">#</a></h1>
+<span id="motornet-nets-callbacks"></span><h1>motornet.nets.callbacks<a class="headerlink" href="#module-motornet_tf.nets.callbacks" title="Link to this heading">#</a></h1>
 <p>This module implements <cite>tensorflow.keras.callbacks.Callback</cite> subclasses.
 For more information from the tensorflow package on what callbacks are and what they can achieve, feel free to refer to
 the tensorflow documentation on callbacks at: <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/Callback">https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/Callback</a>.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet_tf.nets.callbacks.BatchLogger">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">BatchLogger</span></span><a class="headerlink" href="#motornet_tf.nets.callbacks.BatchLogger" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">BatchLogger</span></span><a class="headerlink" href="#motornet_tf.nets.callbacks.BatchLogger" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Callback</span></code></p>
 <p>In tensorflow, the default callbacks log performance metrics at the end of each epoch.
 This callback logs performance metrics at the end of each batch instead, providing more frequent logging of training
 performance.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.callbacks.BatchLogger.on_batch_end">
-<span class="sig-name descname"><span class="pre">on_batch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.callbacks.BatchLogger.on_batch_end" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">on_batch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.callbacks.BatchLogger.on_batch_end" title="Link to this definition">#</a></dt>
 <dd><p>Called at the end of each batch. This saves the performance metrics contained in <cite>logs</cite>, as well as the model
 weights.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.callbacks.BatchLogger.on_train_begin">
-<span class="sig-name descname"><span class="pre">on_train_begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.callbacks.BatchLogger.on_train_begin" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">on_train_begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.callbacks.BatchLogger.on_train_begin" title="Link to this definition">#</a></dt>
 <dd><p>Called at the beginning of training. This should only be called on train mode.
 Logs the initial model weights.</p>
 <dl class="field-list simple">
@@ -278,7 +279,7 @@ Logs the initial model weights.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet_tf.nets.callbacks.BatchwiseLearningRateScheduler">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">BatchwiseLearningRateScheduler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scheduler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.callbacks.BatchwiseLearningRateScheduler" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">BatchwiseLearningRateScheduler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scheduler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.callbacks.BatchwiseLearningRateScheduler" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">LearningRateScheduler</span></code></p>
 <p>The parent class adjusts the learning rate at the start of each epoch. This subclass instead applies the learning
 rate adjustement routine at the end of each batch, allowing for more frequent learning rate adjustements to occur.</p>
@@ -293,7 +294,7 @@ current learning rate (<cite>float</cite>) as inputs and returns a new learning 
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.callbacks.BatchwiseLearningRateScheduler.on_batch_end">
-<span class="sig-name descname"><span class="pre">on_batch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.callbacks.BatchwiseLearningRateScheduler.on_batch_end" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">on_batch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.callbacks.BatchwiseLearningRateScheduler.on_batch_end" title="Link to this definition">#</a></dt>
 <dd><p>Called at the end of each batch.
 The learning rate adjustement routine implemented in the <cite>on_epoch_begin</cite> method for the parent class is now
 implemented here instead.</p>
@@ -309,7 +310,7 @@ implemented here instead.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.callbacks.BatchwiseLearningRateScheduler.on_epoch_begin">
-<span class="sig-name descname"><span class="pre">on_epoch_begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.callbacks.BatchwiseLearningRateScheduler.on_epoch_begin" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">on_epoch_begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.callbacks.BatchwiseLearningRateScheduler.on_epoch_begin" title="Link to this definition">#</a></dt>
 <dd><p>Called at the start of each epoch.
 This method is empty to overwrite the learning rate adjustement routine at the beginning of each epoch.</p>
 </dd></dl>
@@ -318,7 +319,7 @@ This method is empty to overwrite the learning rate adjustement routine at the b
 
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet_tf.nets.callbacks.TensorflowFix">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">TensorflowFix</span></span><a class="headerlink" href="#motornet_tf.nets.callbacks.TensorflowFix" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">TensorflowFix</span></span><a class="headerlink" href="#motornet_tf.nets.callbacks.TensorflowFix" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Callback</span></code></p>
 <p>This callback implements a fix for saving some tensorflow objects.
 See this github issue for more details.
@@ -329,7 +330,7 @@ See this github issue for more details.
 </div>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.callbacks.TensorflowFix.on_train_batch_end">
-<span class="sig-name descname"><span class="pre">on_train_batch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.callbacks.TensorflowFix.on_train_batch_end" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">on_train_batch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.callbacks.TensorflowFix.on_train_batch_end" title="Link to this definition">#</a></dt>
 <dd><p>Called at the end a batch during training. This should only be called on train mode.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -343,7 +344,7 @@ See this github issue for more details.
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.callbacks.TensorflowFix.on_train_begin">
-<span class="sig-name descname"><span class="pre">on_train_begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.callbacks.TensorflowFix.on_train_begin" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">on_train_begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.callbacks.TensorflowFix.on_train_begin" title="Link to this definition">#</a></dt>
 <dd><p>Called at the beginning of training. This should only be called on train mode.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -356,7 +357,7 @@ See this github issue for more details.
 
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet_tf.nets.callbacks.TrainingPlotter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">TrainingPlotter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_n_t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_loss</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_trials</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.callbacks.TrainingPlotter" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.nets.callbacks.</span></span><span class="sig-name descname"><span class="pre">TrainingPlotter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_n_t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_loss</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_trials</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.callbacks.TrainingPlotter" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Callback</span></code></p>
 <p>This callback plots the loss history and/or some test trials every <cite>plot_freq</cite> batches, to help monitor the
 model’s behaviour during the training session.</p>
@@ -378,7 +379,7 @@ argument is ignored if <cite>plot_trials</cite> is set to <cite>0</cite>.</p></l
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.callbacks.TrainingPlotter.on_batch_end">
-<span class="sig-name descname"><span class="pre">on_batch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.callbacks.TrainingPlotter.on_batch_end" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">on_batch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.callbacks.TrainingPlotter.on_batch_end" title="Link to this definition">#</a></dt>
 <dd><p>Plot losses, as well as test trials if this option is toggled on at initialization.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -392,7 +393,7 @@ argument is ignored if <cite>plot_trials</cite> is set to <cite>0</cite>.</p></l
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.callbacks.TrainingPlotter.on_train_begin">
-<span class="sig-name descname"><span class="pre">on_train_begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.callbacks.TrainingPlotter.on_train_begin" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">on_train_begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.callbacks.TrainingPlotter.on_train_begin" title="Link to this definition">#</a></dt>
 <dd><p>Called at the beginning of training. This should only be called on train mode.
 Keeps track of which batch was last visited (if there was a previous training session).
 This allows plotting training information of previous training sessions even on subsequent training sessions.</p>
@@ -496,9 +497,9 @@ if the user interrupts an ongoing training session.</p>
       
     </aside>
   </div>
-</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
-    <script src="_static/scripts/furo.js"></script>
+</div><script src="_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=32e29ea5"></script>
     </body>
 </html>

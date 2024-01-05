@@ -1,16 +1,17 @@
 <!doctype html>
-<html class="no-js" lang="en">
+<html class="no-js" lang="en" data-content_root="../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="How Muscle Objects Work" href="../tutorials/muscle-demo.html" /><link rel="prev" title="Functional Overview" href="overview.html" />
+        <link rel="canonical" href="https://www.motornet.org/documentation/changelog.html" />
 
-    <!-- Generated with Sphinx 7.0.1 and Furo 2023.05.20 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
         <title>Changelog - MotorNet 0.2.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=362ab14a" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=9a48b4d8" />
     
     
 
@@ -244,16 +245,16 @@
         </div>
         <article role="main">
           <section id="changelog">
-<h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this heading">#</a></h1>
+<h1>Changelog<a class="headerlink" href="#changelog" title="Link to this heading">#</a></h1>
 <section id="development-releases">
-<h2>Development releases<a class="headerlink" href="#development-releases" title="Permalink to this heading">#</a></h2>
+<h2>Development releases<a class="headerlink" href="#development-releases" title="Link to this heading">#</a></h2>
 <!--
 ### <font size="4">Version 0.1.6</font>
 *YYYY, Month DDth*
 
 -
 --><section id="font-size-4-version-0-2-0-font">
-<h3><span class="raw-html-m2r"><font size="4">Version 0.2.0</font></span><a class="headerlink" href="#font-size-4-version-0-2-0-font" title="Permalink to this heading">#</a></h3>
+<h3><span class="raw-html-m2r"><font size="4">Version 0.2.0</font></span><a class="headerlink" href="#font-size-4-version-0-2-0-font" title="Link to this heading">#</a></h3>
 <p><em>2024, January 4th</em></p>
 <p>First and foremost, this update moves <code class="docutils literal notranslate"><span class="pre">motornet</span></code> from <code class="docutils literal notranslate"><span class="pre">tensorflow</span></code> to <code class="docutils literal notranslate"><span class="pre">pytorch</span></code>. There has been systematic requests for
 a <code class="docutils literal notranslate"><span class="pre">pytorch</span></code> implementation of this package, and over time it is becoming clear that this will enable better integration
@@ -304,7 +305,7 @@ assignment for model parameters, using <code class="docutils literal notranslate
 </ul>
 </section>
 <section id="font-size-4-version-0-1-5-font">
-<h3><span class="raw-html-m2r"><font size="4">Version 0.1.5</font></span><a class="headerlink" href="#font-size-4-version-0-1-5-font" title="Permalink to this heading">#</a></h3>
+<h3><span class="raw-html-m2r"><font size="4">Version 0.1.5</font></span><a class="headerlink" href="#font-size-4-version-0-1-5-font" title="Link to this heading">#</a></h3>
 <p><em>2023, February 19th</em></p>
 <ul class="simple">
 <li><p>Fixed a typo for a parameter value in the <code class="docutils literal notranslate"><span class="pre">mn.plants.muscles.RigidTendonHillMuscleThelen</span></code> class, from 0.66 to 0.6.
@@ -314,7 +315,7 @@ method. Specifically, it is now applied before the non-linearity is applied rath
 </ul>
 </section>
 <section id="font-size-4-version-0-1-4-font">
-<h3><span class="raw-html-m2r"><font size="4">Version 0.1.4</font></span><a class="headerlink" href="#font-size-4-version-0-1-4-font" title="Permalink to this heading">#</a></h3>
+<h3><span class="raw-html-m2r"><font size="4">Version 0.1.4</font></span><a class="headerlink" href="#font-size-4-version-0-1-4-font" title="Link to this heading">#</a></h3>
 <p><em>2022, November 8th</em></p>
 <ul class="simple">
 <li><p>Added an attribute alias object at <code class="docutils literal notranslate"><span class="pre">mn.utils.Alias</span></code> that allows users declare transparent aliases to object
@@ -325,7 +326,7 @@ and activation are actually distinct variables. See that class’ documentation 
 </ul>
 </section>
 <section id="font-size-4-version-0-1-3-font">
-<h3><span class="raw-html-m2r"><font size="4">Version 0.1.3</font></span><a class="headerlink" href="#font-size-4-version-0-1-3-font" title="Permalink to this heading">#</a></h3>
+<h3><span class="raw-html-m2r"><font size="4">Version 0.1.3</font></span><a class="headerlink" href="#font-size-4-version-0-1-3-font" title="Link to this heading">#</a></h3>
 <p><em>2022, October 30th</em></p>
 <ul class="simple">
 <li><p>Fixed a bug which would prevent some new custom models from compiling due to mismatched sequence duration.</p></li>
@@ -342,7 +343,7 @@ method was not called before.</p></li>
 </ul>
 </section>
 <section id="font-size-4-version-0-1-2-font">
-<h3><span class="raw-html-m2r"><font size="4">Version 0.1.2</font></span><a class="headerlink" href="#font-size-4-version-0-1-2-font" title="Permalink to this heading">#</a></h3>
+<h3><span class="raw-html-m2r"><font size="4">Version 0.1.2</font></span><a class="headerlink" href="#font-size-4-version-0-1-2-font" title="Link to this heading">#</a></h3>
 <p><em>2022, July 31st</em></p>
 <ul class="simple">
 <li><p>Some optional arguments, and associated attributes for <code class="docutils literal notranslate"><span class="pre">mn.plants.skeletons.TwoDofArm</span></code> at initialization are now
@@ -352,7 +353,7 @@ method.</p></li>
 </ul>
 </section>
 <section id="font-size-4-version-0-1-1-font">
-<h3><span class="raw-html-m2r"><font size="4">Version 0.1.1</font></span><a class="headerlink" href="#font-size-4-version-0-1-1-font" title="Permalink to this heading">#</a></h3>
+<h3><span class="raw-html-m2r"><font size="4">Version 0.1.1</font></span><a class="headerlink" href="#font-size-4-version-0-1-1-font" title="Link to this heading">#</a></h3>
 <p><em>2022, June 4th</em></p>
 <ul class="simple">
 <li><p>Fixed <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> to allow for solving the <code class="docutils literal notranslate"><span class="pre">tensorflow</span></code> dependency on M1-chip equipped Apple devices. Instead of asking
@@ -361,7 +362,7 @@ TensorFlow on machines equipped with M1 chips, which is <a class="reference exte
 </ul>
 </section>
 <section id="font-size-4-version-0-1-0-font">
-<h3><span class="raw-html-m2r"><font size="4">Version 0.1.0</font></span><a class="headerlink" href="#font-size-4-version-0-1-0-font" title="Permalink to this heading">#</a></h3>
+<h3><span class="raw-html-m2r"><font size="4">Version 0.1.0</font></span><a class="headerlink" href="#font-size-4-version-0-1-0-font" title="Link to this heading">#</a></h3>
 <p><em>2022, June 3th</em></p>
 <ul class="simple">
 <li><p>Initial release.</p></li>
@@ -447,9 +448,9 @@ TensorFlow on machines equipped with M1 chips, which is <a class="reference exte
       
     </aside>
   </div>
-</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
-    <script src="../_static/scripts/furo.js"></script>
+</div><script src="../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
     </body>
 </html>

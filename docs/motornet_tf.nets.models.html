@@ -1,16 +1,17 @@
 <!doctype html>
-<html class="no-js" lang="en">
+<html class="no-js" lang="en" data-content_root="./">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="motornet.plants" href="motornet_tf.plants.html" /><link rel="prev" title="motornet.nets.losses" href="motornet_tf.nets.losses.html" />
+        <link rel="canonical" href="https://www.motornet.org/motornet_tf.nets.models.html" />
 
-    <!-- Generated with Sphinx 7.0.1 and Furo 2023.05.20 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
         <title>motornet.nets.models - MotorNet 0.2.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=362ab14a" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=36a5483c" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=9a48b4d8" />
     
     
 
@@ -244,10 +245,10 @@
         </div>
         <article role="main">
           <section id="module-motornet_tf.nets.models">
-<span id="motornet-nets-models"></span><h1>motornet.nets.models<a class="headerlink" href="#module-motornet_tf.nets.models" title="Permalink to this heading">#</a></h1>
+<span id="motornet-nets-models"></span><h1>motornet.nets.models<a class="headerlink" href="#module-motornet_tf.nets.models" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet_tf.nets.models.DistalTeacher">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.nets.models.</span></span><span class="sig-name descname"><span class="pre">DistalTeacher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.models.DistalTeacher" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.nets.models.</span></span><span class="sig-name descname"><span class="pre">DistalTeacher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.models.DistalTeacher" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
 <p>This is a custom <code class="docutils literal notranslate"><span class="pre">tensorflow.keras.Model</span></code> object, whose purpose is to enable saving
 <code class="docutils literal notranslate"><span class="pre">motornet.plants</span></code> object configuration when saving the model as well.</p>
@@ -275,7 +276,7 @@ argument: <a class="reference external" href="https://www.tensorflow.org/guide/k
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.models.DistalTeacher.from_config">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_objects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.models.DistalTeacher.from_config" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_objects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.models.DistalTeacher.from_config" title="Link to this definition">#</a></dt>
 <dd><p>Creates a layer from its config.</p>
 <p>This method is the reverse of <cite>get_config</cite>,
 capable of instantiating the same layer from the config
@@ -294,7 +295,7 @@ output of get_config.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.models.DistalTeacher.get_config">
-<span class="sig-name descname"><span class="pre">get_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.models.DistalTeacher.get_config" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">get_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.models.DistalTeacher.get_config" title="Link to this definition">#</a></dt>
 <dd><p>Gets the model’s configuration.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -305,7 +306,7 @@ output of get_config.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.models.DistalTeacher.save_model">
-<span class="sig-name descname"><span class="pre">save_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.models.DistalTeacher.save_model" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">save_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.models.DistalTeacher.save_model" title="Link to this definition">#</a></dt>
 <dd><p>Gets the model’s configuration as a dictionary and then save it into a JSON file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -326,7 +327,7 @@ like so:</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.models.DistalTeacher.train_step">
-<span class="sig-name descname"><span class="pre">train_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.models.DistalTeacher.train_step" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">train_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.models.DistalTeacher.train_step" title="Link to this definition">#</a></dt>
 <dd><p>The logic for one training step. Compared to the default method, this overriding method allows for
 recomputation of targets online (during movement), in addition to essentially reproducing what the default
 method does.</p>
@@ -355,7 +356,7 @@ are returned. Example: <cite>{‘loss’: 0.2, ‘accuracy’: 0.7}</cite>.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet_tf.nets.models.MotorNetModel">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.nets.models.</span></span><span class="sig-name descname"><span class="pre">MotorNetModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.models.MotorNetModel" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.nets.models.</span></span><span class="sig-name descname"><span class="pre">MotorNetModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.models.MotorNetModel" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#motornet_tf.nets.models.DistalTeacher" title="motornet_tf.nets.models.DistalTeacher"><code class="xref py py-class docutils literal notranslate"><span class="pre">DistalTeacher</span></code></a></p>
 <p>This is an alias name for the <a class="reference internal" href="#motornet_tf.nets.models.DistalTeacher" title="motornet_tf.nets.models.DistalTeacher"><code class="xref py py-class docutils literal notranslate"><span class="pre">DistalTeacher</span></code></a> class for backward compatibility.</p>
 </dd></dl>
@@ -437,9 +438,9 @@ are returned. Example: <cite>{‘loss’: 0.2, ‘accuracy’: 0.7}</cite>.</p>
       
     </aside>
   </div>
-</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
-    <script src="_static/scripts/furo.js"></script>
+</div><script src="_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=32e29ea5"></script>
     </body>
 </html>

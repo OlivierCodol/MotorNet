@@ -1,16 +1,17 @@
 <!doctype html>
-<html class="no-js" lang="en">
+<html class="no-js" lang="en" data-content_root="./">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="&lt;no title&gt;" href="modules.html" />
+        <link rel="canonical" href="https://www.motornet.org/index.html" />
 
-    <!-- Generated with Sphinx 7.0.1 and Furo 2023.05.20 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
         <title>MotorNet 0.2.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=362ab14a" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=36a5483c" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=9a48b4d8" />
     
     
 
@@ -244,7 +245,7 @@
         </div>
         <article role="main">
           <section id="motornet">
-<h1>MotorNet<a class="headerlink" href="#motornet" title="Permalink to this heading">#</a></h1>
+<h1>MotorNet<a class="headerlink" href="#motornet" title="Link to this heading">#</a></h1>
 <p>A PyTorch-powered python toolbox to train deep neural networks to perform motor tasks.</p>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css" rel="stylesheet">
 
@@ -279,30 +280,25 @@
       </div>
       <div class="row">
         <p>
-           Artificial neural networks (ANNs) are a popular class of computational models for studying neural control of
-          movement. Typically, they are used in conjunction with third-party biomechanical simulation software, with the
-          neural network trained to control the biomechanical effector. This leads to several impracticalities: (1)
-          researchers must rely on two different platforms and (2) biomechanical effectors are not differentiable,
-          constraining researchers to reinforcement learning algorithms despite the existence and potential biological
-          relevance of faster training methods. To date, this has been mitigated by training multi-layer perceptrons as
-          “forward models” approximating the behaviour of effectors from third-party software. However, this does not
-          address (1) and remains a slow, cumbersome process when iterating over many different models and effectors. To
-          address these issues, we developed MotorNet, an open-source Python toolbox that allows creating arbitrarily
-          complex, differentiable, and biomechanically realistic effectors to train ANNs on user-defined motor tasks. It
-          is designed to meet several goals: ease of installation, ease of use, a high-level and user-friendly API, and
-          a modular architecture to allow for flexibility in model building and task design. MotorNet requires no
-          dependencies beyond typical Python toolboxes available on the Anaconda library, making it easy to get started
-          with. For instance, it allows training ANNs on typically used motor control models such as a two degrees of
-          freedom, six muscles planar arm within minutes on a typical desktop computer. MotorNet is built on
-          <a href="https://www.tensorflow.org/">TensorFlow</a>
-          and therefore can implement any network architecture that is possible using the TensorFlow
-          framework. Consequently, it will immediately benefit from advances in the artificial intelligence (AI) field
-          through TensorFlow updates. Finally, it is open source, enabling users to create and share their own
-          improvements, such as new effector and network architectures or custom task designs for the ANN to perform.
-          Overall, we hope MotorNet’s focus on higher order model and task design will alleviate overhead cost to
-          initiate computational projects for new researchers by providing a standalone, ready-to-go framework, and
-          speed up study progress of established computational teams by enabling a focus on concepts and ideas over
-          implementation details.
+          Artificial neural networks (ANNs) are a powerful class of computational models for unravelling neural 
+          mechanisms of brain function. However, for neural control of movement, they currently must be integrated with 
+          software simulating biomechanical effectors, leading to limiting impracticalities: (1) researchers must rely 
+          on two different platforms and (2) biomechanical effectors are not generally differentiable, constraining 
+          researchers to reinforcement learning algorithms despite the existence and potential biological relevance of 
+          faster training methods. To address these limitations, we developed MotorNet, an open-source Python toolbox 
+          for creating arbitrarily complex, differentiable, and biomechanically realistic effectors that can be trained 
+          on user-defined motor tasks using ANNs. MotorNet is designed to meet several goals: ease of installation, ease
+          of use, a high-level user-friendly API, and a modular architecture to allow for flexibility in model building.
+          MotorNet requires no dependencies outside Python, making it easy to get started with. For instance, it allows 
+          training ANNs on typically used motor control models such as a two joint, six muscle, planar arm within 
+          minutes on a typical desktop computer. MotorNet is built on <a href="https://pytorch.org/">PyTorch</a> 
+          and therefore can implement any network 
+          architecture that is possible using the PyTorch framework. Consequently, it will immediately benefit from 
+          advances in artificial intelligence through PyTorch updates. Finally, it is open source, enabling users to 
+          create and share their own improvements, such as new effector and network architectures or custom task 
+          designs. MotorNet’s focus on higher order model and task design will alleviate overhead cost to initiate 
+          computational projects for new researchers by providing a standalone, ready-to-go framework, and speed up 
+          efforts of established computational teams by enabling a focus on concepts and ideas over implementation.
         </p>
       </div>
 
@@ -316,9 +312,11 @@
       <div class="row">
         <div class="col-lg-4 mb-1">
           <p>
-            The pre-print is available <a href="https://www.biorxiv.org/content/10.1101/2023.02.17.528969">on bioRXiv</a>.
+            The reviewed pre-print is available
+            <a href="https://elifesciences.org/reviewed-preprints/88591">on eLife</a>.
           </p>
         </div>
+        <!--
         <div class="col-lg-8 mb-1">
           <div class="paper-thumbnail-row">
             <div class="col-3 mb-1" style="flex: 0 0 auto; width: 25%; margin-bottom: .25rem !important;"><img style="vertical-align: middle;" class="paper-thumbnail" src="_static/img/thumb/thumb_1.png" alt="1" width="95%" /></div>
@@ -338,6 +336,7 @@
             <div class="col-3 mb-1" style="flex: 0 0 auto; width: 25%; margin-bottom: .25rem !important;"><img style="vertical-align: middle;" class="paper-thumbnail" src="_static/img/thumb/thumb_15.png" alt="8" width="95%" /></div>
           </div>
         </div>
+        -->
       </div>
 
       <div class="row pt-4" id="poster">
@@ -374,7 +373,7 @@
         BibTeX</h3>
       </div>
       <div class="row">
-        <p>Please cite our pre-print as follows:</p>
+        <p>Please cite our reviewed pre-print as follows:</p>
       </div>
       <div class="row justify-content-md-center">
         <code class="docutils literal notranslate">
@@ -383,10 +382,10 @@
 	          &nbsp;&nbsp;author = {Codol, Olivier and Michaels, Jonathan A. and Kashefi, Mehrdad and Pruszynski, J. Andrew and Gribble, Paul L.},<br>
 	          &nbsp;&nbsp;title = {MotorNet: a Python toolbox for controlling differentiable biomechanical effectors with artificial neural networks},<br>
 	          &nbsp;&nbsp;year = {2023},<br>
-	          &nbsp;&nbsp;doi = {10.1101/2023.02.17.528969},<br>
-	          &nbsp;&nbsp;publisher = {Cold Spring Harbor Laboratory},<br>
-	          &nbsp;&nbsp;URL = {https://www.biorxiv.org/content/early/2023/02/18/2023.02.17.528969},<br>
-	          &nbsp;&nbsp;journal = {bioRxiv},<br>
+	          &nbsp;&nbsp;doi = {10.7554/eLife.88591.1},<br>
+	          &nbsp;&nbsp;publisher = {eLife Sciences Publications, Ltd},<br>
+	          &nbsp;&nbsp;URL = {https://elifesciences.org/reviewed-preprints/88591},<br>
+	          &nbsp;&nbsp;journal = {eLife},<br>
             }
           </span>
         </code>
@@ -427,7 +426,7 @@
 </ul>
 </div>
 <section id="indices-and-tables">
-<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this heading">#</a></h2>
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
@@ -494,9 +493,9 @@
       
     </aside>
   </div>
-</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
-    <script src="_static/scripts/furo.js"></script>
+</div><script src="_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=32e29ea5"></script>
     </body>
 </html>

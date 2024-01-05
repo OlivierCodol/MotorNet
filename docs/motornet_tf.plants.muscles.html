@@ -1,16 +1,17 @@
 <!doctype html>
-<html class="no-js" lang="en">
+<html class="no-js" lang="en" data-content_root="./">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="motornet.plants.skeletons" href="motornet_tf.plants.skeletons.html" /><link rel="prev" title="motornet.plants" href="motornet_tf.plants.html" />
+        <link rel="canonical" href="https://www.motornet.org/motornet_tf.plants.muscles.html" />
 
-    <!-- Generated with Sphinx 7.0.1 and Furo 2023.05.20 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
         <title>motornet.plants.muscles - MotorNet 0.2.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=362ab14a" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=36a5483c" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=9a48b4d8" />
     
     
 
@@ -244,10 +245,10 @@
         </div>
         <article role="main">
           <section id="module-motornet_tf.plants.muscles">
-<span id="motornet-plants-muscles"></span><h1>motornet.plants.muscles<a class="headerlink" href="#module-motornet_tf.plants.muscles" title="Permalink to this heading">#</a></h1>
+<span id="motornet-plants-muscles"></span><h1>motornet.plants.muscles<a class="headerlink" href="#module-motornet_tf.plants.muscles" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet_tf.plants.muscles.CompliantTendonHillMuscle">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">CompliantTendonHillMuscle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_activation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.CompliantTendonHillMuscle" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">CompliantTendonHillMuscle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_activation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.CompliantTendonHillMuscle" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#motornet_tf.plants.muscles.RigidTendonHillMuscle" title="motornet_tf.plants.muscles.RigidTendonHillMuscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">RigidTendonHillMuscle</span></code></a></p>
 <p>This pre-built muscle class is an implementation of a Hill-type muscle model as detailed in <cite>[1]</cite>. Unlike its
 parent class, this class implements a full compliant tendon version of the model, as formulated in the
@@ -269,7 +270,7 @@ this value will be clipped.</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet_tf.plants.muscles.Muscle">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">Muscle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_activation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_activation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.015</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_deactivation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.05</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.Muscle" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">Muscle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_activation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_activation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.015</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_deactivation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.05</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.Muscle" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Base class for <cite>Muscle</cite> objects. If a plant contains several muscles, this object will contain all of
 those in a vectorized format, meaning for any given plant there will always be only <cite>one</cite> muscle object, regardless
@@ -296,7 +297,7 @@ Differential Equation of the muscle activation method <a class="reference intern
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.plants.muscles.Muscle.activation_ode">
-<span class="sig-name descname"><span class="pre">activation_ode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">excitation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">muscle_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.Muscle.activation_ode" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">activation_ode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">excitation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">muscle_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.Muscle.activation_ode" title="Link to this definition">#</a></dt>
 <dd><p>Computes the new activation value of the (set of) muscle(s) according to the Ordinary Differential Equation
 shown in equations 1-2 in <cite>[1]</cite>.</p>
 <p class="rubric">References</p>
@@ -320,7 +321,7 @@ Differential Equation.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.plants.muscles.Muscle.build">
-<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_isometric_force</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.Muscle.build" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_isometric_force</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.Muscle.build" title="Link to this definition">#</a></dt>
 <dd><p>Build the muscle given parameters from the <code class="docutils literal notranslate"><span class="pre">motornet.plants.Plant</span></code> wrapper object. This should be called by
 the <code class="xref py py-meth docutils literal notranslate"><span class="pre">motornet.plants.Plant.add_muscle()</span></code> method to build the muscle scructure according to the parameters of
 that plant.</p>
@@ -340,7 +341,7 @@ method for a <a class="reference internal" href="#motornet_tf.plants.muscles.Mus
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.plants.muscles.Muscle.get_initial_muscle_state">
-<span class="sig-name descname"><span class="pre">get_initial_muscle_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geometry_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.Muscle.get_initial_muscle_state" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">get_initial_muscle_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geometry_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.Muscle.get_initial_muscle_state" title="Link to this definition">#</a></dt>
 <dd><p>Infers the <cite>muscle state</cite> matching a provided <cite>geometry state</cite> array.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -358,7 +359,7 @@ inferred.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.plants.muscles.Muscle.get_save_config">
-<span class="sig-name descname"><span class="pre">get_save_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.Muscle.get_save_config" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">get_save_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.Muscle.get_save_config" title="Link to this definition">#</a></dt>
 <dd><p>Gets the object instance’s configuration. This is the set of configuration entries that will be useful
 for any muscle objects or subclasses.</p>
 <dl class="field-list simple">
@@ -373,7 +374,7 @@ for any muscle objects or subclasses.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.plants.muscles.Muscle.integrate">
-<span class="sig-name descname"><span class="pre">integrate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_derivative</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">muscle_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geometry_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.Muscle.integrate" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">integrate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_derivative</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">muscle_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geometry_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.Muscle.integrate" title="Link to this definition">#</a></dt>
 <dd><p>Performs one integration step for the muscle step.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -393,7 +394,7 @@ object’s <a class="reference internal" href="#motornet_tf.plants.muscles.Muscl
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.plants.muscles.Muscle.setattr">
-<span class="sig-name descname"><span class="pre">setattr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.Muscle.setattr" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">setattr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.Muscle.setattr" title="Link to this definition">#</a></dt>
 <dd><p>Changes the value of an attribute held by this object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -407,7 +408,7 @@ object’s <a class="reference internal" href="#motornet_tf.plants.muscles.Muscl
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.plants.muscles.Muscle.update_ode">
-<span class="sig-name descname"><span class="pre">update_ode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">excitation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">muscle_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.Muscle.update_ode" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">update_ode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">excitation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">muscle_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.Muscle.update_ode" title="Link to this definition">#</a></dt>
 <dd><p>Computes the derivatives of <cite>muscle state</cite> using the corresponding Ordinary Differential Equations.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -429,7 +430,7 @@ Differential Equations.</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet_tf.plants.muscles.ReluMuscle">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">ReluMuscle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.ReluMuscle" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">ReluMuscle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.ReluMuscle" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#motornet_tf.plants.muscles.Muscle" title="motornet_tf.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Muscle</span></code></a></p>
 <p>A “rectified linear” muscle whose force output <span class="math notranslate nohighlight">\(F\)</span> is a linear function of its activation value, which
 itself is bounded between <cite>0</cite> and <cite>1</cite>. Specifically:</p>
@@ -450,7 +451,7 @@ The <span class="math notranslate nohighlight">\(activation\)</span> value is th
 
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet_tf.plants.muscles.RigidTendonHillMuscle">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">RigidTendonHillMuscle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_activation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.RigidTendonHillMuscle" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">RigidTendonHillMuscle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_activation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.RigidTendonHillMuscle" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#motornet_tf.plants.muscles.Muscle" title="motornet_tf.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Muscle</span></code></a></p>
 <p>This pre-built muscle class is an implementation of a Hill-type muscle model as detailed in <cite>[1]</cite>, adjusted to
 behave as a rigid tendon version of the original model.</p>
@@ -469,7 +470,7 @@ this value will be clipped.</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.plants.muscles.RigidTendonHillMuscle.build">
-<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_isometric_force</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.RigidTendonHillMuscle.build" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_isometric_force</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.RigidTendonHillMuscle.build" title="Link to this definition">#</a></dt>
 <dd><p>Build the muscle using arguments from the <code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant</span></code> wrapper object. This should
 be called by the <code class="xref py py-meth docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant.add_muscle()</span></code> method to build the muscle structure according
 to the parameters of that plant.</p>
@@ -500,7 +501,7 @@ object.</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet_tf.plants.muscles.RigidTendonHillMuscleThelen">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">RigidTendonHillMuscleThelen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_activation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.RigidTendonHillMuscleThelen" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.plants.muscles.</span></span><span class="sig-name descname"><span class="pre">RigidTendonHillMuscleThelen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_activation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.RigidTendonHillMuscleThelen" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#motornet_tf.plants.muscles.Muscle" title="motornet_tf.plants.muscles.Muscle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Muscle</span></code></a></p>
 <p>This pre-built muscle class is an implementation of a Hill-type muscle model as detailed in <cite>[1]</cite>, adjusted to
 behave as a rigid tendon version of the original model.</p>
@@ -518,7 +519,7 @@ this value will be clipped.</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.plants.muscles.RigidTendonHillMuscleThelen.build">
-<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_isometric_force</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.RigidTendonHillMuscleThelen.build" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_isometric_force</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.plants.muscles.RigidTendonHillMuscleThelen.build" title="Link to this definition">#</a></dt>
 <dd><p>Build the muscle using arguments from the <code class="xref py py-class docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant</span></code> wrapper object. This should
 be called by the <code class="xref py py-meth docutils literal notranslate"><span class="pre">motornet.plants.plants.Plant.add_muscle()</span></code> method to build the muscle scructure according
 to the parameters of that plant.</p>
@@ -636,10 +637,10 @@ object.</p></li>
       
     </aside>
   </div>
-</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
-    <script src="_static/scripts/furo.js"></script>
+</div><script src="_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=32e29ea5"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>

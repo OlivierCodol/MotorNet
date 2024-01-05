@@ -1,16 +1,17 @@
 <!doctype html>
-<html class="no-js" lang="en">
+<html class="no-js" lang="en" data-content_root="./">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="motornet.nets.losses" href="motornet_tf.nets.losses.html" /><link rel="prev" title="motornet.nets.callbacks" href="motornet_tf.nets.callbacks.html" />
+        <link rel="canonical" href="https://www.motornet.org/motornet_tf.nets.layers.html" />
 
-    <!-- Generated with Sphinx 7.0.1 and Furo 2023.05.20 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
         <title>motornet.nets.layers - MotorNet 0.2.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=362ab14a" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=36a5483c" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=9a48b4d8" />
     
     
 
@@ -244,10 +245,10 @@
         </div>
         <article role="main">
           <section id="module-motornet_tf.nets.layers">
-<span id="motornet-nets-layers"></span><h1>motornet.nets.layers<a class="headerlink" href="#module-motornet_tf.nets.layers" title="Permalink to this heading">#</a></h1>
+<span id="motornet-nets-layers"></span><h1>motornet.nets.layers<a class="headerlink" href="#module-motornet_tf.nets.layers" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet_tf.nets.layers.GRUNetwork">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.nets.layers.</span></span><span class="sig-name descname"><span class="pre">GRUNetwork</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.GRUNetwork" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.nets.layers.</span></span><span class="sig-name descname"><span class="pre">GRUNetwork</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.GRUNetwork" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#motornet_tf.nets.layers.Network" title="motornet_tf.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a></p>
 <p>A GRU network acting as a controller to the plant. The last layer of the network is a
 <cite>tensorflow.keras.layers.Dense</cite> dense layer containing <cite>n_muscles * k</cite> units, with <cite>k</cite> being the number of inputs
@@ -276,7 +277,7 @@ last layer of the network (<cite>i.e.</cite>, the output layer).</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.layers.GRUNetwork.build">
-<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_shapes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.GRUNetwork.build" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_shapes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.GRUNetwork.build" title="Link to this definition">#</a></dt>
 <dd><p>Creates the variables of the layer (for subclass implementers).</p>
 <p>This is a method that implementers of subclasses of <cite>Layer</cite> or <cite>Model</cite>
 can override if they need a state-creation step in-between
@@ -295,7 +296,7 @@ the first execution of <cite>call()</cite>.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.layers.GRUNetwork.forward_pass">
-<span class="sig-name descname"><span class="pre">forward_pass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.GRUNetwork.forward_pass" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">forward_pass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.GRUNetwork.forward_pass" title="Link to this definition">#</a></dt>
 <dd><p>Performs the forward pass computation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -318,7 +319,7 @@ layers).</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.layers.GRUNetwork.get_initial_state">
-<span class="sig-name descname"><span class="pre">get_initial_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">tf.float32</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.GRUNetwork.get_initial_state" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">get_initial_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">tf.float32</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.GRUNetwork.get_initial_state" title="Link to this definition">#</a></dt>
 <dd><p>Creates the initial states for the first timestep of the network training procedure. This method
 provides the states for the full <a class="reference internal" href="#motornet_tf.nets.layers.Network" title="motornet_tf.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> class, that is the default states from the
 <a class="reference internal" href="#motornet_tf.nets.layers.Network.get_base_initial_state" title="motornet_tf.nets.layers.Network.get_base_initial_state"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Network.get_base_initial_state()</span></code></a> method followed by the states specific to this subclass.</p>
@@ -341,7 +342,7 @@ of each GRU layer as <cite>tensor</cite> arrays.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.layers.GRUNetwork.get_save_config">
-<span class="sig-name descname"><span class="pre">get_save_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.GRUNetwork.get_save_config" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">get_save_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.GRUNetwork.get_save_config" title="Link to this definition">#</a></dt>
 <dd><p>Gets the base configuration from the <code class="xref py py-meth docutils literal notranslate"><span class="pre">motornet.nets.layers.Network.get_base_config()</span></code> method, and adds
 the configuration information specific to the <a class="reference internal" href="#motornet_tf.nets.layers.GRUNetwork" title="motornet_tf.nets.layers.GRUNetwork"><code class="xref py py-class docutils literal notranslate"><span class="pre">GRUNetwork</span></code></a> class to that <cite>dictionary</cite>. These are:</p>
 <blockquote>
@@ -365,7 +366,7 @@ the configuration information specific to the <a class="reference internal" href
 
 <dl class="py class">
 <dt class="sig sig-object py" id="motornet_tf.nets.layers.Network">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.nets.layers.</span></span><span class="sig-name descname"><span class="pre">Network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.Network" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motornet_tf.nets.layers.</span></span><span class="sig-name descname"><span class="pre">Network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.Network" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Layer</span></code></p>
 <p>Base class for controller <a class="reference internal" href="#motornet_tf.nets.layers.Network" title="motornet_tf.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> objects. It implements a network whose function is to control the
 plant provided as input at initialization. This object can be subclassed to implement virtually anything that
@@ -390,7 +391,7 @@ only being updated every <cite>1</cite> ms.</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.layers.Network.call">
-<span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.Network.call" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.Network.call" title="Link to this definition">#</a></dt>
 <dd><p>The logic for a single simulation step. This performs a single forward pass through the network, and passes
 the network output as excitation signals (motor commands) to the plant object to simulate movement.</p>
 <dl class="field-list simple">
@@ -418,7 +419,7 @@ time.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.layers.Network.forward_pass">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">forward_pass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.Network.forward_pass" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">forward_pass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.Network.forward_pass" title="Link to this definition">#</a></dt>
 <dd><p>Performs the forward pass through the network layers to obtain the motor commands that will then be passed
 on to the plant.</p>
 <dl class="field-list simple">
@@ -444,7 +445,7 @@ on to the plant.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.layers.Network.from_config">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.Network.from_config" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.Network.from_config" title="Link to this definition">#</a></dt>
 <dd><p>Creates a layer from its config.</p>
 <p>This method is the reverse of <cite>get_config</cite>,
 capable of instantiating the same layer from the config
@@ -463,7 +464,7 @@ output of get_config.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.layers.Network.get_base_config">
-<span class="sig-name descname"><span class="pre">get_base_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.Network.get_base_config" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">get_base_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.Network.get_base_config" title="Link to this definition">#</a></dt>
 <dd><p>Gets the object instance’s base configuration. This is the set of configuration entries that will be useful
 for any <a class="reference internal" href="#motornet_tf.nets.layers.Network" title="motornet_tf.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> class or subclass. This method should be called by the <a class="reference internal" href="#motornet_tf.nets.layers.Network.get_save_config" title="motornet_tf.nets.layers.Network.get_save_config"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_save_config()</span></code></a>
 method. Users wanting to save additional configuration entries specific to a <cite>Network</cite> subclass should then
@@ -478,7 +479,7 @@ the number of muscles and ministeps.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.layers.Network.get_base_initial_state">
-<span class="sig-name descname"><span class="pre">get_base_initial_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">tf.float32</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.Network.get_base_initial_state" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">get_base_initial_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">tf.float32</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.Network.get_base_initial_state" title="Link to this definition">#</a></dt>
 <dd><p>Creates the base initial states for the first timestep of the network training procedure. This method
 provides the base states for the default <a class="reference internal" href="#motornet_tf.nets.layers.Network" title="motornet_tf.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> class, in the order listed below:</p>
 <blockquote>
@@ -512,7 +513,7 @@ documented there.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.layers.Network.get_initial_state">
-<span class="sig-name descname"><span class="pre">get_initial_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">tf.float32</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.Network.get_initial_state" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">get_initial_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">tf.float32</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.Network.get_initial_state" title="Link to this definition">#</a></dt>
 <dd><p>Creates the initial states for the first timestep of the network training procedure. This method
 provides the states for the full <a class="reference internal" href="#motornet_tf.nets.layers.Network" title="motornet_tf.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> class, that is the default states from the
 <a class="reference internal" href="#motornet_tf.nets.layers.Network.get_base_initial_state" title="motornet_tf.nets.layers.Network.get_base_initial_state"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_base_initial_state()</span></code></a> method followed by the states specific to a potential subclass. This method
@@ -536,7 +537,7 @@ documented there.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="motornet_tf.nets.layers.Network.get_save_config">
-<span class="sig-name descname"><span class="pre">get_save_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.Network.get_save_config" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">get_save_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.Network.get_save_config" title="Link to this definition">#</a></dt>
 <dd><p>Gets the <a class="reference internal" href="#motornet_tf.nets.layers.Network" title="motornet_tf.nets.layers.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> object’s configuration as a <cite>dictionary</cite>. This method should be overwritten by
 subclass objects, and used to add configuration entries specific to that subclass.</p>
 <dl class="field-list simple">
@@ -550,7 +551,7 @@ subclass objects, and used to add configuration entries specific to that subclas
 
 <dl class="py function">
 <dt class="sig sig-object py" id="motornet_tf.nets.layers.recttanh">
-<span class="sig-prename descclassname"><span class="pre">motornet_tf.nets.layers.</span></span><span class="sig-name descname"><span class="pre">recttanh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.recttanh" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">motornet_tf.nets.layers.</span></span><span class="sig-name descname"><span class="pre">recttanh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.nets.layers.recttanh" title="Link to this definition">#</a></dt>
 <dd><p>A rectified hyperbolic tangent activation function.</p>
 </dd></dl>
 
@@ -641,9 +642,9 @@ subclass objects, and used to add configuration entries specific to that subclas
       
     </aside>
   </div>
-</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
-    <script src="_static/scripts/furo.js"></script>
+</div><script src="_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=32e29ea5"></script>
     </body>
 </html>

@@ -1,16 +1,17 @@
 <!doctype html>
-<html class="no-js" lang="en">
+<html class="no-js" lang="en" data-content_root="./">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="motornet.task" href="motornet_tf.task.html" /><link rel="prev" title="motornet.utils" href="motornet_tf.utils.html" />
+        <link rel="canonical" href="https://www.motornet.org/motornet_tf.utils.plotor.html" />
 
-    <!-- Generated with Sphinx 7.0.1 and Furo 2023.05.20 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
         <title>motornet.utils.plotor - MotorNet 0.2.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=e6660623a769aa55fea372102b9bf3151b292993" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=362ab14a" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=36a5483c" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=9a48b4d8" />
     
     
 
@@ -244,16 +245,16 @@
         </div>
         <article role="main">
           <section id="module-motornet_tf.utils.plotor">
-<span id="motornet-utils-plotor"></span><h1>motornet.utils.plotor<a class="headerlink" href="#module-motornet_tf.utils.plotor" title="Permalink to this heading">#</a></h1>
+<span id="motornet-utils-plotor"></span><h1>motornet.utils.plotor<a class="headerlink" href="#module-motornet_tf.utils.plotor" title="Link to this heading">#</a></h1>
 <p>This module contains various functions for plotting data from <cite>MotorNet</cite> training and simulation sessions.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="motornet_tf.utils.plotor.animate_trajectory">
-<span class="sig-prename descclassname"><span class="pre">motornet_tf.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">animate_trajectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_position</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_animation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./Arm_animation.mp4'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.utils.plotor.animate_trajectory" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">motornet_tf.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">animate_trajectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_position</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_animation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./Arm_animation.mp4'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.utils.plotor.animate_trajectory" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="motornet_tf.utils.plotor.compute_limits">
-<span class="sig-prename descclassname"><span class="pre">motornet_tf.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">compute_limits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.utils.plotor.compute_limits" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">motornet_tf.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">compute_limits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.utils.plotor.compute_limits" title="Link to this definition">#</a></dt>
 <dd><p>Computes the limits to use for plotting data, given the range of the dataset and a margin size around that range.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -272,7 +273,7 @@ the range is <cite>10</cite>.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="motornet_tf.utils.plotor.plot_2dof_arm_over_time">
-<span class="sig-prename descclassname"><span class="pre">motornet_tf.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">plot_2dof_arm_over_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'viridis'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linewidth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.utils.plotor.plot_2dof_arm_over_time" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">motornet_tf.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">plot_2dof_arm_over_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'viridis'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linewidth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.utils.plotor.plot_2dof_arm_over_time" title="Link to this definition">#</a></dt>
 <dd><p>Plots an arm26 over time, with earlier and later arm configuration in the movement being represented as darker
 and brighter colors, respectively.</p>
 <dl class="field-list simple">
@@ -293,7 +294,7 @@ the array is <cite>4</cite> (shoulder position, elbow position, shoulder velocit
 
 <dl class="py function">
 <dt class="sig sig-object py" id="motornet_tf.utils.plotor.plot_pos_over_time">
-<span class="sig-prename descclassname"><span class="pre">motornet_tf.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">plot_pos_over_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cart_results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'viridis'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.utils.plotor.plot_pos_over_time" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">motornet_tf.utils.plotor.</span></span><span class="sig-name descname"><span class="pre">plot_pos_over_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cart_results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'viridis'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#motornet_tf.utils.plotor.plot_pos_over_time" title="Link to this definition">#</a></dt>
 <dd><p>Plots trajectory position over time, giving a darker color to the early part of a trajectory, and a lighter color
 to the later part of the trajectory.</p>
 <dl class="field-list simple">
@@ -383,9 +384,9 @@ the array is <cite>4</cite> (<cite>x</cite> position, <cite>y</cite> position, <
       
     </aside>
   </div>
-</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
-    <script src="_static/scripts/furo.js"></script>
+</div><script src="_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=32e29ea5"></script>
     </body>
 </html>
