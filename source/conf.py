@@ -67,6 +67,10 @@ html_theme = 'furo'
 html_static_path = ['_static']
 html_css_files = ['custom.css']
 
+# The base URL which points to the root of the HTML documentation. It is used
+# to indicate the location of document using The Canonical Link Relation. Default: ''.
+# If set, it will produce a CNAME file in the build directory with the specified link.
+html_baseurl = 'https://www.motornet.org'
 
 def autodoc_skip_member(app, what, name, obj, skip, options):
     # from https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#skipping-members
