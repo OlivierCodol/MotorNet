@@ -1,12 +1,9 @@
 import numpy as np
 import torch as th
 import gymnasium as gym
-from gymnasium.utils import seeding
 from typing import Any
-
-
-DEVICE = th.device("cpu")
-
+from collections.abc import Sequence
+from motornet.effector import Effector
 
 class Environment(gym.Env, th.nn.Module):
   """Base class for environments.
@@ -23,8 +20,9 @@ class Environment(gym.Env, th.nn.Module):
     differentiable: `Boolean`, whether the environment will be differentiable or not. This will usually be useful for
       reinforcement learning, where the differentiability is not needed.
     max_ep_duration: `Float`, the maximum duration of an episode, in seconds.
-    action_noise: `Float`, the standard deviation of the Gaussian noise added to the action input at each step of the 
-      simulation.
+    action_noise: `Float` of `list`, the standard deviation of the Gaussian noise added to the action input at each step of the 
+      simulation. If this is a `list`, it should have as many elements as the action vector and will 
+      indicate the standard deviation of each action element independently.
     obs_noise: `Float` or `list`, the standard deviation of the Gaussian noise added to the observation vector at each
       step of the simulation. If this is a `list`, it should have as many elements as the observation vector and will 
       indicate the standard deviation of each observation element independently.
@@ -41,16 +39,16 @@ class Environment(gym.Env, th.nn.Module):
   """
   def __init__(
     self,
-    effector,
-    q_init=None,
+    effector: Effector,
+    q_init: np.ndarray | th.Tensor | Sequence | None = None,
     name: str = 'Env',
     differentiable: bool = True,
     max_ep_duration: float = 1.,
-    action_noise: float = 0.,
-    obs_noise: float | list = 0.,
+    action_noise: float | Sequence[float] = 0.,
+    obs_noise: float | Sequence[float] = 0.,
     action_frame_stacking: int = 0,
-    proprioception_delay: float = None,
-    vision_delay: float = None,
+    proprioception_delay: float | None = None,
+    vision_delay: float | None = None,
     proprioception_noise: float = 0.,
     vision_noise: float = 0.,
     **kwargs,
@@ -59,28 +57,13 @@ class Environment(gym.Env, th.nn.Module):
     super().__init__(**kwargs)
 
     self.__name__ = name
-    self.effector = effector.to(self.device)
+    self.effector = effector
     self.dt = self.effector.dt
     self.differentiable = differentiable
     self.max_ep_duration = max_ep_duration
-    self.elapsed = None
-
-    self.delay_range = [0, 0]
-
-    if q_init is not None:
-      q_init = np.array(q_init)
-      if len(q_init.shape) == 1:
-        q_init = q_init.reshape(1, -1)
-      self.nq_init = q_init.shape[0]
-    else:
-      self.nq_init = None
     self.q_init = q_init
-    self.goal = None
-
     self._action_noise = action_noise
     self._obs_noise = obs_noise
-    self.action_noise = 0.
-    self.obs_noise = 0.
     self.proprioception_noise = [proprioception_noise]
     self.vision_noise = [vision_noise]
     self.action_frame_stacking = action_frame_stacking
@@ -89,34 +72,25 @@ class Environment(gym.Env, th.nn.Module):
     proprioception_delay = self.dt if proprioception_delay is None else proprioception_delay
     vision_delay = self.dt if vision_delay is None else vision_delay
 
-    def floating_precision(x): return x < np.finfo(x).resolution
-    assert floating_precision(np.mod(vision_delay / self.dt, 1.)), f"delay was {vision_delay} and dt was {self.dt}"
-    assert floating_precision(np.mod(proprioception_delay / self.dt, 1.)), f"delay was {proprioception_delay} and " + \
-      f"dt was {self.dt}"
-
-    self.proprioception_delay = int(proprioception_delay / self.dt)
-    self.vision_delay = int(vision_delay / self.dt)
+    self.proprioception_delay = round(proprioception_delay / self.dt)
+    self.vision_delay = round(vision_delay / self.dt)
+    assert np.isclose(proprioception_delay / self.dt, self.proprioception_delay), f'`proprioception_delay` was {proprioception_delay} and `dt` was {self.dt}'
+    assert np.isclose(vision_delay / self.dt, self.vision_delay), f'`vision_delay` was {vision_delay} and `dt` was {self.dt}'
+    self.goal_delay = 1
     
-    self.obs_buffer = {
-      "proprioception": [None] * self.proprioception_delay,
-      "vision":  [None] * self.vision_delay,
-      "action": [None] * self.action_frame_stacking
-    }
-
-    self.seed = None
     self._build_spaces()
 
-  def detach(self, x):
+  def detach(self, x) -> np.ndarray:
     return x.cpu().detach().numpy() if th.is_tensor(x) else x
   
   def _build_spaces(self):
-    self.action_space = gym.spaces.Box(low=0., high=1., shape=(self.effector.n_muscles,), dtype=np.float32)
+    self.action_space = gym.spaces.Box(low=0., high=1., shape=(self.effector.input_dim,), dtype=np.float32)
 
     obs, _ = self.reset(options={"deterministic": True})
     self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(obs.shape[-1],), dtype=np.float32)
 
-    def handle_noise_arg(noise, space):
-      return [noise] * space.shape[0] if (type(noise) is float or int) else noise
+    def handle_noise_arg(noise: Sequence[float] | float, space: gym.spaces.Box) -> Sequence[float]:
+      return noise if isinstance(noise, Sequence) else [noise] * space.shape[0] 
 
     self.action_noise = handle_noise_arg(self._action_noise, self.action_space)
     self.obs_noise = handle_noise_arg(self._obs_noise, self.observation_space)
@@ -133,9 +107,13 @@ class Environment(gym.Env, th.nn.Module):
     muscle velocity for each muscle as well. `.i.i.d.` Gaussian noise is added to each element in the `tensor`,
     using the :attr:`proprioception_noise` attribute.
     """
-    mlen = self.states["muscle"][:, 1:2, :] / self.muscle.l0_ce
-    mvel = self.states["muscle"][:, 2:3, :] / self.muscle.vmax
-    prop = th.concatenate([mlen, mvel], dim=-1).squeeze(dim=1)
+    if not hasattr(self, '_mlen_idx'):
+      self._mlen_idx = self.muscle.state_name.index('muscle length')
+    mlen = self.states["muscle"][:, self._mlen_idx:self._mlen_idx + 1] / self.muscle.l0_ce
+    if not hasattr(self, '_mvel_idx'):
+      self._mvel_idx = self.muscle.state_name.index('muscle velocity')
+    mvel = self.states["muscle"][:, self._mvel_idx:self._mvel_idx + 1] / self.muscle.vmax
+    prop = th.cat([mlen, mvel], dim=-1).squeeze(dim=1)
     return self.apply_noise(prop, self.proprioception_noise)
 
   def get_vision(self) -> th.Tensor:
@@ -157,27 +135,30 @@ class Environment(gym.Env, th.nn.Module):
     `.i.i.d.` Gaussian noise is added to each element in the `tensor`,
     using the :attr:`obs_noise` attribute.
     """
+    # There is a major problem with this implementation in that `vision_noise` and `proprioception_noise`
+    # are not modulated by `deterministic` in update_obs_buffer()
     self.update_obs_buffer(action=action)
 
     obs_as_list = [
-      self.goal,
+      self.obs_buffer["goal"][0],
       self.obs_buffer["vision"][0],
       self.obs_buffer["proprioception"][0],
-      ] + self.obs_buffer["action"][:self.action_frame_stacking]
+      ] + self.obs_buffer["action"]
     
     obs = th.cat(obs_as_list, dim=-1)
 
     if deterministic is False:
-      obs = self.apply_noise(obs, noise=self.obs_noise)
+      obs = self.apply_noise(obs, self.obs_noise)
 
     return obs if self.differentiable else self.detach(obs)
 
   def step(
       self,
-      action: th.Tensor | np.ndarray,
+      action: th.Tensor | np.ndarray | Sequence[float],
+      *,
       deterministic: bool = False,
       **kwargs,
-    ) -> tuple[th.Tensor | np.ndarray, bool, bool, dict[str, Any]]:
+    ) -> tuple[th.Tensor | np.ndarray, np.ndarray, bool, bool, dict[str, Any]]:
     """
     Perform one simulation step. This method is likely to be overwritten by any subclass to implement user-defined 
     computations, such as reward value calculation for reinforcement learning, custom truncation or termination
@@ -205,26 +186,29 @@ class Environment(gym.Env, th.nn.Module):
     
     self.elapsed += self.dt
 
-    action = action if th.is_tensor(action) else th.tensor(action, dtype=th.float32).to(self.device)
+    action = action if isinstance(action, th.Tensor) else th.tensor(action, dtype=th.float32, device=self.device)
     noisy_action = action
     if deterministic is False:
-      noisy_action = self.apply_noise(noisy_action, noise=self.action_noise)
+      noisy_action = self.apply_noise(noisy_action, self.action_noise)
     
     self.effector.step(noisy_action, **kwargs)
 
-    obs = self.get_obs(action=noisy_action)
-    reward = None if self.differentiable else np.zeros((self.detach(action.shape[0]), 1))
+    reward = self._get_reward(self.effector.batch_size)
+    obs = self.get_obs(action=noisy_action, deterministic=deterministic)
     truncated = False if self.differentiable else False
-    terminated = bool(self.elapsed >= self.max_ep_duration) or truncated
-    self.goal = self.goal.clone()
+    terminated = not truncated and (self.elapsed > self.max_ep_duration or bool(np.isclose(self.elapsed, self.max_ep_duration)))
+
     info = {
       "states": self._maybe_detach_states(),
-      "action": action,
-      "noisy action": noisy_action,
+      "action": action if self.differentiable else self.detach(action),
+      "noisy action": noisy_action if self.differentiable else self.detach(noisy_action),
       "goal": self.goal if self.differentiable else self.detach(self.goal),
       }
 
     return obs, reward, terminated, truncated, info
+
+  def _get_reward(self, batch_size: int):
+    return np.zeros((batch_size, 1))
 
   def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None):
     """
@@ -256,32 +240,26 @@ class Environment(gym.Env, th.nn.Module):
         not, respectively. It has dimensionality `(batch_size, n_features)`.
       - A `dictionary` containing the initial step's information.
     """
-    self._set_generator(seed=seed)
-
     options = {} if options is None else options
     batch_size: int = options.get("batch_size", 1)
-    joint_state: th.Tensor | np.ndarray | None = options.get("joint_state", None)
+    joint_state: th.Tensor | np.ndarray | Sequence | None = options.get("joint_state", self.q_init)
     deterministic: bool = options.get("deterministic", False)
 
-    if joint_state is not None:
-      joint_state_shape = np.shape(self.detach(joint_state))
-      if joint_state_shape[0] > 1:
-        batch_size = joint_state_shape[0]
-    else:
-      joint_state = self.q_init
+    joint_state = th.as_tensor(joint_state) if isinstance(joint_state, np.ndarray) else joint_state
 
-    #self.muscle_normalizer = self.detach(self.muscle.max_iso_force / th.mean(self.muscle.max_iso_force))
-    # goal = self.joint2cartesian(self.draw_random_uniform_states(batch_size)).chunk(2, dim=-1)
-    self.goal = th.zeros((batch_size, self.skeleton.space_dim)).to(self.device)
+    self.effector.reset(seed=seed, options={"batch_size": batch_size, "joint_state": joint_state})
+    self.goal = self._get_goal(self.effector.batch_size)
     self.elapsed = 0.
 
-    self.effector.reset(options={"batch_size": batch_size, "joint_state": joint_state})
-    
     # initialize buffer
-    action = th.zeros((batch_size, self.action_space.shape[0])).to(self.device)
-    self.obs_buffer["proprioception"] = [self.get_proprioception()] * len(self.obs_buffer["proprioception"])
-    self.obs_buffer["vision"] = [self.get_vision()] * len(self.obs_buffer["vision"])
-    self.obs_buffer["action"] = [action] * self.action_frame_stacking
+    assert isinstance(self.action_space, gym.spaces.Box), f'`action_space` is not appropriately initialized.'
+    action = th.zeros((self.effector.batch_size, self.action_space.shape[0]), device=self.device)
+    self.obs_buffer = {
+      "proprioception": [self.get_proprioception() for _ in range(self.proprioception_delay)],
+      "goal": [self.goal] * self.goal_delay,
+      "vision": [self.get_vision() for _ in range(self.vision_delay)],
+      "action": [action] * self.action_frame_stacking
+    }
 
     action = action if self.differentiable else self.detach(action)
 
@@ -294,6 +272,9 @@ class Environment(gym.Env, th.nn.Module):
         }
     return obs, info
   
+  def _get_goal(self, batch_size: int) -> th.Tensor:
+    return th.zeros((batch_size, self.space_dim), device=self.device)
+
   # # # ========================================================================================
   # # # ========================================================================================
   # # # The methods below are those LESS likely to be overwritten by users creating custom tasks
@@ -302,19 +283,16 @@ class Environment(gym.Env, th.nn.Module):
   def update_obs_buffer(self, action=None):
     self.obs_buffer["proprioception"] = self.obs_buffer["proprioception"][1:] + [self.get_proprioception()]
     self.obs_buffer["vision"] = self.obs_buffer["vision"][1:] + [self.get_vision()]
+    self.obs_buffer["goal"] = self.obs_buffer["goal"][1:] + [self.goal]
 
     if action is not None:
-      self.obs_buffer["action"] = self.obs_buffer["action"][1:] + [action.reshape(-1, self.action_space.shape[0])]
+      assert isinstance(self.action_space, gym.spaces.Box), f'`action_space` is not appropriately initialized.'
+      self.obs_buffer["action"] = self.obs_buffer["action"][1:] + [action]
 
   @property
   def muscle(self):
     """Shortcut to the :class:`motornet.effector.Effector`'s `muscle` attribute."""
     return self.effector.muscle
-  
-  @property
-  def n_muscles(self):
-    """Shortcut to the :class:`motornet.muscle.Muscle`'s `n_muscles` attribute."""
-    return self.effector.muscle.n_muscles
   
   @property
   def skeleton(self):
@@ -324,7 +302,7 @@ class Environment(gym.Env, th.nn.Module):
   @property
   def space_dim(self):
     """Shortcut to the :class:`motornet.skeleton.Skeleton`'s `space_dim` attribute."""
-    return self.effector.skeleton.space_dim
+    return self.skeleton.space_dim
   
   @property
   def states(self):
@@ -340,7 +318,7 @@ class Environment(gym.Env, th.nn.Module):
   
   def _set_generator(self, seed: int | None):
     if seed is not None:
-      self.effector.reset(seed=seed)
+      self.effector._set_generator(seed)
 
   @property
   def np_random(self) -> np.random.Generator:
@@ -352,16 +330,16 @@ class Environment(gym.Env, th.nn.Module):
     return self.effector.np_random
 
   @np_random.setter
-  def np_random(self, rng: np.random.Generator) -> None:
-      self.effector.np_random = rng
+  def np_random(self, value: np.random.Generator) -> None:
+      self.effector.np_random = value
 
-  def apply_noise(self, loc, noise: float | list) -> th.Tensor:
+  def apply_noise(self, loc: th.Tensor, scale: float | Sequence[float]) -> th.Tensor:
     """Applies element-wise Gaussian noise to the input `loc`.
 
     Args:
       loc: input on which the Gaussian noise is applied, which in probabilistic terms make it the mean of the
         Gaussian distribution.
-      noise: `Float` or `list`, the standard deviation (spread or “width”) of the distribution. Must be 
+      scale: `Float` or `list`, the standard deviation (spread or “width”) of the distribution. Must be 
         non-negative. If this is a `list, it must contain as many elements as the second axis of `loc`, and the 
         Gaussian distribution for each column of `loc` will have a different standard deviation. Note that the 
         elements within each column of `loc` will still be independent and identically distributed (`i.i.d.`).
@@ -369,8 +347,8 @@ class Environment(gym.Env, th.nn.Module):
     Returns:
       A noisy version of `loc` as a `tensor`.
     """
-    white_noise = self.np_random.normal(size=(loc.shape[0], len(noise)), scale=noise)
-    return loc + th.tensor(white_noise, dtype=th.float32).to(self.device)
+    white_noise = self.np_random.normal(size=loc.shape, scale=scale)
+    return loc + th.tensor(white_noise, dtype=th.float32, device=self.device)
 
   def get_attributes(self):
     """Gets all non-callable attributes declared in the object instance, excluding `gym.spaces.Space` attributes,
@@ -413,7 +391,7 @@ class Environment(gym.Env, th.nn.Module):
       `gym.spaces.Space` attributes, the effector, muscle, and skeleton attributes.
     """
 
-    cfg = {'name': self.__name__}
+    cfg: dict[str, Any] = {'name': self.__name__}
     attributes, values = self.get_attributes()
     for attribute, value in zip(attributes, values):
       value = self.detach(value)  # tensors are not JSON serializable
@@ -427,70 +405,14 @@ class Environment(gym.Env, th.nn.Module):
     return cfg
   
   @property
-  def device(self):
-    """Returns the device of the first parameter in the module or the 1st CPU device if no parameter is yet declared.
-    The parameter search includes children modules.
+  def device(self) -> th.device:
+    """Returns the device of the module's `effector`.
     """
-    try:
-      return next(self.parameters()).device
-    except:
-      return DEVICE
-    
+    return self.effector.device
+      
 
 class RandomTargetReach(Environment):
   """A reach to a random target from a random starting position.
-
-  Args:
-    network: :class:`motornet.nets.layers.Network` object class or subclass. This is the network that will perform
-      the task.
-    name: `String`, the name of the task object instance.
-    deriv_weight: `Float`, the weight of the muscle activation's derivative contribution to the default muscle L2
-      loss.
-    **kwargs: This is passed as-is to the parent :class:`Task` class.
   """
-
-  def __init__(self, *args, **kwargs):
-    super().__init__(*args, **kwargs)
-    self.obs_noise[:self.skeleton.space_dim] = [0.] * self.skeleton.space_dim  # target info is noiseless
-
-  def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None) -> tuple[Any, dict[str, Any]]:
-    """
-    Uses the :meth:`Environment.reset()` method of the parent class :class:`Environment` that can be overwritten to 
-    change the returned data. Here the goals (`i.e.`, the targets) are drawn from a random uniform distribution across
-    the full joint space.
-    """
-    self._set_generator(seed=seed)
-
-    options = {} if options is None else options
-    batch_size: int = options.get('batch_size', 1)
-    joint_state: th.Tensor | np.ndarray | None = options.get('joint_state', None)
-    deterministic: bool = options.get('deterministic', False)
-    
-    if joint_state is not None:
-      joint_state_shape = np.shape(self.detach(joint_state))
-      if joint_state_shape[0] > 1:
-        batch_size = joint_state_shape[0]
-    else:
-      joint_state = self.q_init
-
-    self.effector.reset(options={"batch_size": batch_size, "joint_state": joint_state})
-
-    self.goal = self.joint2cartesian(self.effector.draw_random_uniform_states(batch_size)).chunk(2, dim=-1)[0]
-    self.elapsed = 0.
-
-    action = th.zeros((batch_size, self.action_space.shape[0])).to(self.device)
-
-    self.obs_buffer["proprioception"] = [self.get_proprioception()] * len(self.obs_buffer["proprioception"])
-    self.obs_buffer["vision"] = [self.get_vision()] * len(self.obs_buffer["vision"])
-    self.obs_buffer["action"] = [action] * self.action_frame_stacking
-
-    action = action if self.differentiable else self.detach(action)
-
-    obs = self.get_obs(deterministic=deterministic)
-    info = {
-      "states": self._maybe_detach_states(),
-      "action": action,
-      "noisy action": action,
-      "goal": self.goal if self.differentiable else self.detach(self.goal),
-      }
-    return obs, info
+  def _get_goal(self, batch_size: int) -> th.Tensor:
+    return self.joint2cartesian(self.effector.draw_random_uniform_states(batch_size)).chunk(2, dim=-1)[0]

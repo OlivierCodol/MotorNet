@@ -1,5 +1,5 @@
 import torch as th
-import numpy as np
+from collections.abc import Sequence
 from torch.nn.parameter import Parameter
 
 
@@ -34,7 +34,8 @@ class Muscle(th.nn.Module):
     output_dim: int = 1,
     min_activation: float = 0.,
     tau_activation: float = 0.015,
-    tau_deactivation: float = 0.05
+    tau_deactivation: float = 0.05,
+    device: th.device | None = None
   ):
     
     super().__init__()
@@ -42,25 +43,25 @@ class Muscle(th.nn.Module):
     self.input_dim = input_dim
     self.state_name = []
     self.output_dim = output_dim
-    self.min_activation = Parameter(th.tensor(min_activation, dtype=th.float32), requires_grad=False)
-    self.tau_activation = Parameter(th.tensor(tau_activation, dtype=th.float32), requires_grad=False)
-    self.tau_deactivation = Parameter(th.tensor(tau_deactivation, dtype=th.float32), requires_grad=False)
+    device = self.device if device is None else device
+    self.min_activation = Parameter(th.tensor(min_activation, dtype=th.float32, device=device), requires_grad=False)
+    self.tau_activation = Parameter(th.tensor(tau_activation, dtype=th.float32, device=device), requires_grad=False)
+    self.tau_deactivation = Parameter(th.tensor(tau_deactivation, dtype=th.float32, device=device), requires_grad=False)
     self.to_build_dict = {'max_isometric_force': []}
     self.to_build_dict_default = {}
     self.dt = None
-    self.n_muscles = None
     self.max_iso_force = None
-    self.vmax = None
+    # self.vmax = None
     self.l0_se = None
-    self.l0_ce = None
+    # self.l0_ce = None
     self.l0_pe = None
     self.built = False
 
-  def clip_activation(self, a):
-    return th.clamp(a, self.min_activation, 1.)
+  def clip_activation(self, a: th.Tensor) -> th.Tensor:
+    return a.clamp(self.min_activation, th.ones([]))
   
   @property
-  def device(self):
+  def device(self) -> th.device:
     """Returns the device of the first parameter in the module or the 1st CPU device if no parameter is yet declared.
     The parameter search includes children modules.
     """
@@ -69,7 +70,11 @@ class Muscle(th.nn.Module):
     except:
       return DEVICE
 
-  def build(self, timestep, max_isometric_force, **kwargs):
+  def build(
+    self,
+    timestep: float,
+    max_isometric_force: float | Sequence[float] | th.Tensor,
+  ):
     """Build the muscle given parameters from the ``motornet.effector.Effector`` wrapper object. This should be 
     called by the :meth:`motornet.effector.Effector.add_muscle` method to build the muscle scructure according to 
     the parameters of that effector.
@@ -79,20 +84,18 @@ class Muscle(th.nn.Module):
       max_isometric_force: `Float` or `list` of `float`, the maximum amount of force (N) that this particular
         muscle can use. If several muscles are being built, then this should be a `list` containing as many
         elements as there are muscles.
-      **kwargs: Optional keyword arguments. This allows for extra parameters to be passed in the :meth:`build`
-        method for a :class:`Muscle` subclass, if needed.
     """
-    max_isometric_force = np.array(max_isometric_force).reshape(1, 1, -1)
-    self.n_muscles = np.array(max_isometric_force).size
-    self.max_iso_force = Parameter(th.tensor(max_isometric_force, dtype=th.float32), requires_grad=False)
+    self.n_muscles = 1 if isinstance(max_isometric_force, (int, float)) else len(max_isometric_force)
     self.dt = timestep
-    self.vmax = Parameter(th.ones((1, 1, self.n_muscles)), requires_grad=False)
-    self.l0_se = Parameter(th.ones((1, 1, self.n_muscles)), requires_grad=False)
-    self.l0_ce = Parameter(th.ones((1, 1, self.n_muscles)), requires_grad=False)
-    self.l0_pe = Parameter(th.ones((1, 1, self.n_muscles)), requires_grad=False)
+
+    self.max_iso_force = Parameter(th.as_tensor(max_isometric_force, dtype=th.float32, device=self.device).reshape(1, 1, -1), requires_grad=False)
+    self.vmax = Parameter(th.ones((1, 1, self.n_muscles), device=self.device), requires_grad=False)
+    self.l0_se = Parameter(th.ones((1, 1, self.n_muscles), device=self.device), requires_grad=False)
+    self.l0_ce = Parameter(th.ones((1, 1, self.n_muscles), device=self.device), requires_grad=False)
+    self.l0_pe = Parameter(th.ones((1, 1, self.n_muscles), device=self.device), requires_grad=False)
     self.built = True
 
-  def get_initial_muscle_state(self, batch_size, geometry_state):
+  def get_initial_muscle_state(self, batch_size: int, geometry_state: th.Tensor) -> th.Tensor:
     """Infers the `muscle state` matching a provided `geometry state` array.
 
     Args:
@@ -108,7 +111,7 @@ class Muscle(th.nn.Module):
   def _get_initial_muscle_state(self, batch_size, geometry_state):
     raise NotImplementedError
 
-  def integrate(self, dt, state_derivative, muscle_state, geometry_state):
+  def integrate(self, dt: float, state_derivative: th.Tensor, muscle_state: th.Tensor, geometry_state: th.Tensor) -> th.Tensor:
     """Performs one integration step for the muscle step.
 
     Args:
@@ -127,7 +130,7 @@ class Muscle(th.nn.Module):
   def _integrate(self, dt, state_derivative, muscle_state, geometry_state):
     raise NotImplementedError
 
-  def ode(self, action, muscle_state):
+  def ode(self, action: th.Tensor, muscle_state: th.Tensor) -> th.Tensor:
     """Computes the derivatives of `muscle state` using the corresponding Ordinary Differential Equations.
 
     Args:
@@ -136,7 +139,7 @@ class Muscle(th.nn.Module):
         Differential Equations.
 
     Returns:
-      A `tensor` containing the derivatives of the `muscle state`.
+      A `Tensor` containing the derivatives of the `muscle state`.
     """
     return self._ode(action, muscle_state)
 
@@ -144,7 +147,7 @@ class Muscle(th.nn.Module):
     activation = muscle_state[:, :1, :]
     return self.activation_ode(action, activation)
 
-  def activation_ode(self, action, activation):
+  def activation_ode(self, action: th.Tensor, activation: th.Tensor) -> th.Tensor:
     """Computes the new activation value of the (set of) muscle(s) according to the Ordinary Differential Equation
     shown in equations 1-2 in `[1]`. Note that this is incidentally the same activation function as used for the 
     `muscle` actuators in MuJoCo `[2]`.
@@ -155,14 +158,13 @@ class Muscle(th.nn.Module):
       [2] https://mujoco.readthedocs.io/en/stable/modeling.html#muscle-actuators
 
     Args:
-      excitation: `Float` or `list` of `float`, the descending excitation drive to the muscle(s). If several
+      action: `Tensor`, the descending excitation drive to the muscle(s). If several
         muscles are declared in the parent effector object, then this should be a `list` containing as many
         elements as there are muscles in that parent effector object.
-      muscle_state: `Tensor`, the `muscle state` that provides the initial activation value for the Ordinary
-        Differential Equation.
+      activation: `Tensor`, the initial activation value for the Ordinary Differential Equation.
 
     Returns:
-      A `tensor` containing the updated activation values.
+      A `Tensor` containing the updated activation values.
     """
     action = self.clip_activation(th.reshape(action, (-1, 1, self.n_muscles)))
     activation = self.clip_activation(activation)
@@ -231,7 +233,6 @@ class ReluMuscle(Muscle):
     return th.cat([activation0, len_vel, force0], dim=1)
 
 
-
 class MujocoHillMuscle(Muscle):
   """This pre-built muscle class is an implementation of a Hill-type muscle model as detailed in the MuJoCo 
   documentation`[1]`. It is a rigid tendon Hill-type model.
@@ -295,17 +296,17 @@ class MujocoHillMuscle(Muscle):
     self.built = False
     self.passive_forces = passive_forces
 
-  def build(
+  def build(  # type: ignore
     self,
-    timestep,
-    max_isometric_force,
-    tendon_length,
-    optimal_muscle_length,
-    normalized_slack_muscle_length,
-    lmin,
-    lmax,
-    vmax,
-    fvmax,
+    timestep: float,
+    max_isometric_force: float | Sequence[float] | th.Tensor,
+    tendon_length: float | Sequence[float] | th.Tensor,
+    optimal_muscle_length: float | Sequence[float] | th.Tensor,
+    normalized_slack_muscle_length: float | Sequence[float] | th.Tensor,
+    lmin: float,
+    lmax: float,
+    vmax: float,
+    fvmax: float,
   ):
     """Build the muscle using arguments from the :class:`motornet.effector.Effector` wrapper object. This
     should be called by the :meth:`motornet.effector.Effector.add_muscle` method to build the muscle 
@@ -334,10 +335,10 @@ class MujocoHillMuscle(Muscle):
       fvmax: `Float`, active force generated at saturating lengthening velocity, relative to its maximum isometric
         force.
     """
-    self.n_muscles = np.array(tendon_length).size
+    self.n_muscles = 1 if isinstance(max_isometric_force, (int, float)) else len(max_isometric_force)
     
     def to_tensor(x):
-      tensor = th.tensor(x, dtype=th.float32).reshape((1, 1, -1))
+      tensor = th.as_tensor(x, dtype=th.float32, device=self.device).reshape((1, 1, -1))
       assert tensor.numel() == 1 or tensor.numel() == self.n_muscles
       return tensor
 
@@ -352,14 +353,13 @@ class MujocoHillMuscle(Muscle):
 
     self.dt = timestep
 
-
     # derived quantities
     # a = 0.5*(lmin+1)
     self.b = 0.5 * (1 + self.lmax)
     self.c = self.fvmax - 1
     self.p1 = self.b - 1
     self.p2 = 0.25 * self.l0_pe
-    self.zero_as_tensor = Parameter(th.tensor(0., dtype=th.float32), requires_grad=False)
+    self.zero_as_tensor = Parameter(th.zeros([], dtype=th.float32, device=self.device), requires_grad=False)
     self.mid = 0.5 * (self.lmin + 0.95)
 
     self.built = True
@@ -418,7 +418,6 @@ class MujocoHillMuscle(Muscle):
       )
     force = (activation * flce * fvce + self.passive_forces * flpe) * self.max_iso_force
     return th.cat([activation, muscle_len * self.l0_ce, muscle_vel * self.vmax, flpe, flce, fvce, force], dim=1)
-
     
   def _bump(self, L, mid, lmax):
     """Skewed bump function: quadratic spline."""
@@ -483,22 +482,11 @@ class RigidTendonHillMuscle(Muscle):
     ]
     self.state_dim = len(self.state_name)
 
-    # parameters for the passive element (PE) and contractile element (CE)
-    self.pe_k = 5.
-    self.pe_1 = self.pe_k / 0.66
-    self.pe_den = np.exp(self.pe_k) - 1
-    self.ce_gamma = 0.45
-    self.ce_Af = 0.25
-    self.ce_fmlen = 1.4
-
     # pre-define attributes:
-    self.musculotendon_slack_len = None
-    self.k_pe = None
     self.s_as = 0.001
     self.f_iso_n_den = .66 ** 2
     self.k_se = 1 / (0.04 ** 2)
     self.q_crit = 0.3
-    self.b_rel_st_den = 5e-3 - self.q_crit
     self.min_flce = 0.01
 
     self.to_build_dict = {
@@ -511,13 +499,13 @@ class RigidTendonHillMuscle(Muscle):
 
     self.built = False
 
-  def build(
+  def build(  # type: ignore
     self,
-    timestep,
-    max_isometric_force,
-    tendon_length,
-    optimal_muscle_length,
-    normalized_slack_muscle_length,
+    timestep: float,
+    max_isometric_force: float | Sequence[float] | th.Tensor,
+    tendon_length: float | Sequence[float] | th.Tensor,
+    optimal_muscle_length: float | Sequence[float] | th.Tensor,
+    normalized_slack_muscle_length: float | Sequence[float] | th.Tensor,
   ):
     """Build the muscle using arguments from the :class:`motornet.effector.Effector` wrapper object. This
     should be called by the :meth:`motornet.effector.Effector.add_muscle` method to build the muscle
@@ -540,14 +528,14 @@ class RigidTendonHillMuscle(Muscle):
         object, then this should be a list containing as many elements as there are muscles in that parent 
         effector object.
     """
-    self.n_muscles = np.array(tendon_length).size
+    self.n_muscles = 1 if isinstance(max_isometric_force, (int, float)) else len(max_isometric_force)
     shape = (1, 1, self.n_muscles)
-
     self.dt = timestep
-    self.max_iso_force = Parameter(th.tensor(max_isometric_force, dtype=th.float32).reshape(shape), requires_grad=False)
-    self.l0_ce = Parameter(th.tensor(optimal_muscle_length, dtype=th.float32).reshape(shape), requires_grad=False)
-    self.l0_se = Parameter(th.tensor(tendon_length, dtype=th.float32).reshape(shape), requires_grad=False)
-    self.l0_pe = Parameter(th.tensor(normalized_slack_muscle_length, dtype=th.float32)*self.l0_ce, requires_grad=False)
+    
+    self.max_iso_force = Parameter(th.as_tensor(max_isometric_force, dtype=th.float32, device=self.device).reshape(shape), requires_grad=False)
+    self.l0_ce = Parameter(th.as_tensor(optimal_muscle_length, dtype=th.float32, device=self.device).reshape(shape), requires_grad=False)
+    self.l0_se = Parameter(th.as_tensor(tendon_length, dtype=th.float32, device=self.device).reshape(shape), requires_grad=False)
+    self.l0_pe = Parameter(th.as_tensor(normalized_slack_muscle_length, dtype=th.float32, device=self.device) * self.l0_ce, requires_grad=False)
     self.k_pe = Parameter(1 / ((1.66 - self.l0_pe / self.l0_ce) ** 2), requires_grad=False)
     self.musculotendon_slack_len = Parameter(self.l0_pe + self.l0_se, requires_grad=False)
     self.vmax = Parameter(10 * self.l0_ce, requires_grad=False)
@@ -642,21 +630,12 @@ class RigidTendonHillMuscleThelen(Muscle):
     self.state_dim = len(self.state_name)
 
     # parameters for the passive element (PE) and contractile element (CE)
-    self.pe_k = Parameter(th.tensor(5., dtype=th.float32), requires_grad=False)
+    self.pe_k = Parameter(th.tensor(5., dtype=th.float32, device=self.device), requires_grad=False)
     self.pe_1 = Parameter(self.pe_k / 0.6, requires_grad=False)  # divided by epsilon_0^M in Thelen (2003) eq. 3
     self.pe_den = Parameter(th.exp(self.pe_k) - 1, requires_grad=False)
-    self.ce_gamma = Parameter(th.tensor(0.45, dtype=th.float32), requires_grad=False)
-    self.ce_Af = Parameter(th.tensor(0.25, dtype=th.float32), requires_grad=False)
-    self.ce_fmlen = Parameter(th.tensor(1.4, dtype=th.float32), requires_grad=False)
-
-    # pre-define attributes:
-    self.musculotendon_slack_len = None
-    self.ce_0 = None
-    self.ce_1 = None
-    self.ce_2 = None
-    self.ce_3 = None
-    self.ce_4 = None
-    self.ce_5 = None
+    self.ce_gamma = Parameter(th.tensor(0.45, dtype=th.float32, device=self.device), requires_grad=False)
+    self.ce_Af = Parameter(th.tensor(0.25, dtype=th.float32, device=self.device), requires_grad=False)
+    self.ce_fmlen = Parameter(th.tensor(1.4, dtype=th.float32, device=self.device), requires_grad=False)
 
     self.to_build_dict = {
       'max_isometric_force': [],
@@ -667,13 +646,13 @@ class RigidTendonHillMuscleThelen(Muscle):
     self.to_build_dict_default = {'normalized_slack_muscle_length': 1.}
     self.built = False
 
-  def build(
+  def build(  # type: ignore
     self,
-    timestep,
-    max_isometric_force,
-    tendon_length,
-    optimal_muscle_length,
-    normalized_slack_muscle_length
+    timestep: float,
+    max_isometric_force: float | Sequence[float] | th.Tensor,
+    tendon_length: float | Sequence[float] | th.Tensor,
+    optimal_muscle_length: float | Sequence[float] | th.Tensor,
+    normalized_slack_muscle_length: float | Sequence[float] | th.Tensor
   ):
     """Build the muscle using arguments from the :class:`motornet.effector.Effector` wrapper object. This
     should be called by the :meth:`motornet.effector.Effector.add_muscle` method to build the muscle 
@@ -696,19 +675,18 @@ class RigidTendonHillMuscleThelen(Muscle):
         object, then this should be a list containing as many elements as there are muscles in that parent 
         effector object.
     """
-    self.n_muscles = np.array(tendon_length).size
+    self.n_muscles = 1 if isinstance(max_isometric_force, (int, float)) else len(max_isometric_force)
     self.dt = timestep
 
-    max_isometric_force = th.tensor(max_isometric_force, dtype=th.float32).reshape(1, 1, self.n_muscles)
-    optimal_muscle_length = th.tensor(optimal_muscle_length, dtype=th.float32).reshape(1, 1, self.n_muscles)
-    tendon_length = th.tensor(tendon_length, dtype=th.float32).reshape(1, 1, self.n_muscles)
-    normalized_slack_muscle_length = th.tensor(normalized_slack_muscle_length, dtype=th.float32)
+    max_isometric_force = th.as_tensor(max_isometric_force, dtype=th.float32, device=self.device).reshape(1, 1, self.n_muscles)
+    optimal_muscle_length = th.as_tensor(optimal_muscle_length, dtype=th.float32, device=self.device).reshape(1, 1, self.n_muscles)
+    tendon_length = th.as_tensor(tendon_length, dtype=th.float32, device=self.device).reshape(1, 1, self.n_muscles)
+    normalized_slack_muscle_length = th.as_tensor(normalized_slack_muscle_length, dtype=th.float32, device=self.device)
 
     self.max_iso_force = Parameter(max_isometric_force, requires_grad=False)
     self.l0_ce = Parameter(optimal_muscle_length, requires_grad=False)
     self.l0_se = Parameter(tendon_length, requires_grad=False)
     self.l0_pe = Parameter(self.l0_ce * normalized_slack_muscle_length, requires_grad=False)
-    self.musculotendon_slack_len = Parameter(self.l0_pe + self.l0_se, requires_grad=False)
     self.vmax = Parameter(10 * self.l0_ce, requires_grad=False)
 
     # pre-computed for speed
@@ -813,9 +791,9 @@ class CompliantTendonHillMuscle(RigidTendonHillMuscle):
     force = flse * self.max_iso_force
     return th.concat([activation, new_muscle_len, muscle_vel, flpe, flse, active_force, force], dim=1)
 
-  def _ode(self, excitation, muscle_state):
+  def _ode(self, action, muscle_state):
     activation = muscle_state[:, 0:1, :]
-    d_activation = self.activation_ode(excitation, activation)
+    d_activation = self.activation_ode(action, activation)
     muscle_len_n = muscle_state[:, 1:2, :] / self.l0_ce
     active_force = muscle_state[:, 5:6, :]
     new_muscle_vel_n = self._normalized_muscle_vel(muscle_len_n, activation, active_force)
@@ -839,13 +817,13 @@ class CompliantTendonHillMuscle(RigidTendonHillMuscle):
         condition=th.less(musculotendon_len, self.l0_se),
         input=0.001 * self.l0_ce,
         other=th.where(
-          condition=th.less(musculotendon_len, self.l0_se + self.l0_pe),
+          condition=th.less(musculotendon_len, self.musculotendon_slack_len),
           input=musculotendon_len - self.l0_se,
           other=(self.k_pe * self.l0_pe * self.l0_se ** 2 -
             self.k_se * (self.l0_ce ** 2) * musculotendon_len +
             self.k_se * self.l0_ce ** 2 * self.l0_se -
             self.l0_ce * self.l0_se * th.sqrt(self.k_pe * self.k_se)
-            * (-musculotendon_len + self.l0_pe + self.l0_se)) /
+            * (-musculotendon_len + self.musculotendon_slack_len)) /
            (self.k_pe * self.l0_se ** 2 - self.k_se * self.l0_ce ** 2))))
 
     # tf.debugging.assert_non_negative(muscle_len, message='initial muscle length was < 0.')

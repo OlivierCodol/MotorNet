@@ -1,6 +1,5 @@
 import torch as th
-import numpy as np
-from typing import Union
+from collections.abc import Sequence
 from torch.nn.parameter import Parameter
 
 
@@ -15,16 +14,16 @@ class Skeleton(th.nn.Module):
     space_dim: `Integer`, the dimensionality of the space in which the skeleton evolves. For instance, this would be
       `2` for a cartesian, planar `xy` space.
     name: `String`, the name of the object instance.
-    pos_upper_bound: `Float`, `list` or `tuple`, indicating the upper boundary of joint position. This should be
+    pos_upper_bound: `Float` or `list` of `float`, indicating the upper boundary of joint position. This should be
       a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance, for a two
       degrees-of-freedom arm, we would have `n=2`.
-    pos_lower_bound: `Float`, `list` or `tuple`, indicating the lower boundary of joint position. This should be
+    pos_lower_bound: `Float` or `list` of `float`, indicating the lower boundary of joint position. This should be
       a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance, for a two
       degrees-of-freedom arm, we would have `n=2`.
-    vel_upper_bound: `Float`, `list` or `tuple`, indicating the upper boundary of joint velocity. This should be
+    vel_upper_bound: `Float` or `list` of `float`, indicating the upper boundary of joint velocity. This should be
       a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance, for a two
       degrees-of-freedom arm, we would have `n=2`.
-    vel_lower_bound: `Float`, `list` or `tuple`, indicating the lower boundary of joint velocity. This should be
+    vel_lower_bound: `Float` or `list` of `float`, indicating the lower boundary of joint velocity. This should be
       a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance, for a two
       degrees-of-freedom arm, we would have `n=2`.
 
@@ -37,10 +36,11 @@ class Skeleton(th.nn.Module):
   """
 
   def __init__(self, dof: int, space_dim: int, name: str = "skeleton",
-         pos_lower_bound: Union[float, list, tuple] = -1.,
-         pos_upper_bound: Union[float, list, tuple] = +1.,
-         vel_lower_bound: Union[float, list, tuple] = -1000.,
-         vel_upper_bound: Union[float, list, tuple] = +1000.,
+         pos_lower_bound: float | Sequence[float] | th.Tensor = -1.,
+         pos_upper_bound: float | Sequence[float] | th.Tensor = +1.,
+         vel_lower_bound: float | Sequence[float] | th.Tensor = -1000.,
+         vel_upper_bound: float | Sequence[float] | th.Tensor = +1000.,
+         device: th.device | None = None,
          **kwargs):
 
     super().__init__()
@@ -51,67 +51,59 @@ class Skeleton(th.nn.Module):
     self.input_dim = kwargs.get('input_dim', self.dof)
     self.state_dim = kwargs.get('state_dim', self.dof * 2)
     self.output_dim = kwargs.get('output_dim', self.state_dim)
-    self.geometry_state_dim = 2 + self.dof # two geometry variable per muscle: path_length, path_velocity
-    self.default_endpoint_load = th.zeros((1, self.space_dim)) #tf.zeros((1, self.space_dim), dtype=tf.float32)
 
-    self.pos_lower_bound = pos_lower_bound
-    self.pos_upper_bound = pos_upper_bound
-    self.vel_lower_bound = vel_lower_bound # cap as defensive code
-    self.vel_upper_bound = vel_upper_bound
+    device = self.device if device is None else device
+    self.pos_lower_bound = Parameter(th.as_tensor(pos_lower_bound, dtype=th.float32, device=device).expand(dof), requires_grad=False)
+    self.pos_upper_bound = Parameter(th.as_tensor(pos_upper_bound, dtype=th.float32, device=device).expand(dof), requires_grad=False)
+    self.vel_lower_bound = Parameter(th.as_tensor(vel_lower_bound, dtype=th.float32, device=device).expand(dof), requires_grad=False)
+    self.vel_upper_bound = Parameter(th.as_tensor(vel_upper_bound, dtype=th.float32, device=device).expand(dof), requires_grad=False)
 
-    self.clip_position = None
-    self.init = False
     self.built = False
-    #self.detach = lambda x: x.cpu().detach().numpy() if th.is_tensor(x) else x
 
     self.clip = self._clip
 
   @staticmethod
-  def _clip(x, lb, ub):
+  def _clip(x: th.Tensor, lb: th.Tensor, ub: th.Tensor) -> th.Tensor:
     return th.min(th.max(x, lb), ub)
-
-  def clip_method(self, x):
-    return self.clip(x, self.pos_lower_bound, self.pos_upper_bound)
-
-  def detach(self, x):
-    return x.cpu().detach().numpy() if th.is_tensor(x) else x
   
   def build(
       self,
       timestep: float,
-      pos_upper_bound,
-      pos_lower_bound,
-      vel_upper_bound,
-      vel_lower_bound,
+      pos_upper_bound: float | Sequence[float] | th.Tensor | None = None,
+      pos_lower_bound: float | Sequence[float] | th.Tensor | None = None,
+      vel_upper_bound: float | Sequence[float] | th.Tensor | None = None,
+      vel_lower_bound: float | Sequence[float] | th.Tensor | None = None,
       ):
     """This method should be called by the initialization method of the 
     :class:`motornet.effector.Effector` object class or subclass.
 
     Args:
       timestep: Float, size of a single timestep (sec).
-      pos_upper_bound: `Float`, `list` or `tuple`, indicating the upper boundary of joint position. Should
+
+    Optional args:
+      pos_upper_bound: `Float` or `list` of `float`, indicating the upper boundary of joint position. Should
+        be a `n`-element vector, with `n` the number of joints of the skeleton. For instance, for a two
+        degrees-of-freedom arm, we would have `n=2`.
+      pos_lower_bound: `Float` or `list` of `float`, indicating the lower boundary of joint position. Should
         be a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance, for a two
         degrees-of-freedom arm, we would have `n=2`.
-      pos_lower_bound: `Float`, `list` or `tuple`, indicating the lower boundary of joint position. Should
-        be a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance, for a two
+      vel_upper_bound: `Float` or `list` of `float`, indicating the upper boundary of joint velocity. Should
+        be a `n`-element vector, with `n` the number of joints of the skeleton. For instance, for a two
         degrees-of-freedom arm, we would have `n=2`.
-      vel_upper_bound: `Float`, `list` or `tuple`, indicating the upper boundary of joint velocity. Should
-        be a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance, for a two
-        degrees-of-freedom arm, we would have `n=2`.
-      vel_lower_bound: `Float`, `list` or `tuple`, indicating the lower boundary of joint velocity. Should
-        be a `n`-elements vector or list, with `n` the number of joints of the skeleton. For instance, for a two
+      vel_lower_bound: `Float` or `list` of `float`, indicating the lower boundary of joint velocity. Should
+        be a `n`-element vector, with `n` the number of joints of the skeleton. For instance, for a two
         degrees-of-freedom arm, we would have `n=2`.
     """
     
-    self.pos_upper_bound = Parameter(th.tensor(pos_upper_bound, dtype=th.float32).reshape(1, -1), requires_grad=False)
-    self.pos_lower_bound = Parameter(th.tensor(pos_lower_bound, dtype=th.float32).reshape(1, -1), requires_grad=False)
-    self.vel_upper_bound = Parameter(th.tensor(vel_upper_bound, dtype=th.float32).reshape(1, -1), requires_grad=False)
-    self.vel_lower_bound = Parameter(th.tensor(vel_lower_bound, dtype=th.float32).reshape(1, -1), requires_grad=False)
+    if pos_upper_bound is not None: self.pos_upper_bound.data = th.as_tensor(pos_upper_bound, dtype=th.float32, device=self.device).expand(self.dof)
+    if pos_lower_bound is not None: self.pos_lower_bound.data = th.as_tensor(pos_lower_bound, dtype=th.float32, device=self.device).expand(self.dof)
+    if vel_upper_bound is not None: self.vel_upper_bound.data = th.as_tensor(vel_upper_bound, dtype=th.float32, device=self.device).expand(self.dof)
+    if vel_lower_bound is not None: self.vel_lower_bound.data = th.as_tensor(vel_lower_bound, dtype=th.float32, device=self.device).expand(self.dof)
     self.dt = timestep
-    self.clip_position = self.clip_method
+    self.clip_position = lambda x: self.clip(x, self.pos_lower_bound, self.pos_upper_bound)
     self.built = True
 
-  def path2cartesian(self, path_coordinates, path_fixation_body, joint_state):
+  def path2cartesian(self, path_coordinates: th.Tensor, path_fixation_body: th.Tensor, joint_state: th.Tensor) -> tuple[th.Tensor, th.Tensor, th.Tensor]:
     """Transforms muscle paths into cartesian paths for each muscle's fixation points, given a joint configuration.
     This method is used by the wrapper :class:`motornet.plants.plants.Plant` object class or subclass to then
     calculate musculotendon complex length and velocity, as well as moment arms. See `[1]` for more details.
@@ -145,7 +137,7 @@ class Skeleton(th.nn.Module):
   def _path2cartesian(self, path_coordinates, path_fixation_body, joint_state):
     raise NotImplementedError
   
-  def integrate(self, dt: float, state_derivative, joint_state):
+  def integrate(self, dt: float, state_derivative: th.Tensor, joint_state: th.Tensor) -> th.Tensor:
     """Performs one integration step. This method is usually called by the
     :meth:`motornet.effector.Effector.integration_step` uring numerical integration by the
     :class:`motornet.effector.Effector` wrapper class or subclass.
@@ -166,7 +158,7 @@ class Skeleton(th.nn.Module):
   def _integrate(self, dt, state_derivative, joint_state):
     raise NotImplementedError
 
-  def joint2cartesian(self, joint_state):
+  def joint2cartesian(self, joint_state: th.Tensor) -> th.Tensor:
     """Computes the cartesian state given the joint state.
 
     Args:
@@ -180,7 +172,7 @@ class Skeleton(th.nn.Module):
   def _joint2cartesian(self, joint_state):
     raise NotImplementedError
 
-  def ode(self, inputs, joint_state, endpoint_load):
+  def ode(self, inputs: th.Tensor, joint_state: th.Tensor, endpoint_load: th.Tensor) -> th.Tensor:
     """Evaluates the Ordinary Differential Equation (ODE) function.
 
     Args:
@@ -197,7 +189,7 @@ class Skeleton(th.nn.Module):
   def _ode(self, inputs, joint_state, endpoint_load):
     raise NotImplementedError
 
-  def clip_velocity(self, pos, vel):
+  def clip_velocity(self, pos: th.Tensor, vel: th.Tensor) -> th.Tensor:
     """Clips the joint velocities input based on the velocity boundaries as well as the joint positions.
     Specifically, if a velocity is past the boundary values, it is set to the boundary value exactly. Then, if
     the position is past or equal to the position boundary, and the clipped velocity would result in moving further
@@ -224,8 +216,7 @@ class Skeleton(th.nn.Module):
     Returns:
       A `dictionary` containing the skeleton's degrees of freedom, timestep size, and space dimensionality.
     """
-    cfg = {'dof': self.dof, 'dt': str(self.dt), 'space_dim': self.space_dim}
-    return cfg
+    return {'dof': self.dof, 'dt': str(self.dt), 'space_dim': self.space_dim}
 
   def get_save_config(self):
     """Get the skeleton object's configuration as a `dictionary`. This method should be overwritten by subclass
@@ -247,7 +238,7 @@ class Skeleton(th.nn.Module):
     self.__setattr__(name, value)
 
   @property
-  def device(self):
+  def device(self) -> th.device:
     """Returns the device of the first parameter in the module or the 1st CPU device if no parameter is yet declared.
     The parameter search includes children modules.
     """
@@ -277,15 +268,15 @@ class PointMass(Skeleton):
     super().__init__(dof=space_dim, space_dim=space_dim, name=name, **kwargs)
     self.mass = mass
     # to speed up runtime during `self._path2cartesian` method
-    dpos_ddof = th.nn.functional.one_hot(th.arange(0, self.dof) % self.dof).to(th.float32)[None, :, :, None]
+    dpos_ddof = th.nn.functional.one_hot(th.arange(self.dof)).to(dtype=th.float32, device=self.device)[None, :, :, None]
     self.dpos_ddof = Parameter(dpos_ddof, requires_grad=False)
 
   def _ode(self, inputs, joint_state, endpoint_load):
-    return inputs + endpoint_load
+    return inputs + endpoint_load / self.mass  # _ode should return accelerations, not forces
 
   def _integrate(self, dt, state_derivative, joint_state):
     old_pos, old_vel = joint_state.chunk(2, dim=1)
-    new_vel = old_vel + state_derivative * dt / self.mass
+    new_vel = old_vel + state_derivative * dt
     new_pos = old_pos + old_vel * dt
     new_vel = self.clip_velocity(new_pos, new_vel)
     new_pos = self.clip_position(new_pos)
@@ -320,42 +311,34 @@ class TwoDofArm(Skeleton):
     name: `String`, the name of the skeleton.
     m1: `Float`, mass (kg) of the first bone.
     m2: `Float`, mass (kg) of the second bone.
-    l1g: `Float`, position of the center of gravity of the first bone (m).
-    l2g: `Float`, position of the center of gravity of the second bone (m).
-    i1: `Float`, inertia (kg.m^2) of the first bone.
-    i2: `Float`, inertia (kg.m^2) of the second bone.
-    l1: `Float`, length (m) of the first bone.
-    l2: `Float`, length (m) of the second bone.
-    **kwargs: All contents are passed to the parent :class:`Skeleton` base class. Also allows for some backward
-      compatibility.
+    L1g: `Float`, position of the center of gravity of the first bone (m).
+    L2g: `Float`, position of the center of gravity of the second bone (m).
+    I1: `Float`, inertia (kg.m^2) of the first bone.
+    I2: `Float`, inertia (kg.m^2) of the second bone.
+    L1: `Float`, length (m) of the first bone.
+    L2: `Float`, length (m) of the second bone.
+    viscosity: `Float`, viscosity.
+    **kwargs: All contents are passed to the parent :class:`Skeleton` base class.
   """
 
-  def __init__(self, name: str = 'two_dof_arm', m1: float = 1.864572, m2: float = 1.534315, l1g: float = 0.180496,
-         l2g: float = 0.181479, i1: float = 0.013193, i2: float = 0.020062, l1: float = 0.309,
-         l2: float = 0.26, viscosity: float = 0., **kwargs):
+  def __init__(self, name: str = 'two_dof_arm', m1: float = 1.864572, m2: float = 1.534315, L1g: float = 0.180496,
+         L2g: float = 0.181479, I1: float = 0.013193, I2: float = 0.020062, L1: float = 0.309,
+         L2: float = 0.26, viscosity: float = 0., **kwargs):
 
-    sho_limit = np.deg2rad([-0, 140])  # mechanical constraints - used to be -90 180
-    elb_limit = np.deg2rad([0, 160])
-    lb = [sho_limit[0], elb_limit[0]]
-    ub = [sho_limit[1], elb_limit[1]]
-    super().__init__(dof=2, space_dim=2, pos_lower_bound=lb, pos_upper_bound=ub, name=name, **kwargs)
+    bounds = th.deg2rad(th.as_tensor([
+      [0, 140],  # shoulder - used to be -90 180
+      [0, 160],  # elbow
+    ])).T
+    super().__init__(dof=2, space_dim=2, pos_lower_bound=bounds[0], pos_upper_bound=bounds[1], name=name, **kwargs)
 
     self.m1 = m1 # masses of arm links
     self.m2 = m2
-    self.L1g = kwargs.get('L1g', l1g)  # center of mass of the links
-    self.L2g = kwargs.get('L2g', l2g)
-    self.I1 = kwargs.get('I1', i1)  # moment of inertia around center of mass
-    self.I2 = kwargs.get('I2', i2)
-    self.L1 = kwargs.get('L1', l1)  # length of links
-    self.L2 = kwargs.get('L2', l2)
-
-    # for consistency with args & backward compatibility
-    self.l1g = self.L1g
-    self.l2g = self.L2g
-    self.i1 = self.I1
-    self.i2 = self.I2
-    self.l1 = self.L1
-    self.l2 = self.L2
+    self.L1g = L1g  # center of mass of the links
+    self.L2g = L2g
+    self.I1 = I1  # moment of inertia around center of mass
+    self.I2 = I2
+    self.L1 = L1  # length of links
+    self.L2 = L2
 
     # pre-compute values for mass, coriolis, and gravity matrices
     inertia_11_c = self.m1 * self.L1g ** 2 + self.I1 + self.m2 * (self.L2g ** 2 + self.L1 ** 2) + self.I2
@@ -363,10 +346,10 @@ class TwoDofArm(Skeleton):
     inertia_22_c = self.m2 * (self.L2g ** 2) + self.I2
     inertia_11_m = 2 * self.m2 * self.L1 * self.L2g
     inertia_12_m = self.m2 * self.L1 * self.L2g
-    inertia_c = np.array([[[inertia_11_c, inertia_12_c], [inertia_12_c, inertia_22_c]]]).astype(np.float32)
-    inertia_m = np.array([[[inertia_11_m, inertia_12_m], [inertia_12_m, 0.]]]).astype(np.float32)
-    self.inertia_m = Parameter(th.tensor(inertia_m.reshape((1, 2, 2)), dtype=th.float32), requires_grad=False)
-    self.inertia_c = Parameter(th.tensor(inertia_c.reshape((1, 2, 2)), dtype=th.float32), requires_grad=False)
+    inertia_c = th.tensor([[[inertia_11_c, inertia_12_c], [inertia_12_c, inertia_22_c]]], dtype=th.float32, device=self.device)
+    inertia_m = th.tensor([[[inertia_11_m, inertia_12_m], [inertia_12_m, 0.]]], dtype=th.float32, device=self.device)
+    self.inertia_m = Parameter(inertia_m, requires_grad=False)
+    self.inertia_c = Parameter(inertia_c, requires_grad=False)
 
     self.coriolis_1 = - self.m2 * self.L1 * self.L2g
     self.coriolis_2 = self.m2 * self.L1 * self.L2g
@@ -458,7 +441,7 @@ class TwoDofArm(Skeleton):
     # (path_fixation_body = 0), the shoulder angle if it is fixed on the upper arm (path_fixation_body = 1) and the
     # eblow angle if it is fixed on the forearm (path_fixation_body = 2).
     flat_path_fixation_body = path_fixation_body.reshape(-1)
-    ang = th.where(flat_path_fixation_body == 0., 0., th.where(flat_path_fixation_body == 1., -sho, -elb))
+    ang = th.where(flat_path_fixation_body == 0, 0., th.where(flat_path_fixation_body == 1, -sho, -elb))
     ca = th.cos(ang)
     sa = th.sin(ang)
 
@@ -467,18 +450,18 @@ class TwoDofArm(Skeleton):
     rot2 = th.concat([-sa, ca], dim=1).reshape(-1, 2, n_points)
 
     # derivative of each fixation point's position wrt the angle of the bone they are fixed on
-    dx_da = th.sum(-path_coordinates * rot2, dim=1, keepdims=True)
-    dy_da = th.sum(path_coordinates * rot1, dim=1, keepdims=True)
+    dx_da = th.sum(-path_coordinates * rot2, dim=1, keepdim=True)
+    dy_da = th.sum(path_coordinates * rot1, dim=1, keepdim=True)
 
     # Derivative of each fixation point's position wrt each angle
     # This is counter-intuitive but the derivative of any point wrt the shoulder angle (da1) is equal to the
     # derivative of that point wrt the angle of the bone they are actually fixed on (dx_da or dy_da), even if that
     # bone is the forearm and not the upper arm. However, if the bone is indeed the forearm, then an additional term
     # must be added (see below).
-    dx_da1 = th.where(path_fixation_body == 0., 0., dx_da) + th.where(path_fixation_body == 2., -elb_y, 0.)
-    dy_da1 = th.where(path_fixation_body == 0., 0., dy_da) + th.where(path_fixation_body == 2., elb_x, 0.)
-    dx_da2 = th.where(path_fixation_body == 2., dx_da, 0.)
-    dy_da2 = th.where(path_fixation_body == 2., dy_da, 0.)
+    dx_da1 = th.where(path_fixation_body == 0, 0., dx_da) + th.where(path_fixation_body == 2, -elb_y, 0.)
+    dy_da1 = th.where(path_fixation_body == 0, 0., dy_da) + th.where(path_fixation_body == 2, elb_x, 0.)
+    dx_da2 = th.where(path_fixation_body == 2, dx_da, 0.)
+    dy_da2 = th.where(path_fixation_body == 2, dy_da, 0.)
 
     dxy_da1 = th.concat([dx_da1, dy_da1], dim=1)
     dxy_da2 = th.concat([dx_da2, dy_da2], dim=1)
@@ -502,17 +485,17 @@ class TwoDofArm(Skeleton):
     cfg = self.get_base_config()
     cfg.update(
       {
-        'I1': self.detach(self.I1),
-        'I2': self.detach(self.I2),
-        'L1': self.detach(self.L1),
-        'L2': self.detach(self.L2),
-        'L1g': self.detach(self.L1g),
-        'L2g': self.detach(self.L2g),
-        'c_viscosity': self.detach(self.c_viscosity),
-        'coriolis_1': self.detach(self.coriolis_1),
-        'coriolis_2': self.detach(self.coriolis_2),
-        'm1': self.detach(self.m1),
-        'm2': self.detach(self.m2)
-        }
-       )
+        'I1': self.I1,
+        'I2': self.I2,
+        'L1': self.L1,
+        'L2': self.L2,
+        'L1g': self.L1g,
+        'L2g': self.L2g,
+        'c_viscosity': self.c_viscosity,
+        'coriolis_1': self.coriolis_1,
+        'coriolis_2': self.coriolis_2,
+        'm1': self.m1,
+        'm2': self.m2
+      }
+    )
     return cfg
