@@ -1,10 +1,11 @@
 import torch as th
-import numpy as np
-from typing import Union, Any
+from numpy.random import Generator, SeedSequence
+from typing import Any
+from collections.abc import Sequence
 from gymnasium.utils import seeding
 from torch.nn.parameter import Parameter
-from motornet.skeleton import TwoDofArm, PointMass
-from motornet.muscle import CompliantTendonHillMuscle, ReluMuscle
+from motornet.skeleton import TwoDofArm, PointMass, Skeleton
+from motornet.muscle import CompliantTendonHillMuscle, ReluMuscle, Muscle
 
 
 DEVICE = th.device("cpu")
@@ -43,24 +44,26 @@ class Effector(th.nn.Module):
     
   def __init__(
     self,
-    skeleton,
-    muscle,
+    skeleton: Skeleton,
+    muscle: Muscle,
     name: str = 'Effector',
     n_ministeps: int = 1,
     timestep: float = 0.01,
     integration_method: str = 'euler',
     damping: float = 0.,
-    pos_lower_bound: Union[float, list, tuple] = None,
-    pos_upper_bound: Union[float, list, tuple] = None,
-    vel_lower_bound: Union[float, list, tuple] = None,
-    vel_upper_bound: Union[float, list, tuple] = None,
+    pos_lower_bound: float | Sequence[float] | th.Tensor | None = None,
+    pos_upper_bound: float | Sequence[float] | th.Tensor | None = None,
+    vel_lower_bound: float | Sequence[float] | th.Tensor | None = None,
+    vel_upper_bound: float | Sequence[float] | th.Tensor | None = None,
+    device: th.device | None = None
   ):
     
     super().__init__()
 
     self.__name__ = name
-    self.damping = Parameter(th.tensor(damping, dtype=th.float32), requires_grad=False)
-    self.skeleton = skeleton.to(self.device)
+    device = self.device if device is None else device
+    self.damping = Parameter(th.tensor(damping, dtype=th.float32, device=device), requires_grad=False)
+    self.skeleton = skeleton.to(device)
     self.dof = self.skeleton.dof
     self.space_dim = self.skeleton.space_dim
     self.state_dim = self.skeleton.state_dim
@@ -70,43 +73,22 @@ class Effector(th.nn.Module):
     self.minidt = self.dt / self.n_ministeps
     self.half_minidt = self.minidt / 2  # to reduce online calculations for RK4 integration
     self.integration_method = integration_method.casefold()  # make string fully in lower case
-    self._np_random = None
     self.seed = None
 
-    # handle position & velocity ranges
-    pos_lower_bound = self.skeleton.pos_lower_bound if pos_lower_bound is None else pos_lower_bound
-    pos_upper_bound = self.skeleton.pos_upper_bound if pos_upper_bound is None else pos_upper_bound
-    vel_lower_bound = self.skeleton.vel_lower_bound if vel_lower_bound is None else vel_lower_bound
-    vel_upper_bound = self.skeleton.vel_upper_bound if vel_upper_bound is None else vel_upper_bound
-    pos_bounds = self._set_state_limit_bounds(lb=pos_lower_bound, ub=pos_upper_bound)
-    vel_bounds = self._set_state_limit_bounds(lb=vel_lower_bound, ub=vel_upper_bound)
-    pos_range = th.tensor(pos_bounds[:, 0] - pos_bounds[:, 1], dtype=th.float32)
-    vel_range = th.tensor(vel_bounds[:, 0] - vel_bounds[:, 1], dtype=th.float32)
-    
-    self.pos_upper_bound = pos_bounds[:, 1]
-    self.pos_lower_bound = pos_bounds[:, 0]
-    self.vel_upper_bound = vel_bounds[:, 1]
-    self.vel_lower_bound = vel_bounds[:, 0]
-    self.pos_range_bound = Parameter(pos_range, requires_grad=False)
-    self.vel_range_bound = Parameter(vel_range, requires_grad=False)
-
+    # build skeleton
     self.skeleton.build(
       timestep=self.dt,
-      pos_upper_bound=self.pos_upper_bound,
-      pos_lower_bound=self.pos_lower_bound,
-      vel_upper_bound=self.vel_upper_bound,
-      vel_lower_bound=self.vel_lower_bound,
+      pos_upper_bound=pos_upper_bound,
+      pos_lower_bound=pos_lower_bound,
+      vel_upper_bound=vel_upper_bound,
+      vel_lower_bound=vel_lower_bound,
     )
-
+    
     # initialize muscle system
-    self.muscle = muscle.to(self.device)
-    self.force_index = self.muscle.state_name.index('force')  # column index of muscle state containing output force
-    self.MusclePaths = []  # a list of all the muscle paths
+    self.muscle = muscle.to(device)
     self.n_muscles = 0
     self.input_dim = 0
     self.muscle_name = []
-    self.muscle_state_dim = self.muscle.state_dim
-    self.geometry_state_dim = 2 + self.dof  # musculotendon length & velocity + as many moments as dofs
     self.geometry_state_name = [
       'musculotendon length',
       'musculotendon velocity'
@@ -116,42 +98,33 @@ class Effector(th.nn.Module):
     self.tobuild__muscle = self.muscle.to_build_dict
     self.tobuild__default = self.muscle.to_build_dict_default
 
-    # these attributes hold numpy versions of the variables, which are easier to manipulate in the `build()` method
-    self._path_fixation_body = np.empty((1, 1, 0)).astype('float32')
-    self._path_coordinates = np.empty((1, self.skeleton.space_dim, 0)).astype('float32')
-    self._muscle_index = np.empty(0).astype('float32')
-    self._muscle_transitions = None
-    self._row_splits = None
-    # these attributes will hold tensor versions of the above
-    self.path_fixation_body = None
-    self.path_coordinates = None
-    self.muscle_index = None
-    self.muscle_transitions = None
-    self.row_splits = None
-    self.section_splits = None
+    # geometry Parameters
+    self.path_fixation_body = Parameter(th.empty((1, 1, 0), dtype=th.int, device=device), requires_grad=False)
+    self.path_coordinates = Parameter(th.empty((1, self.space_dim, 0), dtype=th.float32, device=device), requires_grad=False)
+    self.muscle_transitions = Parameter(th.empty((1, 1, 0), dtype=th.int, device=device), requires_grad=False)
+    self.section_splits = Parameter(th.empty(0, dtype=th.int, device=device), requires_grad=False)
     self._muscle_config_is_empty = True
 
-    self.default_endpoint_load = Parameter(th.zeros((1, self.skeleton.space_dim)), requires_grad=False)
-    self.default_joint_load = Parameter(th.zeros((1, self.skeleton.dof)), requires_grad=False)
+    self.default_endpoint_load = Parameter(th.zeros((1, self.space_dim), device=device), requires_grad=False)
+    self.default_joint_load = Parameter(th.zeros((1, self.dof), device=device), requires_grad=False)
     
     if self.integration_method == 'euler':
       self._integrate = self._euler
-    elif self.integration_method in ('rk4', 'rungekutta4', 'runge-kutta4', 'runge-kutta-4'):  # tuple faster than set
+    elif self.integration_method in ('rk4', 'rungekutta4', 'runge-kutta4', 'runge-kutta-4'):
       self._integrate = self._rungekutta4
     else:
       raise ValueError("Provided integration method not recognized : {}".format(self.integration_method))
     
-    self.states = {key: None for key in ["joint", "cartesian", "muscle", "geometry", "fingertip"]}
+    self.states: dict[str, th.Tensor] = {}
 
-  def step(self, action, **kwargs):
+  def step(self, action: th.Tensor, **kwargs):
     endpoint_load = kwargs.get('endpoint_load', self.default_endpoint_load)
     joint_load = kwargs.get('joint_load', self.default_joint_load)
 
-    action = action if th.is_tensor(action) else th.tensor(action, dtype=th.float32)
-    a = self.muscle.clip_activation(action)
+    action = self.muscle.clip_activation(action)
     
     for _ in range(self.n_ministeps):
-      self.integrate(a, endpoint_load, joint_load)
+      self.integrate(action, endpoint_load, joint_load)
 
   def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None):
     """Sets initial states (joint, cartesian, muscle, geometry) that are biomechanically compatible with each other.
@@ -173,16 +146,17 @@ class Effector(th.nn.Module):
     """
     # Initialize the RNG if the seed is manually passed
     if seed is not None:
-      self._np_random, self.seed = seeding.np_random(seed)
+      self._set_generator(seed)
 
     options = {} if options is None else options
     batch_size: int = options.get('batch_size', 1)
-    joint_state: th.Tensor | np.ndarray | None = options.get('joint_state', None)
+    joint_state: Sequence | th.Tensor | None = options.get('joint_state', None)
 
     if joint_state is not None:
-      joint_state_shape = np.shape(joint_state.cpu().detach().numpy())
-      if joint_state_shape[0] > 1:
-        batch_size = joint_state_shape[0]
+      joint_state = th.as_tensor(joint_state, dtype=th.float32, device=self.device)
+      if joint_state.ndim != 1 and joint_state.ndim != 2:
+        raise ValueError(f'`joint_state` should have 1 or 2 dimensions but has {joint_state.ndim}.')
+      batch_size = joint_state.shape[0] if joint_state.ndim == 2 and joint_state.shape[0] > 1 else batch_size
 
     joint0 = self._parse_initial_joint_state(joint_state=joint_state, batch_size=batch_size)
     geometry0 = self.get_geometry(joint0)
@@ -190,24 +164,30 @@ class Effector(th.nn.Module):
     states = {"joint": joint0, "muscle": muscle0, "geometry": geometry0}
 
     self._set_state(states)
+    self.batch_size = batch_size
+
+  def _set_generator(self, seed: int):
+    self.np_random = seeding.np_random(seed)[0]
 
   @property
-  def np_random(self) -> np.random.Generator:
+  def np_random(self) -> Generator:
     """Returns the environment's internal :attr:`_np_random` that if not set will initialise with a random seed.
 
     Returns:
-      Instances of `np.random.Generator`
+      Instances of `numpy.random.Generator`
     """
-    if self._np_random is None:
-      self._np_random, _ = seeding.np_random()
+    if not hasattr(self, '_np_random'):
+      self._np_random, self.seed = seeding.np_random()
     return self._np_random
 
   @np_random.setter
-  def np_random(self, rng: np.random.Generator):
+  def np_random(self, rng: Generator):
     self._np_random = rng
+    assert isinstance(rng.bit_generator.seed_seq, SeedSequence), f'Expected to find `numpy.random.SeedSequence` but found `{rng.bit_generator.seed_seq.__class__}`. Maybe a non-standard Generator is being used?'
+    self.seed = rng.bit_generator.seed_seq.entropy
 
   @property
-  def device(self):
+  def device(self) -> th.device:
     """Returns the device of the first parameter in the module or the 1st CPU device if no parameter is yet declared.
     The parameter search includes children modules.
     """
@@ -216,7 +196,7 @@ class Effector(th.nn.Module):
     except:
       return DEVICE
 
-  def add_muscle(self, path_fixation_body: list, path_coordinates: list, name: str = None, **kwargs):
+  def add_muscle(self, path_fixation_body: Sequence[int], path_coordinates: Sequence[Sequence[float]], name: str | None = None, **kwargs):
     """Adds a muscle to the effector.
 
     Args:
@@ -239,30 +219,26 @@ class Effector(th.nn.Module):
       TypeError: If an argument is missing to build the type of muscle specified at initialization.
     """
 
-    path_fixation_body = np.array(path_fixation_body).astype('float32').reshape((1, 1, -1))
-    n_points = path_fixation_body.size
-    path_coordinates = np.array(path_coordinates).astype('float32').T[np.newaxis, :, :]
-    assert path_coordinates.shape[1] == self.skeleton.space_dim
-    assert path_coordinates.shape[2] == n_points
+    # extract/format inputs
+    n_points = len(path_fixation_body)
     self.n_muscles += 1
     self.input_dim += self.muscle.input_dim
+    path_fixation_body_new = th.tensor(path_fixation_body, dtype=th.int, device=self.device).reshape(1, 1, -1)
+    path_coordinates_new = th.tensor(path_coordinates, dtype=th.float32, device=self.device).T[None, :, :]
+    if path_coordinates_new.shape[1] != self.space_dim:
+      raise ValueError(f'The model dimensionality is {self.space_dim}, but the `path_coordinates` argument is in {path_coordinates_new.shape[1]}d.')
+    if path_coordinates_new.shape[2] != n_points:
+      raise ValueError(f'Number of points in argument `path_fixation_body` ({n_points}) must match number in `path_coordinates` ({path_coordinates_new.shape[2]}).')
+    one, zeros = th.ones(1, dtype=th.int, device=self.device), th.zeros(n_points - 1, dtype=th.int, device=self.device)
+    muscle_transitions_new = (zeros if self.n_muscles == 1 else th.cat([one, zeros])).reshape(1, 1, -1)
+    section_splits_new = th.empty(1, dtype=th.int, device=self.device).fill_(n_points)
 
-    # path segments & coordinates should be a (batch_size * n_coordinates  * n_segments * (n_muscles * n_points)
-    self._path_fixation_body = np.concatenate([self._path_fixation_body, path_fixation_body], axis=-1)
-    self._path_coordinates = np.concatenate([self._path_coordinates, path_coordinates], axis=-1)
-    self._muscle_index = np.hstack([self._muscle_index, np.tile(np.max(self.n_muscles), [n_points])])
-    # indexes where the next item is from a different muscle, to indicate when their difference is meaningless
-    self._muscle_transitions = np.diff(self._muscle_index.reshape((1, 1, -1))) == 1.
-    # to create the ragged tensors when collapsing each muscle's segment values
-    n_total_points = np.array([len(self._muscle_index)])
-    self._row_splits = np.concatenate([np.zeros(1), np.diff(self._muscle_index).nonzero()[0] + 1, n_total_points-1])
-
-    self.path_fixation_body = Parameter(th.tensor(self._path_fixation_body, dtype=th.float32), requires_grad=False)
-    self.path_coordinates = Parameter(th.tensor(self._path_coordinates, dtype=th.float32), requires_grad=False)
-    self.muscle_index = Parameter(th.tensor(self._muscle_index, dtype=th.float32), requires_grad=False)
-    self.muscle_transitions = Parameter(th.tensor(self._muscle_transitions, dtype=th.bool), requires_grad=False)
-    self.row_splits = Parameter(th.tensor(self._row_splits, dtype=th.float32), requires_grad=False)
-    self.section_splits = np.diff(self._row_splits).astype(int).tolist()
+    # update Parameters
+    for param, new_data in zip(
+      [self.path_fixation_body, self.path_coordinates, self.muscle_transitions, self.section_splits],
+      [path_fixation_body_new, path_coordinates_new, muscle_transitions_new, section_splits_new]
+    ):
+      param.data = th.cat([param.data, new_data], dim=-1)
 
     # kwargs loop
     for key, val in kwargs.items():
@@ -282,7 +258,7 @@ class Effector(th.nn.Module):
     self.muscle_name.append(name)
     self._muscle_config_is_empty = False
 
-  def get_muscle_cfg(self):
+  def get_muscle_cfg(self) -> dict[str, Any]:
     """Gets the wrapping configuration of muscles added through the :meth:`add_muscle` method.
 
     Returns:
@@ -291,13 +267,15 @@ class Effector(th.nn.Module):
     """
 
     cfg = {}
-    for m in range(self.n_muscles):
-      ix = np.where(self._muscle_index == (m + 1))[0]
-
+    for m, (n_points, fixation_body, coordinates) in enumerate(zip(
+      self.section_splits,
+      self.path_fixation_body.split(self.section_splits, dim=-1),
+      self.path_coordinates.split(self.section_splits, dim=-1)
+    )):
       d = {
-        "n_fixation_points": len(ix),
-        "fixation body": [int(k) for k in self._path_fixation_body.squeeze()[ix].tolist()],
-        "coordinates": [self._path_coordinates.squeeze()[:, k].tolist() for k in ix],
+        "n_fixation_points": n_points,
+        "fixation body": fixation_body.squeeze().tolist(),
+        "coordinates": coordinates.squeeze().T.tolist(),
       }
 
       if not self._muscle_config_is_empty:
@@ -325,7 +303,7 @@ class Effector(th.nn.Module):
           print(key + ": ", param)
       print("\n")
 
-  def get_geometry(self, joint_state):
+  def get_geometry(self, joint_state: th.Tensor) -> th.Tensor:
     """Computes the geometry state from the joint state.
     Geometry state dimensionality is `[n_batch, n_timesteps, n_states, n_muscles]`. By default, there are as many
     states as there are moments (that is, one per degree of freedom in the effector) plus two for musculotendon length
@@ -341,7 +319,7 @@ class Effector(th.nn.Module):
     """
     return self._get_geometry(joint_state)
 
-  def _get_geometry(self, joint_state):
+  def _get_geometry(self, joint_state: th.Tensor) -> th.Tensor:
     # dxy_ddof --> (n_batches, n_dof, n_dof, n_points)
     xy, dxy_dt, dxy_ddof = self.skeleton.path2cartesian(self.path_coordinates, self.path_fixation_body, joint_state)
     diff_pos = xy[:, :, 1:] - xy[:, :, :-1]
@@ -351,15 +329,15 @@ class Effector(th.nn.Module):
     # length, velocity and moment of each path segment
     # -----------------------
     # segment length is just the euclidian distance between the two points
-    segment_len = th.sqrt(th.sum(diff_pos ** 2, dim=1, keepdims=True))
+    segment_len = (diff_pos**2).sum(dim=1, keepdim=True)**0.5
     # segment velocity is trickier: we are not after radial velocity but relative velocity.
     # https://math.stackexchange.com/questions/1481701/time-derivative-of-the-distance-between-2-points-moving-over-time
     # Formally, if segment_len=0 then segment_vel is not defined. We could substitute with 0 here because a
     # muscle segment will never flip backward, so the velocity can only be positive afterwards anyway.
     # segment_vel = tf.where(segment_len == 0, tf.zeros(1), segment_vel)
-    segment_vel = th.sum(diff_pos * diff_vel / segment_len, axis=1, keepdims=True)
+    segment_vel = (diff_pos * diff_vel / segment_len).sum(dim=1, keepdim=True)
     # for moment arm calculation, see Sherman, Seth, Delp (2013) -- DOI:10.1115/DETC2013-13633
-    segment_moments = th.sum(diff_ddof * diff_pos[:, :, None], axis=1) / segment_len
+    segment_moments = (diff_ddof * diff_pos[:, :, None]).sum(dim=1) / segment_len
 
     # remove differences between points that don't belong to the same muscle
     segment_len_cleaned = th.where(self.muscle_transitions, 0., segment_len)
@@ -394,7 +372,7 @@ class Effector(th.nn.Module):
     self.states["cartesian"] = self.joint2cartesian(joint_state=states["joint"])
     self.states["fingertip"] = self.states["cartesian"].chunk(2, dim=-1)[0]
 
-  def integrate(self, action, endpoint_load, joint_load):
+  def integrate(self, action: th.Tensor, endpoint_load: th.Tensor, joint_load: th.Tensor):
     """Integrates the effector over one timestep. To do so, it first calls the :meth:`update_ode` method to obtain
     state derivatives from evaluation of the Ordinary Differential Equations. Then it performs the numerical
     integration over one timestep using the :meth:`integration_step` method, and updates the states to the
@@ -427,7 +405,7 @@ class Effector(th.nn.Module):
     states = self.integration_step(self.minidt, state_derivative=k, states=states0)
     self._set_state(states)
 
-  def integration_step(self, dt, state_derivative, states):
+  def integration_step(self, dt: float, state_derivative: dict[str, th.Tensor], states: dict[str, th.Tensor]) -> dict[str, th.Tensor]:
     """Performs one numerical integration step for the :class:`motornet.muscle.Muscle` object class or
     subclass, and then for the :class:`motornet.skeleton.Skeleton` object class or subclass.
 
@@ -449,7 +427,7 @@ class Effector(th.nn.Module):
     new_states["geometry"] = self.get_geometry(new_states["joint"])
     return new_states
 
-  def ode(self, action, states, endpoint_load, joint_load):
+  def ode(self, action: th.Tensor, states: dict[str, th.Tensor], endpoint_load: th.Tensor, joint_load: th.Tensor) -> dict[str, th.Tensor]:
     """Computes state derivatives by evaluating the Ordinary Differential Equations of the
     ``motornet.muscle.Muscle`` object class or subclass, and then of the
     :class:`motornet.skeleton.Skeleton` object class or subclass.
@@ -468,7 +446,8 @@ class Effector(th.nn.Module):
     """
 
     moments = states["geometry"][:, 2:, :]
-    forces = states["muscle"][:, self.force_index:self.force_index+1, :]
+    force_index = self.muscle.state_name.index('force')  # column index of muscle state containing output force
+    forces = states["muscle"][:, force_index:force_index + 1, :]
     joint_vel = states["joint"].chunk(2, dim=-1)[-1]
 
     generalized_forces = - th.sum(forces * moments, dim=-1) + joint_load - self.damping * joint_vel
@@ -479,7 +458,7 @@ class Effector(th.nn.Module):
       }
     return state_derivative
 
-  def draw_random_uniform_states(self, batch_size):
+  def draw_random_uniform_states(self, batch_size: int) -> th.Tensor:
     """Draws joint states according to a random uniform distribution, bounded by the position and velocity boundary
     attributes defined at initialization.
 
@@ -490,30 +469,23 @@ class Effector(th.nn.Module):
       A `tensor` containing `batch_size` joint states.
     """
     sz = (batch_size, self.dof)
-    rnd = th.tensor(self.np_random.uniform(size=sz), dtype=th.float32).to(self.device)
-    pos = self.pos_range_bound * rnd + self.skeleton.pos_upper_bound
-    vel = th.zeros(sz).to(self.device)
+    rnd = th.tensor(self.np_random.uniform(size=sz), dtype=th.float32, device=self.device)
+    pos = (self.skeleton.pos_upper_bound - self.skeleton.pos_lower_bound) * rnd + self.skeleton.pos_lower_bound
+    vel = th.zeros_like(pos)
     return th.cat([pos, vel], dim=1)
 
-  def _parse_initial_joint_state(self, joint_state, batch_size):
+  def _parse_initial_joint_state(self, joint_state: th.Tensor | None, batch_size: int) -> th.Tensor:
     if joint_state is None:
-      joint0 = self.draw_random_uniform_states(batch_size=batch_size)
+      return self.draw_random_uniform_states(batch_size=batch_size)
+    elif joint_state.shape[-1] == self.state_dim:
+      position, velocity = joint_state.chunk(2, dim=-1)
+      return self.draw_fixed_states(position=position, velocity=velocity, batch_size=batch_size)
+    elif joint_state.shape[-1] == self.state_dim // 2:
+      return self.draw_fixed_states(position=joint_state, batch_size=batch_size)
     else:
-      joint_state_shape = np.shape(joint_state.cpu().detach().numpy())
-      if joint_state_shape[0] > 1:
-        batch_size = 1
-      n_state = joint_state.shape[1]
-      if n_state == self.state_dim:
-        position, velocity = joint_state.chunk(2, dim=-1)
-        joint0 = self.draw_fixed_states(position=position, velocity=velocity, batch_size=batch_size)
-      elif n_state == int(self.state_dim / 2):
-        joint0 = self.draw_fixed_states(position=joint_state, batch_size=batch_size)
-      else:
-        raise ValueError
+      raise ValueError(f'Allowable state dimensions are {self.state_dim} and {self.state_dim // 2} but `joint_state` state dimension is {joint_state.shape[-1]}.')
 
-    return joint0
-
-  def draw_fixed_states(self, batch_size, position, velocity=None):
+  def draw_fixed_states(self, batch_size: int, position: th.Tensor, velocity: th.Tensor | None = None) -> th.Tensor:
     """Creates a joint state `tensor` corresponding to the specified position, tiled `batch_size` times.
 
     Args:
@@ -525,34 +497,15 @@ class Effector(th.nn.Module):
       A `tensor` containing `batch_size` joint states.
     """
     if velocity is None:
-      velocity = np.zeros_like(position)
-    # in case input is a list, a numpy array or a tensor
-    pos = position.cpu().detach().numpy() if th.is_tensor(position) else np.array(position)
-    vel = velocity.cpu().detach().numpy() if th.is_tensor(velocity) else np.array(velocity)
-    if len(pos.shape) == 1:
-        pos = pos.reshape((1, -1))
-    if len(vel.shape) == 1:
-        vel = vel.reshape((1, -1))
+      velocity = th.zeros_like(position)
 
-    assert pos.shape == vel.shape
-    assert pos.shape[1] == self.dof
-    assert len(pos.shape) == 2
-    assert np.all(pos >= self.pos_lower_bound)
-    assert np.all(pos <= self.pos_upper_bound)
-    assert np.all(vel >= self.vel_lower_bound)
-    assert np.all(vel <= self.vel_upper_bound)
+    if (position < self.skeleton.pos_lower_bound).any() or (position > self.skeleton.pos_upper_bound).any():
+      raise ValueError(f'Position {position} should be between {self.skeleton.pos_lower_bound} and {self.skeleton.pos_upper_bound}')
+    if (velocity < self.skeleton.vel_lower_bound).any() or (velocity > self.skeleton.vel_upper_bound).any():
+      raise ValueError(f'Velocity {velocity} should be between {self.skeleton.vel_lower_bound} and {self.skeleton.vel_upper_bound}')
 
-    vel = th.tensor(vel, dtype=th.float32).to(self.device)
-    pos = th.tensor(pos, dtype=th.float32).to(self.device)
-    states = th.cat([pos, vel], dim=1)
-    return states.repeat(batch_size, 1)
-
-  def _set_state_limit_bounds(self, lb, ub):
-    lb = np.array(lb).reshape((-1, 1)).astype(np.float32)  # ensure this is a 2D array
-    ub = np.array(ub).reshape((-1, 1)).astype(np.float32)
-    bounds = np.hstack((lb, ub))
-    bounds = bounds * np.ones((self.dof, 2)).astype(np.float32)  # if one bound pair, broadcast to dof rows
-    return bounds
+    states = th.cat((position, velocity), dim=-1)
+    return states.expand(batch_size, self.state_dim)
 
   def get_save_config(self):
     """Gets the effector object's configuration as a `dictionary`.
@@ -607,14 +560,14 @@ class Effector(th.nn.Module):
     # kwargs loop
     for key, val in muscle_kwargs.items():
       if key in self.tobuild__muscle.keys():
-        self.tobuild__muscle[key].append(val)
+        self.tobuild__muscle[key] = val
       else:
         raise KeyError('Unexpected key "' + key + '" in muscle_kwargs argument.')
       
-    for key, val in self.tobuild__muscle.items():
+    for key, val in self.tobuild__default.items():
       # if not added in the kwargs loop
-      if len(val) == 0 and key in self.tobuild__default.keys():
-        self.tobuild__muscle[key].append(self.tobuild__default[key])
+      if key not in muscle_kwargs:
+        self.tobuild__muscle[key] = val
 
 
 class ReluPointMass24(Effector):
@@ -658,12 +611,12 @@ class RigidTendonArm26(Effector):
 
   - `m1 = 1.82`
   - `m2 = 1.43`
-  - `l1g = 0.135`
-  - `l2g = 0.165`
-  - `i1 = 0.051`
-  - `i2 = 0.057`
-  - `l1 = 0.309`
-  - `l2 = 0.333`
+  - `L1g = 0.135`
+  - `L2g = 0.165`
+  - `I1 = 0.051`
+  - `I2 = 0.057`
+  - `L1 = 0.309`
+  - `L2 = 0.333`
 
   The default shoulder and elbow lower limits are defined as `0`, and their default upper limits as `135` and `155`
   degrees, respectively.
@@ -688,14 +641,16 @@ class RigidTendonArm26(Effector):
       compatibility.
   """
 
-  def __init__(self, muscle, skeleton=None, timestep=0.01, muscle_kwargs: dict = {}, **kwargs):
-    sho_limit = np.deg2rad([0, 135])  # mechanical constraints - used to be -90 180
-    elb_limit = np.deg2rad([0, 155])
-    pos_lower_bound = kwargs.pop('pos_lower_bound', [sho_limit[0], elb_limit[0]])
-    pos_upper_bound = kwargs.pop('pos_upper_bound', [sho_limit[1], elb_limit[1]])
+  def __init__(self, muscle: Muscle, skeleton: Skeleton | None = None, timestep=0.01, muscle_kwargs: dict = {}, **kwargs):
+    bounds = th.deg2rad(th.as_tensor([
+      [0, 135],  # shoulder - used to be -90 180
+      [0, 155],  # elbow
+    ])).T
+    pos_lower_bound = kwargs.pop('pos_lower_bound', bounds[0])
+    pos_upper_bound = kwargs.pop('pos_upper_bound', bounds[1])
 
     if skeleton is None:
-      skeleton = TwoDofArm(m1=1.82, m2=1.43, l1g=.135, l2g=.165, i1=.051, i2=.057, l1=.309, l2=.333)
+      skeleton = TwoDofArm(m1=1.82, m2=1.43, L1g=.135, L2g=.165, I1=.051, I2=.057, L1=.309, L2=.333)
 
     super().__init__(
       skeleton=skeleton,
@@ -706,8 +661,6 @@ class RigidTendonArm26(Effector):
       **kwargs)
 
     # build muscle system
-    self.muscle_state_dim = self.muscle.state_dim
-    self.geometry_state_dim = 2 + self.skeleton.dof  # musculotendon length & velocity + as many moments as dofs
     self.n_muscles = 6
     self.input_dim = self.n_muscles
 
@@ -724,18 +677,18 @@ class RigidTendonArm26(Effector):
     a0 = [0.151, 0.2322, 0.2859, 0.2355, 0.3329, 0.2989]
     a1 = [-.03, .03, 0, 0, -.03, .03, 0, 0, -.014, .025, -.016, .03]
     a2 = [0, 0, 0, 0, 0, 0, 0, 0, -4e-3, -2.2e-3, -5.7e-3, -3.2e-3]
-    a3 = [np.pi / 2, 0.]
-    self.a0 = Parameter(th.tensor(np.array(a0).reshape((1, 1, 6)), dtype=th.float32), requires_grad=False)
-    self.a1 = Parameter(th.tensor(np.array(a1).reshape((1, 2, 6)), dtype=th.float32), requires_grad=False)
-    self.a2 = Parameter(th.tensor(np.array(a2).reshape((1, 2, 6)), dtype=th.float32), requires_grad=False)
-    self.a3 = Parameter(th.tensor(np.array(a3).reshape((1, 2, 1)), dtype=th.float32), requires_grad=False)
+    a3 = [th.pi / 2, 0]
+    self.a0 = Parameter(th.tensor(a0, dtype=th.float32, device=self.device).reshape(1, 1, 6), requires_grad=False)
+    self.a1 = Parameter(th.tensor(a1, dtype=th.float32, device=self.device).reshape(1, 2, 6), requires_grad=False)
+    self.a2 = Parameter(th.tensor(a2, dtype=th.float32, device=self.device).reshape(1, 2, 6), requires_grad=False)
+    self.a3 = Parameter(th.tensor(a3, dtype=th.float32, device=self.device).reshape(1, 2, 1), requires_grad=False)
 
   def _get_geometry(self, joint_state):
     old_pos, old_vel = joint_state[:, :, None].chunk(2, dim=1)
     old_pos = old_pos - self.a3
     moment_arm = old_pos * self.a2 * 2 + self.a1
-    musculotendon_len = th.sum((self.a1 + old_pos * self.a2) * old_pos, dim=1, keepdims=True) + self.a0
-    musculotendon_vel = th.sum(old_vel * moment_arm, dim=1, keepdims=True)
+    musculotendon_len = th.sum((self.a1 + old_pos * self.a2) * old_pos, dim=1, keepdim=True) + self.a0
+    musculotendon_vel = th.sum(old_vel * moment_arm, dim=1, keepdim=True)
     return th.cat([musculotendon_len, musculotendon_vel, moment_arm], dim=1)
 
 
@@ -753,29 +706,25 @@ class CompliantTendonArm26(RigidTendonArm26):
       allows for some backward compatibility.
   """
 
-  def __init__(self, timestep=0.0002, skeleton=None, muscle_kwargs: dict = {}, **kwargs):
+  def __init__(self, timestep=0.0002, skeleton: Skeleton | None = None, muscle_kwargs: dict = {}, **kwargs):
     integration_method = kwargs.pop('integration_method', 'rk4')
     if skeleton is None:
-      skeleton = TwoDofArm(m1=1.82, m2=1.43, l1g=.135, l2g=.165, i1=.051, i2=.057, l1=.309, l2=.333)
+      skeleton = TwoDofArm(m1=1.82, m2=1.43, L1g=.135, L2g=.165, I1=.051, I2=.057, L1=.309, L2=.333)
       # skeleton = TwoDofArm(m1=2.10, m2=1.65, L1g=.146, L2g=.179, I1=.024, I2=.025, L1=.335, L2=.263)
 
     super().__init__(
       muscle=CompliantTendonHillMuscle(),
       skeleton=skeleton,
       timestep=timestep,
+      muscle_kwargs=muscle_kwargs,
       integration_method=integration_method,
       **kwargs)
 
     # build muscle system
-    self._merge_muscle_kwargs(muscle_kwargs)
-
-    self.tobuild__muscle['max_isometric_force'] = [838, 1207, 1422, 1549, 414, 603]
     self.tobuild__muscle['tendon_length'] = [0.070, 0.070, 0.172, 0.187, 0.204, 0.217]
-    self.tobuild__muscle['optimal_muscle_length'] = [0.134, 0.140, 0.092, 0.093, 0.137, 0.127]
-
     self.muscle.build(timestep=timestep, **self.tobuild__muscle)
 
     # Adjust some parameters to relax overly stiff tendon values.
     # This should greatly help with stability during numerical integration.
     a0 = [0.182, 0.2362, 0.2859, 0.2355, 0.3329, 0.2989]
-    self.a0 = Parameter(th.tensor(np.array(a0).reshape((1, 1, 6)), dtype=th.float32), requires_grad=False)
+    self.a0 = Parameter(th.tensor(a0, dtype=th.float32, device=self.device).reshape(1, 1, 6), requires_grad=False)
