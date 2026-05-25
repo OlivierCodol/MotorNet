@@ -32,7 +32,7 @@ There is no third-party software required to run MotorNet. However, some freely 
 - [PyTorch](https://pytorch.org/docs/stable/torch.html): MotorNet relies on PyTorch to create tensors and build the 
 graph.
 - [NumPy](https://numpy.org/): For array and matrix computations when not using tensors.
-- [Gymnasium](https://numpy.org/): `motornet` environments inherit from `gymnasium` environments.
+- [Gymnasium](https://gymnasium.farama.org/): `motornet` environments inherit from `gymnasium` environments.
 - [Matplotlib](https://matplotlib.org/): For plotting utilities, mainly in the 
 `plotor.py` module.
 

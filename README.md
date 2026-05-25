@@ -59,7 +59,7 @@ If you are running the current development release (version 0.2.0), the requirem
 - [PyTorch](https://pytorch.org/docs/stable/torch.html): MotorNet relies on PyTorch to create tensors and build the 
 graph.
 - [NumPy](https://numpy.org/): For array and matrix computations when not using tensors.
-- [Gymnasium](https://numpy.org/): `motornet` environments are child classes of `gymnasium` environments.
+- [Gymnasium](https://gymnasium.farama.org/): `motornet` environments are child classes of `gymnasium` environments.
 - [Matplotlib](https://matplotlib.org/): For plotting utilities, mainly in the 
 [plotor](https://github.com/OlivierCodol/MotorNet/blob/master/motornet/plotor.py) module.
 
@@ -96,22 +96,22 @@ who wish to consult them. They will remain available for the foreseeable future.
 
 If you use MotorNet in your research, please cite the following paper:
 
-> Codol O, Michaels JA, Kashefi M, Pruszynski JA, Gribble PL (2023). MotorNet: a Python toolbox for controlling differentiable biomechanical effectors with artificial neural networks. *eLife* 12:RP88591. https://doi.org/10.7554/eLife.88591.3
+> Codol O, Michaels JA, Kashefi M, Pruszynski JA, Gribble PL (2024). MotorNet, a Python toolbox for controlling differentiable biomechanical effectors with artificial neural networks. *eLife* 12:RP88591. https://doi.org/10.7554/eLife.88591
 
 BibTeX:
 
 ```bibtex
 @article{Codol_2024,
-  title     = {MotorNet: a Python toolbox for controlling differentiable biomechanical effectors with artificial neural networks},
+  title     = {MotorNet, a Python toolbox for controlling differentiable biomechanical effectors with artificial neural networks},
   author    = {Codol, Olivier and Michaels, Jonathan A and Kashefi, Mehrdad and Pruszynski, J Andrew and Gribble, Paul L},
   journal   = {eLife},
   volume    = {12},
-  pages     = {RP88591},
   year      = {2024},
-  month     = {July},
+  month     = {jul},
+  pages     = {RP88591},
+  doi       = {10.7554/eLife.88591},
+  url       = {https://doi.org/10.7554/eLife.88591},
   publisher = {eLife Sciences Publications, Ltd},
-  doi       = {10.7554/eLife.88591.3},
-  url       = {https://doi.org/10.7554/eLife.88591.3}
 }
 ```
 

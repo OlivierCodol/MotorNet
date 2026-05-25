@@ -11,6 +11,52 @@
 -->
 
 
+### <font size="4">Version 0.3.0</font>
+*2026, May 25th*
+
+This update adds two new effector classes, a unit test suite, bug fixes, and code quality improvements including type hints, descriptive error messages,
+and decoupling of the `Environment` initialization from the `reset()` call.
+
+- Added a `Reacher` effector class. This is a four-muscle two-degree-of-freedom arm (`TwoDofArm`) with constant
+moment arms, where shoulder flexor/extensor and elbow flexor/extensor are each represented by a single muscle.
+This provides a minimal, interpretable model of planar arm reaching.
+
+- Added a `FreePointMass24` effector class. This is a four-muscle two-dimensional point mass where each muscle
+drives the mass along one cardinal direction (right, up, left, down), with constant moment arms. It extends the
+existing `ReluPointMass24` class with no pathing geometry.
+
+- Added a unit test suite covering effector construction and simulation (`test_effector.py`,
+`test_simulation.py`), environment properties and spaces (`test_environment.py`), and non-differentiable
+(reinforcement learning) mode including reward shape, numpy output, multi-episode cycling, action noise,
+and deterministic seeding.
+
+- Fixed a bug where independent sensory noise channels were correlated due to incorrect sampling. Noise is
+now correctly decorrelated across channels. Thanks to Chris Versteeg for finding and fixing this!
+
+- Fixed incorrect parsing of list-valued arguments passed to muscle constructors, which could silently produce
+wrong parameter shapes.
+
+- Fixed `Environment` initialization dependence on `reset()`. Previously, `_build_spaces()` called
+`self.reset()` via virtual dispatch, causing subclass `reset()` to run during the parent `__init__()`. This
+has been replaced by an analytical `_get_obs_size()` method. A `UserWarning` is now issued at class definition
+time if a subclass overrides `get_obs()` without also overriding `_get_obs_size()`.
+
+- Improved device management by overriding `nn.Module.to()` to ensure all internal tensors and sub-modules
+are correctly moved when calling `.to(device)`. Thanks to Jonathan Cornford for flagging this issue!
+
+- Gradient-free parameters (e.g., moment arm matrices, geometry constants) have been moved from
+`nn.Parameter(requires_grad=False)` to `register_buffer`, which is the idiomatic PyTorch approach for
+constant tensors that should participate in device and dtype management without accumulating gradients.
+
+- Replaced bare `assert` statements throughout the codebase with descriptive `raise` statements. This provides
+clearer error messages when invalid arguments are passed.
+
+- Added type hints to the public API for improved IDE support and static analysis.
+
+- Applied PEP8 formatting and style fixes across the codebase, including standardizing all tensor concatenation
+calls to `torch.cat` and removing non-standard import aliases.
+
+
 ### <font size="4">Version 0.2.0</font>
 *2024, January 4th*
 
