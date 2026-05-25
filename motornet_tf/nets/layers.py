@@ -159,6 +159,7 @@ class Network(Layer):
 
     @classmethod
     def from_config(cls, config):
+        """Creates an instance from its config dictionary."""
         return cls(**config)
 
     def call(self, inputs, states=None, **kwargs):

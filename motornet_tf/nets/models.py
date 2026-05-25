@@ -135,6 +135,7 @@ class DistalTeacher(tf.keras.Model, ABC):
 
     @classmethod
     def from_config(cls, config, custom_objects=None):
+        """Creates an instance from its config dictionary."""
         return cls(**config)
 
 
